@@ -7,10 +7,7 @@ export default defineEventHandler(async (event) => {
         baseUrl: config.redmineUrl,
         token: config.redmineToken,
     }
-
-    //GET https://www.REDACTED/redmine/projects/858/versions.json HTTP/1.1
-    //X-Redmine-API-Key: REDACTED
-
+    
     const response = await fetch(`${param.baseUrl}/projects/858/versions.json`, {
         headers: {
             'X-Redmine-API-Key': param.token
