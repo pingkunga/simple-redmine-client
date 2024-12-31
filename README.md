@@ -1,3 +1,8 @@
+# Simple Redmine Client
+
+A simple redmine client to manange redmine data via REST API https://www.redmine.org/projects/redmine/wiki/Rest_api
+Develop with Nuxt3 + vuetify
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
@@ -75,3 +80,4 @@ bun run preview
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
 bun add vuetify vite-plugin-vuetify sass
+bun add axios
