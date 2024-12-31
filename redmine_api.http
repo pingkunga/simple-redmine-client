@@ -1,0 +1,52 @@
+@baseUrl = https://www.sampleredmine.co.th/redmine
+@apiKey = YOUR_API_KEY
+@projectId = 858
+@versionId = 5164
+
+#### GET LIST VERSION
+GET {{baseUrl}}/projects/{{projectId}}/versions.json HTTP/1.1
+X-Redmine-API-Key: {{apiKey}}
+
+### GET VERSION BY ID
+GET {{baseUrl}}/versions/{{versionId}}.json HTTP/1.1
+X-Redmine-API-Key: {{apiKey}}
+
+### ADD VERSION
+POST {{baseUrl}}/projects/{{projectId}}/versions.json HTTP/1.1
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
+
+{
+  "version": {
+    "name": "9.9.9.14",
+    "status": "open",
+    "sharing": "tree",
+    "due_date": "2023-03-19",
+    "description": "Internal version for QA/UAT ห้ามนำไปขึ้นให้ลูกค้าใช้งานจริง"
+  }
+}
+
+### UPDATE VERSION
+PUT {{baseUrl}}/versions/5331.json HTTP/1.1
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
+
+{
+  "version": {
+    "status": "open",
+    "sharing": "tree",
+    "due_date": "2023-03-19",
+    "description": "Internal 1version for QA/UAT ห้ามนำไปขึ้นให้ลูกค้าใช้งานจริง"
+  }
+}
+
+###GET ISSUE BY ISSUE ID {{baseUrl}}/issues/[id].[format]
+GET {{baseUrl}}/issues/350550.json
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
+
+
+###GET ISSUE BY VESION ID (fixed_version)
+GET {{baseUrl}}/issues.json?fixed_version_id=6032&status_id=* HTTP/1.1
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
