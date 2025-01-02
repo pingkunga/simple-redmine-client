@@ -10,11 +10,14 @@
     return-object
     chips
     clearable
-    :allow-new="false"
     @keyup.enter="handleGetIssuesByVersion"
   ></v-combobox>
   <!-- <pre>{{ selectedVersions }}</pre> -->
-  <v-data-table :headers="headers" :items="IssuesByVersions"></v-data-table>
+  <v-data-table
+    :headers="headers"
+    :items="IssuesByVersions"
+    :group-by="groupBy"
+  ></v-data-table>
 </template>
 
 <script setup lang="ts">
@@ -46,7 +49,12 @@ const handleGetIssuesByVersion = async () => {
   console.log(IssuesByVersions);
   IssuesByVersions.value = data.value ?? [];
 };
-
+const groupBy = [
+  {
+    key: "versionName",
+    order: "asc" as const,
+  },
+];
 // Define the headers for the v-data-table, excluding the id field
 const headers = [
   { title: "#", key: "id" },
