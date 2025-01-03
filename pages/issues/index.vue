@@ -3,12 +3,14 @@
   <v-combobox
     multiple
     v-model="selectedVersions"
+    @update:model-value="updateSelectedItem"
     :items="versions"
     item-title="name"
     item-value="id"
     label="Selected Versions"
     return-object
     chips
+    closable-chips
     clearable
     @keyup.enter="handleGetIssuesByVersion"
   ></v-combobox>
@@ -37,6 +39,19 @@ const IssuesByVersions = ref<Issue[]>([]);
 const selectedVersionIds = computed(() => {
   return selectedVersions.value.map((version) => version.id).join(", ");
 });
+
+const updateSelectedItem = (values: (string | Version)[]) => {
+  //check select item is type Version or not
+  //split values into string and Version
+  const selectedItems = values.map((value) => {
+    if (typeof value === "string") {
+      return versions.find((item) => item.name === value.trim());
+    }
+    return value;
+  });
+
+  selectedVersions.value = selectedItems.filter((item) => item) as Version[];
+};
 
 //get issue by version
 const handleGetIssuesByVersion = async () => {
