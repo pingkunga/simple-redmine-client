@@ -13,7 +13,7 @@
         left
         elevation="10"
         app
-        temporary
+        :permanent="isLgAndUp"
         :clipped="isLgAndUp"
         :temporary="isMdAndDown"
         :location="$vuetify.display.mobile ? 'bottom' : undefined"
