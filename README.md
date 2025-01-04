@@ -79,5 +79,19 @@ bun run preview
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
+## Use Lib
+
+```
 bun add vuetify vite-plugin-vuetify sass
 bun add axios
+```
+
+## Build & Run
+
+```
+docker build --pull -t bun-redmine:1.0.0 .
+
+docker build --pull -t bun-redmine:1.0.0 . --no-cache --progress=plain 
+
+docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:1.0.0
+```
