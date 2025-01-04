@@ -6,7 +6,9 @@ import { createVuetify } from 'vuetify'
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
-    // ... your configuration
+    display: {
+      mobileBreakpoint: 'md', // Customize the mobile breakpoint if needed
+    },
   })
   app.vueApp.use(vuetify)
 })
