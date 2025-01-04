@@ -1,9 +1,25 @@
 
 export default () => {
 
-    const getVersions = async <VersionsResponse>() => {
-        return await useFetch<VersionsResponse>("/api/versions");
+    const getVersions = async <T>() => {
+        return await useFetch<Version[]>("/api/versions");
     };
+
+    function mapRawVersionToVersion(rawVersion: RawVersion): Version {
+        return {
+            id: rawVersion.id,
+            projectid: rawVersion.project?.id,
+            projectname: rawVersion.project?.name,
+            name: rawVersion.name,
+            description: rawVersion.description,
+            status: rawVersion.status,
+            due_date: rawVersion.due_date,
+            sharing: rawVersion.sharing,
+            wiki_page_title: rawVersion.wiki_page_title,
+            created_on: rawVersion.created_on,
+            updated_on: rawVersion.updated_on
+        };
+    }
 
     const getIssuesByVersion = async<T>(versionId: String) => {
         return await useFetch<Issue[]>(`/api/issues/issue-version?version_id=${versionId}`);
@@ -40,5 +56,5 @@ export default () => {
         };
     }
 
-    return { getVersions, mapRawIssueToIssue, getIssuesByVersion};
+    return { getVersions, mapRawVersionToVersion, getIssuesByVersion, mapRawIssueToIssue};
 }

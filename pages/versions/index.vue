@@ -8,14 +8,12 @@
     hide-details
     single-line
   ></v-text-field>
-  <v-data-table :items="VersionsResponse!.versions" :search="searchText"></v-data-table>
+  <v-data-table :items="versions" :search="searchText"></v-data-table>
 </template>
 
 <script setup lang="ts">
-const {
-  data: VersionsResponse,
-  error,
-} = await useRedmineAPI().getVersions<VersionsResponse>();
+const { data: dataversions, error } = await useRedmineAPI().getVersions<Version[]>();
+const versions = dataversions.value ?? [];
 const searchText = ref("");
 </script>
 

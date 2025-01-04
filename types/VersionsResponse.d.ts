@@ -1,4 +1,4 @@
 interface VersionsResponse {
-    versions: Version[];
+    versions: RawVersion[];
     total_count: number;
   }
