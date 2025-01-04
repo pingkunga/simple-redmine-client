@@ -1,19 +1,29 @@
 <template>
   <div>Issues</div>
-  <v-combobox
-    multiple
-    v-model="selectedVersions"
-    @update:model-value="updateSelectedItem"
-    :items="versions"
-    item-title="name"
-    item-value="id"
-    label="Selected Versions"
-    return-object
-    chips
-    closable-chips
-    clearable
-    @keyup.enter="handleGetIssuesByVersion"
-  ></v-combobox>
+  <v-row>
+    <v-col cols="12" sm="6" md="10">
+      <v-combobox
+        multiple
+        v-model="selectedVersions"
+        @update:model-value="updateSelectedItem"
+        :items="versions"
+        item-title="name"
+        item-value="id"
+        label="Selected Versions"
+        return-object
+        chips
+        closable-chips
+        clearable
+        @keyup.enter="handleGetIssuesByVersion"
+      ></v-combobox>
+    </v-col>
+    <v-col cols="12" sm="auto" md="auto">
+      <!-- v-btn component -->
+      <v-btn icon @click="handleGetIssuesByVersion" hint="Search">
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+    </v-col>
+  </v-row>
   <!-- <pre>{{ selectedVersions }}</pre> -->
   <v-data-table
     :headers="headers"
