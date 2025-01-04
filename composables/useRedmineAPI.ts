@@ -1,6 +1,8 @@
 
 export default () => {
 
+    const versionStatuses : string[] = ["open", "locked", "closed"];
+
     const getVersions = async <T>() => {
         return await useFetch<Version[]>("/api/versions");
     };
@@ -56,5 +58,5 @@ export default () => {
         };
     }
 
-    return { getVersions, mapRawVersionToVersion, getIssuesByVersion, mapRawIssueToIssue};
+    return { getVersions, mapRawVersionToVersion, getIssuesByVersion, mapRawIssueToIssue, versionStatuses};
 }
