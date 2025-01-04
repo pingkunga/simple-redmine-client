@@ -36,12 +36,9 @@
 import type { Title } from "#build/components";
 import type { RefSymbol } from "@vue/reactivity";
 
-const {
-  data: VersionsResponse,
-  error,
-} = await useRedmineAPI().getVersions<VersionsResponse>();
+const { data: dataversions, error } = await useRedmineAPI().getVersions<Version[]>();
+const versions = dataversions.value ?? [];
 
-const versions: Version[] = VersionsResponse.value?.versions || [];
 console.log(versions);
 const selectedVersions = ref<Version[]>([]);
 const IssuesByVersions = ref<Issue[]>([]);
