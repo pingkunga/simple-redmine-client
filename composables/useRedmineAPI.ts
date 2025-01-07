@@ -49,7 +49,7 @@ export default () => {
             subject: rawIssue.subject,
             description: rawIssue.description,
             start_date: rawIssue.start_date,
-            impactNote: impactNoteField ? impactNoteField.value as string : "",
+            impactNote: impactNoteField ? (impactNoteField.value as string).replace(/\r\n/g, '<br>') : "",
             due_date: rawIssue.due_date,
             is_private: rawIssue.is_private,
             created_on: rawIssue.created_on,
