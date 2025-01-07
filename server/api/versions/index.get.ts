@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     const versionsData: Version[] = [];
     const config = useRuntimeConfig(event);
 
-    const url = `${config.redmineUrl}/projects/858/versions.json`;
+    const url = `${config.public.redmineUrl}/projects/858/versions.json`;
     const headers = {
         'Content-Type': 'application/json',
         'X-Redmine-API-Key': config.redmineToken
