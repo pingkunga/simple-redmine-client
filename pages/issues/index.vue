@@ -29,6 +29,9 @@
     <template v-slot:item.id="{ item }">
       <a :href="`${baseUrl}/issues/${item.id}`" target="_blank">{{ item.id }}</a>
     </template>
+    <template v-slot:item.impactNote="{ item }">
+      <div v-html="item.impactNote"></div>
+    </template>
   </v-data-table>
 </template>
 
