@@ -18,7 +18,7 @@ export default defineEventHandler<{query: { version_id: string } }>(async (event
     X-Redmine-API-Key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     */
 
-    const url = `${config.redmineUrl}/issues.json`;
+    const url = `${config.public.redmineUrl}/issues.json`;
     const headers = {
         'Content-Type': 'application/json',
         'X-Redmine-API-Key': config.redmineToken

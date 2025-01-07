@@ -9,7 +9,9 @@ export default defineNuxtConfig({
   */
 
   runtimeConfig: {
-    redmineUrl: "https://redmine.example.com",
+    public: {
+      redmineUrl: "https://redmine.example.com"
+    },
     redmineToken: "no_token"
   },
 

@@ -25,16 +25,19 @@
     </v-col>
   </v-row>
   <!-- <pre>{{ selectedVersions }}</pre> -->
-  <v-data-table
-    :headers="headers"
-    :items="IssuesByVersions"
-    :group-by="groupBy"
-  ></v-data-table>
+  <v-data-table :headers="headers" :items="IssuesByVersions" :group-by="groupBy">
+    <template v-slot:item.id="{ item }">
+      <a :href="`${baseUrl}/issues/${item.id}`" target="_blank">{{ item.id }}</a>
+    </template>
+  </v-data-table>
 </template>
 
 <script setup lang="ts">
-import type { Title } from "#build/components";
-import type { RefSymbol } from "@vue/reactivity";
+import { useRuntimeConfig } from "#app";
+
+const config = useRuntimeConfig();
+
+const baseUrl = config.public.redmineUrl;
 
 const { data: dataversions, error } = await useRedmineAPI().getVersions<Version[]>();
 const versions = dataversions.value ?? [];
