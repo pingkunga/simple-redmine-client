@@ -26,6 +26,19 @@
   </v-row>
   <!-- <pre>{{ selectedVersions }}</pre> -->
   <v-data-table :headers="headers" :items="IssuesByVersions" :group-by="groupBy">
+    <template v-slot:group-header="{ item, columns, toggleGroup, isGroupOpen }">
+      <tr>
+        <td :colspan="columns.length">
+          <VBtn
+            :icon="isGroupOpen(item) ? '$expand' : '$next'"
+            size="small"
+            variant="text"
+            @click="toggleGroup(item)"
+          ></VBtn>
+          {{ item.value }}
+        </td>
+      </tr>
+    </template>
     <template v-slot:item.id="{ item }">
       <a :href="`${baseUrl}/issues/${item.id}`" target="_blank">{{ item.id }}</a>
     </template>
