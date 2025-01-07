@@ -1,7 +1,12 @@
 # Simple Redmine Client
 
-A simple redmine client to manange redmine data via REST API https://www.redmine.org/projects/redmine/wiki/Rest_api
-Develop with Nuxt3 + vuetify
+* A simple redmine client to manange redmine data via REST API https://www.redmine.org/projects/redmine/wiki/Rest_api
+* Develop with Nuxt3 + vuetify
+
+# Feature
+
+* List Versions
+* List Issue from versions
 
 # Nuxt Minimal Starter
 
