@@ -30,16 +30,41 @@ export default defineEventHandler<{query: { version_id: string } }>(async (event
 
     try {
         for (const versionId of versionIds) {
-            const params = {
-                fixed_version_id: versionId,
-                status_id: '*'
-            };
-            
-            const response = await axios.get<IssuesResponse>(url, { params, headers });
-            //console.log(response.data.issues);
+            let currentOffset: number = 0;
+            let isNotComplete: boolean = true;
 
-            const issues: Issue[] = response.data.issues.map(mapRawIssueToIssue);
-            issuesData.push(...issues);
+            try{
+                while (isNotComplete) {
+                    const params = {
+                        fixed_version_id: versionId,
+                        status_id: '*',
+                        offset: currentOffset
+                    };
+                    
+                    const response = await axios.get<IssuesResponse>(url, { params, headers });
+                    //console.log(response.data.issues);
+    
+                    const issues: Issue[] = response.data.issues.map(mapRawIssueToIssue);
+                    issuesData.push(...issues);
+    
+                    if (issuesData.length < response.data.total_count) {
+                        currentOffset += response.data.limit;
+                        isNotComplete = true;
+                    }
+                    else
+                    {
+                        isNotComplete = false;
+                    }
+                }
+            }
+            catch (error) {
+                isNotComplete = false;
+                console.error('Error fetching issues:', error);
+                throw error;
+            }
+            finally{
+                isNotComplete = false;
+            }
         }
     } 
     catch (error) {
