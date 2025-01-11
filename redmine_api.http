@@ -40,6 +40,9 @@ X-Redmine-API-Key: {{apiKey}}
   }
 }
 
+### DELETE VERSION
+DELETE {{baseUrl}}/versions/5331.json HTTP/1.1
+
 ###GET ISSUE BY ISSUE ID {{baseUrl}}/issues/[id].[format]
 GET {{baseUrl}}/issues/350550.json
 Content-Type: application/json
