@@ -3,6 +3,47 @@ export default () => {
 
     const versionStatuses : string[] = ["open", "locked", "closed"];
 
+    const versionShares : string[] = ["none", "descendants", "hierarchy", "tree", "system"]; //
+
+    const addVersion = async<T>(version: Version) => {
+        const body = {
+            version: {
+                name: version.name,
+                status: version.status,
+                sharing: version.sharing,
+                due_date: version.due_date,
+                description: version.description
+            }
+        };
+
+        return await useFetch<Version>("/api/versions", {
+            method: "POST",
+            body: JSON.stringify(body)
+        });
+    }
+
+    const updateVersion = async<T>(version: Version) => {
+        const body = {
+            version: {
+                status: version.status,
+                sharing: version.sharing,
+                due_date: version.due_date,
+                description: version.description
+            }
+        };
+
+        return await useFetch<Version>(`/api/versions/${version.id}`, {
+            method: "PUT",
+            body: JSON.stringify(body)
+        });
+    }
+
+    const deleteVersion = async<T>(versionId: String) => {
+        return await useFetch<Version>(`/api/versions/${versionId}`, {
+            method: "DELETE"
+        });
+    }
+
     const getVersions = async <T>() => {
         return await useFetch<Version[]>("/api/versions");
     };
@@ -58,5 +99,7 @@ export default () => {
         };
     }
 
-    return { getVersions, mapRawVersionToVersion, getIssuesByVersion, mapRawIssueToIssue, versionStatuses};
+    return { addVersion, updateVersion, deleteVersion, getVersions, mapRawVersionToVersion
+           , getIssuesByVersion, mapRawIssueToIssue
+           , versionStatuses, versionShares };
 }
