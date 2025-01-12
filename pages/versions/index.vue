@@ -137,7 +137,20 @@ const selectVersionStatus = ref<string[]>([]);
 
 const { versionStatuses, versionShares } = useRedmineAPI();
 
-const { data: dataversions, error } = await useRedmineAPI().getVersions<Version[]>();
+//const { data: dataversions, error } = await useRedmineAPI().getVersions<Version[]>();.
+const dataversions = ref<Version[] | null>([]);
+
+const fetchVersions = async () => {
+  try {
+    const { data } = await useRedmineAPI().getVersions<Version[]>();
+    dataversions.value = data.value;
+  } catch (err) {
+    console.error("Failed to fetch versions:", err);
+    snackbarMessage.value = "Failed to fetch versions. Please try again.";
+    snackbar.value = true;
+  }
+};
+onMounted(fetchVersions);
 
 const versions = computed(() => {
   if (selectVersionStatus.value.length === 0) {
@@ -221,6 +234,7 @@ const saveItem = async () => {
       await useRedmineAPI().updateVersion(editedItem.value);
     }
     //refresh data
+    await fetchVersions();
     editedDialog.value = false;
   } catch (error) {
     console.error("Failed to save version:", error);
@@ -243,6 +257,7 @@ const deleteItemConfirm = async () => {
     }
     await useRedmineAPI().deleteVersion(editedItem.value.id.toString());
     //refresh data
+    await fetchVersions();
     dialogDelete.value = false;
   } catch (error) {
     console.error("Failed to delete version:", error);
