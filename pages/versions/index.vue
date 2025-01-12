@@ -122,9 +122,17 @@
       </v-toolbar>
     </template>
   </v-data-table>
+
+  <!-- Snackbar for error notifications -->
+  <v-snackbar v-model="snackbar" :timeout="5000" top right>
+    {{ snackbarMessage }}
+    <v-btn color="red" @click="snackbar = false">Close</v-btn>
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
+import type { NuxtError } from "#app";
+
 const selectVersionStatus = ref<string[]>([]);
 
 const { versionStatuses, versionShares } = useRedmineAPI();
@@ -198,19 +206,27 @@ const editItem = (item: Version) => {
 };
 
 const close = () => {
+  //clear editedItem
+  editedItem.value = Object.assign({}, defaultVersion);
   editedDialog.value = false;
 };
 
 const saveItem = async () => {
-  if (editedIndex.value === -1) {
-    // Create new item
-    await useRedmineAPI().addVersion(editedItem.value);
-  } else {
-    // Update existing item
-    await useRedmineAPI().updateVersion(editedItem.value);
+  try {
+    if (editedIndex.value === -1) {
+      // Create new item
+      await useRedmineAPI().addVersion(editedItem.value);
+    } else {
+      // Update existing item
+      await useRedmineAPI().updateVersion(editedItem.value);
+    }
+    //refresh data
+    editedDialog.value = false;
+  } catch (error) {
+    console.error("Failed to save version:", error);
+    snackbarMessage.value = "Error: " + (error as NuxtError).statusMessage;
+    snackbar.value = true;
   }
-  //refresh data
-  editedDialog.value = false;
 };
 
 const dialogDelete = ref(false);
@@ -221,17 +237,27 @@ const deleteItem = (item: Version) => {
 };
 
 const deleteItemConfirm = async () => {
-  if (editedIndex.value === -1) {
-    return;
+  try {
+    if (editedIndex.value === -1) {
+      return;
+    }
+    await useRedmineAPI().deleteVersion(editedItem.value.id.toString());
+    //refresh data
+    dialogDelete.value = false;
+  } catch (error) {
+    console.error("Failed to delete version:", error);
+    snackbarMessage.value = "Error: " + (error as NuxtError).statusMessage;
+    snackbar.value = true;
   }
-  await useRedmineAPI().deleteVersion(editedItem.value.id.toString());
-  //refresh data
-  dialogDelete.value = false;
 };
 
 const closeDelete = () => {
   dialogDelete.value = false;
 };
+
+//================================================================
+const snackbar = ref(false);
+const snackbarMessage = ref("");
 </script>
 
 <style scoped>
@@ -240,13 +266,13 @@ const closeDelete = () => {
   font-weight: bold; /* Example style, change as needed */
 }
 .open {
-  background: #ec291b;
+  background: #026134;
 }
 .locked {
   background: #865101;
 }
 
 .closed {
-  background: #026134;
+  background: #ec291b;
 }
 </style>

@@ -23,25 +23,54 @@ export default () => {
     }
 
     const updateVersion = async<T>(version: Version) => {
-        const body = {
-            version: {
-                status: version.status,
-                sharing: version.sharing,
-                due_date: version.due_date,
-                description: version.description
-            }
-        };
+        try {
+            const body = {
+                version: {
+                    status: version.status,
+                    sharing: version.sharing,
+                    due_date: version.due_date,
+                    description: version.description
+                }
+            };
 
-        return await useFetch<Version>(`/api/versions/${version.id}`, {
-            method: "PUT",
-            body: JSON.stringify(body)
-        });
+            const { data, error } = await useFetch<Version>(`/api/versions/${version.id}`, {
+                method: "PUT",
+                body: JSON.stringify(body)
+            });
+
+            if (error.value) {
+                throw createError({
+                  ...error.value,
+                  statusMessage: `Could not fetch data, reason: ${error.value.statusCode} ${error.value.statusMessage}`,
+                });
+              }
+    
+            return data;
+        } catch (error) {
+            console.error('Failed to update version:', error);
+            throw error;
+        }
     }
 
     const deleteVersion = async<T>(versionId: String) => {
-        return await useFetch<Version>(`/api/versions/${versionId}`, {
-            method: "DELETE"
-        });
+        try {
+
+            const { data, error } = await useFetch<Version>(`/api/versions/${versionId}`, {
+                method: "DELETE"
+            });
+
+            if (error.value) {
+                throw createError({
+                  ...error.value,
+                  statusMessage: `Could not fetch data, reason: ${error.value.statusCode} ${error.value.statusMessage}`,
+                });
+              }
+    
+            return data;
+        } catch (error) {
+            console.error('Failed to delete version:', error);
+            throw error;
+        }
     }
 
     const getVersions = async <T>() => {
