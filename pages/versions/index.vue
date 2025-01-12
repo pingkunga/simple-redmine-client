@@ -43,55 +43,65 @@
             </v-card-title>
 
             <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col cols="12" md="6" sm="6">
-                    <v-text-field
-                      label="Version"
-                      v-if="editedItem"
-                      v-model="editedItem.name"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6" sm="6">
-                    <v-combobox
-                      :items="versionStatuses"
-                      label="Status"
-                      v-if="editedItem"
-                      v-model="editedItem.status"
-                    ></v-combobox>
-                  </v-col>
-                  <v-col cols="12" md="12" sm="6">
-                    <v-text-field
-                      label="Description"
-                      v-if="editedItem"
-                      v-model="editedItem.description"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="12" sm="6">
-                    <v-text-field
-                      label="Wiki Page"
-                      v-if="editedItem"
-                      v-model="editedItem.wiki_page_title"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6" sm="6">
-                    <v-text-field
-                      type="date"
-                      label="Due Date"
-                      v-if="editedItem"
-                      v-model="editedItem.due_date"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6" sm="6">
-                    <v-combobox
-                      :items="versionShares"
-                      label="Sharing"
-                      v-if="editedItem"
-                      v-model="editedItem.sharing"
-                    ></v-combobox>
-                  </v-col>
-                </v-row>
-              </v-container>
+              <v-form ref="form">
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" md="6" sm="6">
+                      <v-text-field
+                        label="Version"
+                        v-if="editedItem"
+                        v-model="editedItem.name"
+                        :rules="[(v) => !!v || 'Version name is required']"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6" sm="6">
+                      <v-combobox
+                        :items="versionStatuses"
+                        label="Status"
+                        v-if="editedItem"
+                        v-model="editedItem.status"
+                        :rules="[(v) => !!v || 'Status is required']"
+                        required
+                      ></v-combobox>
+                    </v-col>
+                    <v-col cols="12" md="12" sm="6">
+                      <v-text-field
+                        label="Description"
+                        v-if="editedItem"
+                        v-model="editedItem.description"
+                        :rules="[(v) => !!v || 'Description is required']"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="12" sm="6">
+                      <v-text-field
+                        label="Wiki Page"
+                        v-if="editedItem"
+                        v-model="editedItem.wiki_page_title"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6" sm="6">
+                      <v-text-field
+                        type="date"
+                        label="Due Date"
+                        v-if="editedItem"
+                        v-model="editedItem.due_date"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6" sm="6">
+                      <v-combobox
+                        :items="versionShares"
+                        label="Sharing"
+                        v-if="editedItem"
+                        v-model="editedItem.sharing"
+                        :rules="[(v) => !!v || 'Sharing is required']"
+                        required
+                      ></v-combobox>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-form>
             </v-card-text>
 
             <v-card-actions>
@@ -132,7 +142,10 @@
 
 <script setup lang="ts">
 import type { NuxtError } from "#app";
+import type { VForm } from "vuetify/components";
 
+const formValid = ref(false);
+const form = ref<VForm | null>(null);
 const selectVersionStatus = ref<string[]>([]);
 
 const { versionStatuses, versionShares } = useRedmineAPI();
@@ -189,7 +202,6 @@ const headers = [
 
 //================================================================
 // CRUD
-const { customYYYYMMDDDateFormatter } = useCustomFormatter();
 const editedDialog = ref(false);
 const editedIndex = ref(-1);
 const formTitle = computed(() =>
@@ -225,6 +237,9 @@ const close = () => {
 };
 
 const saveItem = async () => {
+  if (form.value && !form.value.validate()) {
+    return;
+  }
   try {
     if (editedIndex.value === -1) {
       // Create new item
@@ -235,7 +250,7 @@ const saveItem = async () => {
     }
     //refresh data
     await fetchVersions();
-    editedDialog.value = false;
+    close();
   } catch (error) {
     console.error("Failed to save version:", error);
     snackbarMessage.value = "Error: " + (error as NuxtError).statusMessage;
