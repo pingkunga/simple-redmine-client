@@ -33,7 +33,7 @@
 
         <v-spacer></v-spacer>
         <!-- NEW / EDIT FORM -->
-        <v-dialog v-model="editedDialog" max-width="500px">
+        <v-dialog v-model="editedDialog" max-width="500px" persistent>
           <template v-slot:activator="{ props }">
             <v-btn class="mb-2" color="white" v-bind="props"> New Item </v-btn>
           </template>
@@ -237,7 +237,11 @@ const close = () => {
 };
 
 const saveItem = async () => {
-  if (form.value && !form.value.validate()) {
+  if (!form.value) {
+    return;
+  }
+  const { valid } = await form.value.validate();
+  if (!valid) {
     return;
   }
   try {
