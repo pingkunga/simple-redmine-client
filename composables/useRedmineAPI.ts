@@ -128,7 +128,19 @@ export default () => {
         };
     }
 
+    const getProject = async <T>() => {
+        return await useFetch<Project[]>("/api/projects");
+    };
+
+    function mapRawProjectToProject(rawProject: RawProject): Project {
+        return {
+            id: rawProject.id,
+            name: rawProject.name,
+        };
+    }
+
     return { addVersion, updateVersion, deleteVersion, getVersions, mapRawVersionToVersion
            , getIssuesByVersion, mapRawIssueToIssue
+           , getProject, mapRawProjectToProject
            , versionStatuses, versionShares };
 }
