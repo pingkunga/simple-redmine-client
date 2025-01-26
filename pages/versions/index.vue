@@ -150,7 +150,6 @@ const selectVersionStatus = ref<string[]>([]);
 
 const { versionStatuses, versionShares } = useRedmineAPI();
 
-//const { data: dataversions, error } = await useRedmineAPI().getVersions<Version[]>();.
 const dataversions = ref<Version[] | null>([]);
 
 const fetchVersions = async () => {
