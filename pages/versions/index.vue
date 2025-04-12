@@ -19,6 +19,7 @@
     <template v-slot:top>
       <v-toolbar flat color="primary">
         <v-toolbar-title>Versions </v-toolbar-title>
+        
         <!-- Chips for filtering -->
         <v-chip-group selected-class="text-secondary" multiple id="chips-container">
           <v-chip

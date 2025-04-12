@@ -20,12 +20,10 @@ export default defineEventHandler(async (event) => {
 
       const versions: Version[] = response.data.versions.map(mapRawVersionToVersion);
       versionsData.push(...versions);
-  } 
-  catch (error) {
-      console.error('Error fetching issues:', error);
-      throw error;
-  }
-
-  return versionsData;
-
+    } 
+    catch (error) {
+        console.error('Error fetching issues:', error);
+        throw error;
+    }
+    return versionsData;
 });
