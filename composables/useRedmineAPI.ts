@@ -139,8 +139,20 @@ export default () => {
         };
     }
 
+    // Project MemberShip
+    function mapRawMembershipToProjectMemberShip(rawMembership: RawMembership): ProjectMemberShip {
+        return {
+            projectId: rawMembership.project.id,
+            type: rawMembership.group ? "group" : "user",
+            id: rawMembership.group ? rawMembership.group!.id : rawMembership.user!.id,
+            name: rawMembership.group? rawMembership.group!.name : rawMembership.user!.name,
+            membershipid: (rawMembership.group ? "group" : "user") + (rawMembership.group ? rawMembership.group!.id : rawMembership.user!.id),
+        };
+    }
+
     return { addVersion, updateVersion, deleteVersion, getVersions, mapRawVersionToVersion
            , getIssuesByVersion, mapRawIssueToIssue
            , getProject, mapRawProjectToProject
+           , mapRawMembershipToProjectMemberShip
            , versionStatuses, versionShares };
 }
