@@ -14,4 +14,9 @@ export default [
       icon: "mdi-format-list-bulleted",
       to: "/issues",
     },
+    {
+      title: "New Dev Trackers",
+      icon: "mdi mdi-code-block-braces",
+      to: "/devtrackers",
+    },
   ]
