@@ -1,12 +1,22 @@
 import axios from "axios";
 import useRedmineAPI from "~/composables/useRedmineAPI";
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler<{query: { projectId: Number } }>(async (event) => {
   
     const versionsData: Version[] = [];
     const config = useRuntimeConfig(event);
 
-    const url = `${config.public.redmineUrl}/projects/858/versions.json`;
+    // ================================
+    // Check Query Parameter
+    const query = getQuery(event);
+
+    let filterProjectId: number = 858;
+    if (query.projectId) {
+        filterProjectId= 858
+    }
+    // ================================
+
+    const url = `${config.public.redmineUrl}/projects/${filterProjectId}/versions.json`;
     const headers = {
         'Content-Type': 'application/json',
         'X-Redmine-API-Key': config.redmineToken

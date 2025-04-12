@@ -77,6 +77,10 @@ export default () => {
         return await useFetch<Version[]>("/api/versions");
     };
 
+    const getVersionByProjectId = async <T>(projectId: Number) => {
+        return await useFetch<Version[]>(`/api/versions/?projectId=${projectId}`);
+    };
+
     function mapRawVersionToVersion(rawVersion: RawVersion): Version {
         return {
             id: rawVersion.id,
@@ -153,7 +157,7 @@ export default () => {
         };
     }
 
-    return { addVersion, updateVersion, deleteVersion, getVersions, mapRawVersionToVersion
+    return { addVersion, updateVersion, deleteVersion, getVersions, getVersionByProjectId, mapRawVersionToVersion
            , getIssuesByVersion, mapRawIssueToIssue
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
