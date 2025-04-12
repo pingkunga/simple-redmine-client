@@ -140,6 +140,9 @@ export default () => {
     }
 
     // Project MemberShip
+    const getProjectMemberShip = async<T>(projectId: Number) => {
+        return await useFetch<ProjectMemberShip[]>(`/api/projects/project-member?project_id=${projectId}`);
+    }
     function mapRawMembershipToProjectMemberShip(rawMembership: RawMembership): ProjectMemberShip {
         return {
             projectId: rawMembership.project.id,
@@ -153,6 +156,6 @@ export default () => {
     return { addVersion, updateVersion, deleteVersion, getVersions, mapRawVersionToVersion
            , getIssuesByVersion, mapRawIssueToIssue
            , getProject, mapRawProjectToProject
-           , mapRawMembershipToProjectMemberShip
+           , getProjectMemberShip, mapRawMembershipToProjectMemberShip
            , versionStatuses, versionShares };
 }
