@@ -157,7 +157,7 @@ const handleSubmit = async () => {
       trackerTitle.value
     );
   } catch (error) {
-    console.error("Failed to save version:", error);
+    console.error("Failed to save issue:", error);
     snackbarMessage.value = "Error: " + (error as NuxtError).statusMessage;
     snackbar.value = true;
   }
