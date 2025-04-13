@@ -1,11 +1,17 @@
 
 export default () => {
-
+    enum TRACKER {
+        PROGRAM_SPEC = 11,
+        FEATURE = 14,
+        DEFECT = 8,
+        BUILD_REQUEST = 6,
+    }
+    
     const devTrackerMap = new Map<number, string>(
         [
-            [11, "Program Spec"],
-            [14, "Feature"],
-            [8, "Defect"]
+            [TRACKER.PROGRAM_SPEC, "Program Spec"],
+            [TRACKER.FEATURE, "Feature"],
+            [TRACKER.DEFECT, "Defect"]
         ]
     );
 
@@ -13,7 +19,7 @@ export default () => {
 
     const buildTrackerMap = new Map<number, string>(
         [
-            [6, "Build-Request"],
+            [TRACKER.BUILD_REQUEST, "Build-Request"],
         ]
     );
 
@@ -191,7 +197,7 @@ export default () => {
             }
         };
 
-        return await useFetch<Version>("/api/devtrackers", {
+        return await useFetch<DevTrackerRequest>("/api/devtrackers", {
             method: "POST",
             body: JSON.stringify(body)
         });
@@ -202,5 +208,5 @@ export default () => {
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
            , createDevTracker
-           , versionStatuses, versionShares, devTrackers, buildTrackers };
+           , versionStatuses, versionShares, devTrackers, buildTrackers, TRACKER};
 }
