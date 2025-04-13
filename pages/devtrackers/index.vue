@@ -2,6 +2,21 @@
   <div>Dev Trackers (Program Spec / Defect)</div>
   <v-combobox
     single
+    v-model="selectTracker"
+    :items="devTrackers"
+    item-title="name"
+    item-value="id"
+    label="Select Tracker"
+    :return-object="false"
+    chips
+    closable-chips
+    clearable
+  ></v-combobox>
+  <div>
+    {{ selectTracker }}
+  </div>
+  <v-combobox
+    single
     v-model="selectedProject"
     @update:model-value="projectChange"
     :items="projects"
@@ -59,10 +74,13 @@
 </template>
 
 <script setup lang="ts">
+const { devTrackers } = useRedmineAPI();
+
 const projects = ref<Project[]>();
 const projectMembers = ref<ProjectMemberShip[]>([]);
 const versions = ref<Version[]>([]);
 
+const selectTracker = ref<Number | null>();
 const selectedProject = ref<Project>();
 const selectedAssignee = ref<ProjectMemberShip>();
 const selectedVersion = ref<Version>();
