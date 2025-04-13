@@ -175,9 +175,32 @@ export default () => {
         };
     }
 
+    //Dev Tracker
+    const createDevTracker = async<T>(trackerId: number
+                                    , project: Project
+                                    , assignTo: ProjectMemberShip
+                                    , targetVerion: Version
+                                    , subject: String) => {
+        const body = {
+            DevTrackerRequest: {
+                tracker_id: trackerId,
+                project: project,
+                assignTo: assignTo,
+                targetVerion: targetVerion,
+                subject: subject
+            }
+        };
+
+        return await useFetch<Version>("/api/devtrackers", {
+            method: "POST",
+            body: JSON.stringify(body)
+        });
+    }
+
     return { addVersion, updateVersion, deleteVersion, getVersions, getVersionByProjectId, mapRawVersionToVersion
            , getIssuesByVersion, mapRawIssueToIssue
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
+           , createDevTracker
            , versionStatuses, versionShares, devTrackers, buildTrackers };
 }

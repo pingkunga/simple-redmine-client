@@ -81,9 +81,15 @@
     <v-btn color="primary" @click="handleSubmit">Submit</v-btn>
     <v-btn color="blue-darken-1" @click="handleReset">Clear</v-btn>
   </v-form>
+  <!-- Snackbar for error notifications -->
+  <v-snackbar v-model="snackbar" :timeout="5000" top right>
+    {{ snackbarMessage }}
+    <v-btn color="red" @click="snackbar = false">Close</v-btn>
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
+import type { NuxtError } from "#app";
 import type { VForm } from "vuetify/components";
 
 const { devTrackers } = useRedmineAPI();
@@ -95,7 +101,7 @@ const projects = ref<Project[]>();
 const projectMembers = ref<ProjectMemberShip[]>([]);
 const versions = ref<Version[]>([]);
 
-const selectTracker = ref<Number | null>();
+const selectTracker = ref<number | null>();
 const selectedProject = ref<Project>();
 const selectedAssignee = ref<ProjectMemberShip>();
 const selectedVersion = ref<Version>();
@@ -131,6 +137,9 @@ const validateTitleInput = (value: string) => {
 // ==============================
 // FORM ACTION
 // ==============================
+const snackbar = ref(false);
+const snackbarMessage = ref("");
+
 const handleSubmit = async () => {
   const { valid } = (await form.value?.validate()) ?? { valid: false };
   if (!valid) {
@@ -139,6 +148,19 @@ const handleSubmit = async () => {
   }
 
   console.log("Form submitted successfully");
+  try {
+    await useRedmineAPI().createDevTracker(
+      selectTracker.value ?? 0,
+      selectedProject.value ?? ({} as Project),
+      selectedAssignee.value ?? ({} as ProjectMemberShip),
+      selectedVersion.value ?? ({} as Version),
+      trackerTitle.value
+    );
+  } catch (error) {
+    console.error("Failed to save version:", error);
+    snackbarMessage.value = "Error: " + (error as NuxtError).statusMessage;
+    snackbar.value = true;
+  }
 };
 
 const handleReset = () => {
