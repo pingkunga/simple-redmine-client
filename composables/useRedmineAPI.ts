@@ -1,6 +1,24 @@
 
 export default () => {
 
+    const devTrackerMap = new Map<number, string>(
+        [
+            [11, "Program Spec"],
+            [14, "Feature"],
+            [8, "Defect"]
+        ]
+    );
+
+    const devTrackers = [...devTrackerMap].map(([id, name]) => ({ id, name }));
+
+    const buildTrackerMap = new Map<number, string>(
+        [
+            [6, "Build-Request"],
+        ]
+    );
+
+    const buildTrackers = [...buildTrackerMap].map(([id, name]) => ({ id, name }));
+
     const versionStatuses : string[] = ["open", "locked", "closed"];
 
     const versionShares : string[] = ["none", "descendants", "hierarchy", "tree", "system"]; //
@@ -161,5 +179,5 @@ export default () => {
            , getIssuesByVersion, mapRawIssueToIssue
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
-           , versionStatuses, versionShares };
+           , versionStatuses, versionShares, devTrackers, buildTrackers };
 }
