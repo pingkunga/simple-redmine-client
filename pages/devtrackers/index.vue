@@ -16,6 +16,13 @@
     <div>
       {{ selectTracker }}
     </div>
+    <v-text-field
+      v-model="trackerTitle"
+      label="Tracker Title"
+      :rules="[validateTitleInput]"
+      required
+      hint="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title"
+    ></v-text-field>
     <v-combobox
       single
       v-model="selectedProject"
@@ -70,14 +77,7 @@
     <div>
       {{ selectedVersion }}
     </div>
-    <v-text-field
-      v-model="trackerTitle"
-      label="Tracker Title"
-      :rules="[validateTitleInput]"
-      required
-      hint="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title"
-    >
-    </v-text-field>
+
     <v-btn color="primary" @click="handleSubmit">Submit</v-btn>
     <v-btn color="blue-darken-1" @click="handleReset">Clear</v-btn>
   </v-form>
@@ -149,16 +149,23 @@ const handleSubmit = async () => {
 
   console.log("Form submitted successfully");
   try {
-    await useRedmineAPI().createDevTracker(
+    const { error } = await useRedmineAPI().createDevTracker(
       selectTracker.value ?? 0,
       selectedProject.value ?? ({} as Project),
       selectedAssignee.value ?? ({} as ProjectMemberShip),
       selectedVersion.value ?? ({} as Version),
       trackerTitle.value
     );
+
+    if (error.value) {
+      throw error.value.data;
+    }
   } catch (error) {
     console.error("Failed to save issue:", error);
-    snackbarMessage.value = "Error: " + (error as NuxtError).statusMessage;
+    const nError = error as NuxtError;
+    const errorMessage =
+      (nError.data as { message: string })?.message || nError.statusMessage;
+    snackbarMessage.value = "Error: " + errorMessage;
     snackbar.value = true;
   }
 };
