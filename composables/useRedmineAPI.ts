@@ -186,7 +186,7 @@ export default () => {
                                     , project: Project
                                     , assignTo: ProjectMemberShip
                                     , targetVerion: Version
-                                    , subject: String) => {
+                                    , subject: String): Promise<string> => {
         const body = {
             DevTrackerRequest: {
                 tracker_id: trackerId,
@@ -197,10 +197,19 @@ export default () => {
             }
         };
 
-        return await useFetch<DevTrackerRequest>("/api/devtrackers", {
+        const { data, error } = await useFetch<string>("/api/devtrackers", {
             method: "POST",
             body: JSON.stringify(body)
         });
+
+        if (error.value) {
+            throw createError({
+              ...error.value,
+              statusMessage: `Failed to create Dev Tracker: ${error.value.statusMessage}`,
+            });
+        }
+
+        return  data.value ?? 'No found Issue ID returned.'; 
     }
 
     return { addVersion, updateVersion, deleteVersion, getVersions, getVersionByProjectId, mapRawVersionToVersion

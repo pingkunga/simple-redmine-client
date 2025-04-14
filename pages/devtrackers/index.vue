@@ -82,9 +82,9 @@
     <v-btn color="blue-darken-1" @click="handleReset">Clear</v-btn>
   </v-form>
   <!-- Snackbar for error notifications -->
-  <v-snackbar v-model="snackbar" :timeout="5000" top right>
+  <v-snackbar v-model="snackbar" :timeout="5000" top right :color="snackbarColor">
     {{ snackbarMessage }}
-    <v-btn color="red" @click="snackbar = false">Close</v-btn>
+    <v-btn color="white" @click="snackbar = false">Close</v-btn>
   </v-snackbar>
 </template>
 
@@ -139,6 +139,7 @@ const validateTitleInput = (value: string) => {
 // ==============================
 const snackbar = ref(false);
 const snackbarMessage = ref("");
+const snackbarColor = ref("");
 
 const handleSubmit = async () => {
   const { valid } = (await form.value?.validate()) ?? { valid: false };
@@ -149,7 +150,7 @@ const handleSubmit = async () => {
 
   console.log("Form submitted successfully");
   try {
-    const { error } = await useRedmineAPI().createDevTracker(
+    const IssueId = await useRedmineAPI().createDevTracker(
       selectTracker.value ?? 0,
       selectedProject.value ?? ({} as Project),
       selectedAssignee.value ?? ({} as ProjectMemberShip),
@@ -157,15 +158,18 @@ const handleSubmit = async () => {
       trackerTitle.value
     );
 
-    if (error.value) {
-      throw error.value.data;
-    }
+    console.log("Issue created with ID:", IssueId);
+
+    snackbarMessage.value = "Issue created with ID: " + IssueId;
+    snackbarColor.value = "success";
+    snackbar.value = true;
   } catch (error) {
     console.error("Failed to save issue:", error);
     const nError = error as NuxtError;
     const errorMessage =
       (nError.data as { message: string })?.message || nError.statusMessage;
     snackbarMessage.value = "Error: " + errorMessage;
+    snackbarColor.value = "error";
     snackbar.value = true;
   }
 };

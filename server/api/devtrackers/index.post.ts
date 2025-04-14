@@ -63,6 +63,8 @@ export default defineEventHandler(async (event) => {
 
             //const response = await axios.post(url, body, { headers })
             //return response.data
+
+            return "#39999999" //return issue id
         } catch (error) {
             console.error('Error adding issue:', error)
             throw error
@@ -102,5 +104,12 @@ export default defineEventHandler(async (event) => {
 
     if (devTrackerRequest.tracker_id === TRACKER.PROGRAM_SPEC) {
         return await createProgramSpec(devTrackerRequest)
+    }
+    else {
+        throw createError({
+            statusCode: 500,
+            message: `Tracker ${devTrackerRequest.tracker_id} is not supported`,
+            statusMessage: `Tracker ${devTrackerRequest.tracker_id} is not supported`,
+        })
     }
 })
