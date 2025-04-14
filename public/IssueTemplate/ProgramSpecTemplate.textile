@@ -1,1 +1,46 @@
-"{{toc}}\r\n\r\nh2. 01 Description \u0026 Specification\r\n\r\nh3. Problem#1\r\n\r\n- ปัญหา : \r\n- สาเหตุ :\r\n- แนวทางการแก้ไข : \r\n- Design: บอกรายละเอียดการออกแบบสั้นๆ \r\n- Merge Request: \r\n\r\nh3. Problem#N\r\n\r\n- ปัญหา : \r\n- สาเหตุ :\r\n- แนวทางการแก้ไข : \r\n- Design: บอกรายละเอียดการออกแบบสั้นๆ\r\n- Merge Request: \r\n\r\n\u003cpre\u003e\r\nกรณีที่หลาย Problem ใช้ Merge Request ใส่อันเดียวพอ\r\n\u003c/pre\u003e\r\n\r\nh2. 02 แนวทางการตรวจ:\r\n\r\nh3. Problem#1\r\n\r\n- รายงานที่เอามาใช้อ้างอิงการตรวจได้\r\n- ขั้นตอน\r\n\r\n- Manual Test Doc (Optional): -\r\n\r\nh3. All\r\n\r\n- Re-Run Automate Test VIA Jenkins มี Unit Test เพิ่ม และไม่มี Fail เพิ่มจากเดิม\r\n\r\nh2. 03 ผลกระทบ \r\n\r\nImpact \r\n- อธิบายกระชับ เพื่อให้คนที่มาใช้งานต่อ รับรู้ หรือปรับ Config ทัน เช่น มีการแก้่ลำดับของการคำนวณ NAV Per Unit กับ Process Fee อาจจะทำให้ค่า NAV Per Unit Diff ได้ หากนำไปเทียบกับเวอร์ชันก่อนหน้า\r\n\r\nh2. Automate Test (#CODETEST) / Unit Test\r\n\r\n#CODETEST Automate Test\r\n- มี Test โดยชื่อ Test มี Pattern ดังนี้ T[BNZGENREDMINEID]_xxxx โดยให้ตรวจสอบ Automate Test Report Version [BNZSELECTVERSION] และ Coverage Report http://128.1.0.56:8888/netcoverage/[BNZSELECTVERSION]\r\n"
+{{toc}}
+
+h2. 01 Description / Specification
+
+h3. Problem#1
+
+- ปัญหา : 
+- สาเหตุ :
+- แนวทางการแก้ไข : 
+- Design: บอกรายละเอียดการออกแบบสั้นๆ 
+- Merge Request: 
+
+h3. Problem#N
+
+- ปัญหา : 
+- สาเหตุ :
+- แนวทางการแก้ไข : 
+- Design: บอกรายละเอียดการออกแบบสั้นๆ
+- Merge Request: 
+
+<pre>
+กรณีที่หลาย Problem ใช้ Merge Request ใส่อันเดียวพอ
+</pre>
+
+h2. 02 แนวทางการตรวจ:
+
+h3. Problem#1
+
+- รายงานที่เอามาใช้อ้างอิงการตรวจได้
+- ขั้นตอน
+
+- Manual Test Doc (Optional): 
+
+h3. All
+
+Re-Run Automate Test VIA Jenkins มี Unit Test เพิ่ม และไม่มี Fail เพิ่มจากเดิม
+
+h2. 03 ผลกระทบ 
+
+Impact 
+- อธิบายกระชับ เพื่อให้คนที่มาใช้งานต่อ รับรู้ หรือปรับ Config ทัน เช่น มีการแก้่ลำดับของการคำนวณ NAV Per Unit กับ Process Fee อาจจะทำให้ค่า NAV Per Unit Diff ได้ หากนำไปเทียบกับเวอร์ชันก่อนหน้า
+
+h2. Automate Test (#CODETEST) / Unit Test
+
+#CODETEST Automate Test
+- มี Test โดยชื่อ Test มี Pattern ดังนี้ T[BNZGENREDMINEID]_xxxx โดยให้ตรวจสอบ Automate Test Report Version [BNZSELECTVERSION] และ Coverage Report http://128.1.0.56:8888/netcoverage/[BNZSELECTVERSION] 

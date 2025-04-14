@@ -34,16 +34,20 @@ export default defineEventHandler(async (event) => {
             validateAssigneeBelongToProhject(pDevTrackerRequest);
             validateVersionBelongToProhject(pDevTrackerRequest);
 
+            const description = await readProgramSpecTemplate();
+            //[BNZCREATEUSER] [BNZSELECTVERSION] [BNZGENREDMINEID]
+            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
+
             const body = {
                 issue: {
                     project_id: pDevTrackerRequest.project.id,
                     tracker_id: pDevTrackerRequest.tracker_id,
-                    status_id: 1,
-                    priority_id: 2,
+                    status_id: 16,
+                    priority_id: 4,
                     assigned_to_id: pDevTrackerRequest.assignTo.id,
                     fixed_version_id: pDevTrackerRequest.targetVerion.id,
                     subject: pDevTrackerRequest.subject,
-                    description: createProgramSpecDescription(pDevTrackerRequest),
+                    description: updatedDescription,
                     start_date: new Date().toISOString().split('T')[0],
                     due_date: new Date().toISOString().split('T')[0],
                     custom_fields: [
@@ -61,28 +65,39 @@ export default defineEventHandler(async (event) => {
 
             console.log("body", body)
 
-            //const response = await axios.post(url, body, { headers })
-            //return response.data
+            const response = await axios.post(url, body, { headers })
+            const issueId = response.data.issue.id
+            await UpdateDescRedmineId(response.data.issue.description, issueId)
+            return issueId
 
-            return "#39999999" //return issue id
         } catch (error) {
             console.error('Error adding issue:', error)
             throw error
         }
     }
 
-    const createProgramSpecDescription = async (pDevTrackerRequest: DevTrackerRequest) => {
-        const template = await readProgramSpecTemplate()
-        //replace template with data
-        let description = template
-        //[BNZCREATEUSER] [BNZSELECTVERSION] [BNZGENREDMINEID]
-        description = description.replace("[BNZCREATEUSER]", pDevTrackerRequest.assignTo.name)
-        description = description.replace("[BNZSELECTVERSION]", pDevTrackerRequest.targetVerion.name)
+    const UpdateDescRedmineId = async (description: string, redmineId: string) => {
+        const updatedDescription = description.split("[BNZGENREDMINEID]").join(redmineId)
+        const body = {
+            issue: {
+                description: updatedDescription,
+            }
+        };
 
-        return description
+        const updateResponse = await axios.put(`${baseUpdateUrl}${redmineId}.json`, body, { headers })
+        if (updateResponse.status !== 204) {
+            throw createError({
+                statusCode: 500,
+                message: `Update Redmine Id ${redmineId} failed`,
+                statusMessage: `Update Redmine Id ${redmineId} failed`,
+            })
+        }
+        console.log("UpdateRedmineId", updateResponse.data.issue.description)
+
+        return updatedDescription
     }
 
-    const readProgramSpecTemplate = async () => {
+    const readProgramSpecTemplate = async (): Promise<string> => {
         const filePath = path.join(process.cwd(), 'public', 'IssueTemplate/ProgramSpecTemplate.textile')
         const data = await fs.promises.readFile(filePath, 'utf-8')
         return data
@@ -91,7 +106,10 @@ export default defineEventHandler(async (event) => {
 
     const {TRACKER} = useRedmineAPI()
     const config = useRuntimeConfig(event)
+
     const url = `${config.public.redmineUrl}/issues.json`
+    const baseUpdateUrl = `${config.public.redmineUrl}/issues/`
+
     const headers = {
         'Content-Type': 'application/json',
         'X-Redmine-API-Key': config.redmineToken
