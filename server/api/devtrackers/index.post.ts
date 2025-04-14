@@ -35,7 +35,6 @@ export default defineEventHandler(async (event) => {
             validateVersionBelongToProhject(pDevTrackerRequest);
 
             const description = await readProgramSpecTemplate();
-            //[BNZCREATEUSER] [BNZSELECTVERSION] [BNZGENREDMINEID]
             const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
 
             const body = {
@@ -58,16 +57,24 @@ export default defineEventHandler(async (event) => {
                         {
                             id: 34,
                             value: "Production"
+                        },
+                        {
+                            id: 44,
+                            value: "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name
                         }
                     ]
                 }
             }
 
-            console.log("body", body)
+            console.log("Request body:", body);
 
             const response = await axios.post(url, body, { headers })
             const issueId = response.data.issue.id
-            await UpdateDescRedmineId(response.data.issue.description, issueId)
+            console.log("Issue created with ID:", issueId);
+
+            const updatedDescriptionWithId = await UpdateDescRedmineId(response.data.issue.description, issueId)
+            console.log("Updated description with Redmine ID:", updatedDescriptionWithId);
+
             return issueId
 
         } catch (error) {
@@ -92,8 +99,7 @@ export default defineEventHandler(async (event) => {
                 statusMessage: `Update Redmine Id ${redmineId} failed`,
             })
         }
-        console.log("UpdateRedmineId", updateResponse.data.issue.description)
-
+        console.log("UpdateDescRedmineId Completed", updateResponse.status)
         return updatedDescription
     }
 

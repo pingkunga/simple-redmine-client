@@ -163,6 +163,8 @@ const handleSubmit = async () => {
     snackbarMessage.value = "Issue created with ID: " + IssueId;
     snackbarColor.value = "success";
     snackbar.value = true;
+
+    handleReset();
   } catch (error) {
     console.error("Failed to save issue:", error);
     const nError = error as NuxtError;
