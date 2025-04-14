@@ -5,7 +5,6 @@ import fs from "fs"
 import useRedmineAPI from "~/composables/useRedmineAPI"
 
 export default defineEventHandler(async (event) => {
-
     //$URI = "{{baseUrl}}/issues.json"
 
     //=================================
@@ -13,6 +12,7 @@ export default defineEventHandler(async (event) => {
         if (pDevTrackerRequest.project.id !== pDevTrackerRequest.assignTo.projectId) {
             throw createError({
                 statusCode: 400,
+                message: `Assignee ${pDevTrackerRequest.assignTo.name} does not belong to the project ${pDevTrackerRequest.project.name}`,
                 statusMessage: `Assignee ${pDevTrackerRequest.assignTo.name} does not belong to the project ${pDevTrackerRequest.project.name}`,
             })
         }
@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
         if (pDevTrackerRequest.project.id !== pDevTrackerRequest.targetVerion.projectid) {
             throw createError({
                 statusCode: 400,
+                message: `Version ${pDevTrackerRequest.targetVerion.name} does not belong to the project ${pDevTrackerRequest.project.name}`,
                 statusMessage: `Version ${pDevTrackerRequest.targetVerion.name} does not belong to the project ${pDevTrackerRequest.project.name}`,
             })
         }
