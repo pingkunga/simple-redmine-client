@@ -112,3 +112,11 @@ docker build --pull -t bun-redmine:1.0.0 . --no-cache --progress=plain
 
 docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:1.0.0
 ```
+
+## Test
+
+```
+bun add -d vitest @vitest/ui @vue/test-utils jsdom
+
+bun test
+```
