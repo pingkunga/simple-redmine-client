@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
             validateAssigneeBelongToProhject(pDevTrackerRequest);
             validateVersionBelongToProhject(pDevTrackerRequest);
 
-            const description = await readProgramSpecTemplate();
+            const description = await readTemplate('ProgramSpecTemplate.textile');
             const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
 
             const body = {
@@ -83,6 +83,69 @@ export default defineEventHandler(async (event) => {
         }
     }
 
+    const createDefectSpec = async (pDevTrackerRequest: DevTrackerRequest) => {
+        try {
+            //validate project id
+            validateAssigneeBelongToProhject(pDevTrackerRequest);
+            validateVersionBelongToProhject(pDevTrackerRequest);
+
+            const description = await readTemplate('DefectTemplate.textile');
+            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
+
+            const body = {
+                issue: {
+                    project_id: pDevTrackerRequest.project.id,
+                    tracker_id: pDevTrackerRequest.tracker_id,
+                    status_id: 1,
+                    priority_id: 3,
+                    assigned_to_id: pDevTrackerRequest.assignTo.id,
+                    fixed_version_id: pDevTrackerRequest.targetVerion.id,
+                    subject: pDevTrackerRequest.subject,
+                    description: updatedDescription,
+                    start_date: new Date().toISOString().split('T')[0],
+                    due_date: new Date().toISOString().split('T')[0],
+                    //18 = Severity
+                    //14 = Found Phase
+                    //13 = Original Phase
+                    //44 = Developer's Comment
+                    custom_fields: [
+                        {
+                            id: 18,
+                            value: "Major"
+                        },
+                        {
+                            id: 14,
+                            value: "Development"
+                        },
+                        {
+                            id: 13,
+                            value: "Testing"
+                        },
+                        {
+                            id: 44,
+                            value: "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name
+                        }
+                    ]
+                }
+            }
+
+            console.log("Request body:", body);
+
+            const response = await axios.post(url, body, { headers })
+            const issueId = response.data.issue.id
+            console.log("Issue created with ID:", issueId);
+
+            const updatedDescriptionWithId = await UpdateDescRedmineId(response.data.issue.description, issueId)
+            console.log("Updated description with Redmine ID:", updatedDescriptionWithId);
+
+            return issueId
+
+        } catch (error) {
+            console.error('Error adding issue:', error)
+            throw error
+        }
+    }
+
     const UpdateDescRedmineId = async (description: string, redmineId: string) => {
         const updatedDescription = description.split("[BNZGENREDMINEID]").join(redmineId)
         const body = {
@@ -102,9 +165,9 @@ export default defineEventHandler(async (event) => {
         console.log("UpdateDescRedmineId Completed", updateResponse.status)
         return updatedDescription
     }
-
-    const readProgramSpecTemplate = async (): Promise<string> => {
-        const filePath = path.join(process.cwd(), 'public', 'IssueTemplate/ProgramSpecTemplate.textile')
+    
+    const readTemplate = async (pFileName: String): Promise<string> => {
+        const filePath = path.join(process.cwd(), 'public', `IssueTemplate/${pFileName}`)
         const data = await fs.promises.readFile(filePath, 'utf-8')
         return data
     }
@@ -128,6 +191,9 @@ export default defineEventHandler(async (event) => {
 
     if (devTrackerRequest.tracker_id === TRACKER.PROGRAM_SPEC) {
         return await createProgramSpec(devTrackerRequest)
+    }
+    else if (devTrackerRequest.tracker_id === TRACKER.DEFECT) {
+        return await createDefectSpec(devTrackerRequest)
     }
     else {
         throw createError({
