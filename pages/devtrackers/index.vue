@@ -35,7 +35,10 @@
       chips
       closable-chips
       clearable
-      :rules="[(v) => !!v || 'Project is required']"
+      :rules="[
+        (v) => !!v || 'Project is required',
+        (v) => isItemInListByType(projects, 'id', v) || 'Project must be in the list',
+      ]"
       required
     ></v-combobox>
     <div>
@@ -52,7 +55,12 @@
       chips
       closable-chips
       clearable
-      :rules="[(v) => !!v || 'Project Member is required']"
+      :rules="[
+        (v) => !!v || 'Project Member is required',
+        (v) =>
+          isItemInListByType(projectMembers, 'id', v) ||
+          'Project Member must be in the list',
+      ]"
       required
     >
     </v-combobox>
@@ -70,7 +78,10 @@
       chips
       closable-chips
       clearable
-      :rules="[(v) => !!v || 'Version is required']"
+      :rules="[
+        (v) => !!v || 'Version is required',
+        (v) => isItemInListByType(versions, 'id', v) || 'Version must be in the list',
+      ]"
       required
     >
     </v-combobox>
@@ -93,6 +104,7 @@ import type { NuxtError } from "#app";
 import type { VForm } from "vuetify/components";
 
 const { devTrackers } = useRedmineAPI();
+const { isItemInListByType } = useCommonUtil();
 
 const form = ref<VForm | null>(null);
 const isFormValid = ref(false);
