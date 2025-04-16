@@ -6,12 +6,15 @@
       Please set your access key in Client Setting
     </div>
     <div v-else>
-      <v-text-field
-        label="Encrypt Access Key"
-        v-model="accessKey"
-        readonly
-        type="Password"
-      ></v-text-field>
+      <v-container>
+        <v-text-field
+          label="Encrypt Access Key"
+          v-model="accessKey"
+          readonly
+          type="Password"
+        ></v-text-field>
+        <v-switch color="primary" label="Use Server Token"></v-switch>
+      </v-container>
     </div>
   </client>
   <v-form ref="form" v-model="isFormValid">
