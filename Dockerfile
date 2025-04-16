@@ -29,4 +29,4 @@ USER bun
 EXPOSE 3000/tcp
 
 # Run the app
-ENTRYPOINT [ "sh", "-c", "bun run /app/output/server/index.mjs" ]
+ENTRYPOINT [ "sh", "-c", "bun run /app/server/index.mjs" ]
