@@ -1,5 +1,19 @@
 <template>
   <div>Dev Trackers (Program Spec / Defect)</div>
+  <client>
+    <!--check if found access key in local storage-->
+    <div v-if="!accessKey" style="color: red">
+      Please set your access key in Client Setting
+    </div>
+    <div v-else>
+      <v-text-field
+        label="Encrypt Access Key"
+        v-model="accessKey"
+        readonly
+        type="Password"
+      ></v-text-field>
+    </div>
+  </client>
   <v-form ref="form" v-model="isFormValid">
     <v-combobox
       single
@@ -22,6 +36,7 @@
       :rules="[validateTitleInput]"
       required
       hint="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title"
+      persistent-hint
     ></v-text-field>
     <v-combobox
       single
@@ -103,6 +118,8 @@
 import type { NuxtError } from "#app";
 import type { VForm } from "vuetify/components";
 
+const accessKey = ref<string | null>(null);
+
 const { devTrackers } = useRedmineAPI();
 const { isItemInListByType } = useCommonUtil();
 
@@ -149,6 +166,11 @@ const validateTitleInput = (value: string) => {
 // ==============================
 // FORM ACTION
 // ==============================
+onMounted(() => {
+  const { retriveAccessKey } = useClientUtil();
+  accessKey.value = retriveAccessKey() || "";
+});
+
 const snackbar = ref(false);
 const snackbarMessage = ref("");
 const snackbarColor = ref("");
