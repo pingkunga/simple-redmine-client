@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Copy necessary files from the 'install' stage to the 'runtime' stage
 # COPY --from=install /app/node_modules ./node_modules
-COPY --from=install /app/.output ./output
+COPY --from=install /app/.output .
 
 # Set user and expose port
 USER bun
