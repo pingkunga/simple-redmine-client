@@ -40,7 +40,7 @@ describe('useCommonUtil', () => {
       { id: 1, name: "Item 1", extra: "Extra 1" },
       { id: 2, name: "Item 2", extra: "Extra 2" },
     ];
-    const result = isItemInListByType(extendedList, "id", { id: 1, name: "Item 1" });
+    const result = isItemInListByType(extendedList, "id", { id: 1, name: "Item 1", extra: "Extra 1" });
     expect(result).toBe(true);
   });
 });
