@@ -19,4 +19,9 @@ export default [
       icon: "mdi mdi-code-block-braces",
       to: "/devtrackers",
     },
+    {
+      title: "Client Setting",
+      icon: "mdi mdi-window-shutter-cog",
+      to: "/clientsetting",
+    },
   ]
