@@ -22,11 +22,11 @@ WORKDIR /app
 
 # Copy necessary files from the 'install' stage to the 'runtime' stage
 # COPY --from=install /app/node_modules ./node_modules
-COPY --from=install /app/.output ./output
+COPY --from=install /app/.output .
 
 # Set user and expose port
 USER bun
 EXPOSE 3000/tcp
 
 # Run the app
-ENTRYPOINT [ "sh", "-c", "bun run /app/output/server/index.mjs" ]
+ENTRYPOINT [ "sh", "-c", "bun run /app/server/index.mjs" ]
