@@ -13,7 +13,11 @@
           readonly
           type="Password"
         ></v-text-field>
-        <v-switch color="primary" label="Use Server Token"></v-switch>
+        <v-switch
+          color="primary"
+          label="Use Server Token"
+          v-model="isUseServerToken"
+        ></v-switch>
       </v-container>
     </div>
   </client>
@@ -35,7 +39,7 @@
     </div>
     <v-text-field
       v-model="trackerTitle"
-      label="Tracker Title"
+      label="Tracker Title - Pattern [SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title"
       :rules="[validateTitleInput]"
       required
       hint="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title"
@@ -122,6 +126,7 @@ import type { NuxtError } from "#app";
 import type { VForm } from "vuetify/components";
 
 const accessKey = ref<string | null>(null);
+const isUseServerToken = ref(false);
 
 const { devTrackers } = useRedmineAPI();
 const { isItemInListByType } = useCommonUtil();

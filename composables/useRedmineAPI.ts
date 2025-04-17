@@ -27,7 +27,15 @@ export default () => {
 
     const versionStatuses : string[] = ["open", "locked", "closed"];
 
-    const versionShares : string[] = ["none", "descendants", "hierarchy", "tree", "system"]; //
+    const versionShareType = {
+        NONE: "none",
+        DESCENDANTS: "descendants",
+        HIERARCHY: "hierarchy",
+        TREE: "tree",
+        SYSTEM: "system"
+    };
+
+    const versionShares : string[] = [versionShareType.NONE, versionShareType.DESCENDANTS, versionShareType.HIERARCHY, versionShareType.TREE, versionShareType.SYSTEM]; //
 
     const addVersion = async<T>(version: Version) => {
         const body = {
@@ -217,5 +225,5 @@ export default () => {
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
            , createDevTracker
-           , versionStatuses, versionShares, devTrackers, buildTrackers, TRACKER};
+           , versionStatuses, versionShareType, versionShares, devTrackers, buildTrackers, TRACKER};
 }

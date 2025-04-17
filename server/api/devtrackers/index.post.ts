@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     //$URI = "{{baseUrl}}/issues.json"
 
     //=================================
-    const validateAssigneeBelongToProhject = (pDevTrackerRequest: DevTrackerRequest) => {
+    const validateAssigneeBelongToProject = (pDevTrackerRequest: DevTrackerRequest) => {
         if (pDevTrackerRequest.project.id !== pDevTrackerRequest.assignTo.projectId) {
             throw createError({
                 statusCode: 400,
@@ -18,7 +18,15 @@ export default defineEventHandler(async (event) => {
         }
     }
 
-    const validateVersionBelongToProhject = (pDevTrackerRequest: DevTrackerRequest) => {
+    const validateVersionBelongToProject = (pDevTrackerRequest: DevTrackerRequest) => {
+        const {versionShareType } = useRedmineAPI()
+        if ((pDevTrackerRequest.targetVerion.sharing === versionShareType.DESCENDANTS)
+         || (pDevTrackerRequest.targetVerion.sharing === versionShareType.HIERARCHY)
+         || (pDevTrackerRequest.targetVerion.sharing === versionShareType.TREE))
+        {
+            return true;
+        }
+        
         if (pDevTrackerRequest.project.id !== pDevTrackerRequest.targetVerion.projectid) {
             throw createError({
                 statusCode: 400,
@@ -31,8 +39,8 @@ export default defineEventHandler(async (event) => {
     const createProgramSpec = async (pDevTrackerRequest: DevTrackerRequest) => {
         try {
             //validate project id
-            validateAssigneeBelongToProhject(pDevTrackerRequest);
-            validateVersionBelongToProhject(pDevTrackerRequest);
+            validateAssigneeBelongToProject(pDevTrackerRequest);
+            validateVersionBelongToProject(pDevTrackerRequest);
 
             const description = await readTemplate('ProgramSpecTemplate.textile');
             const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
@@ -86,8 +94,8 @@ export default defineEventHandler(async (event) => {
     const createDefectSpec = async (pDevTrackerRequest: DevTrackerRequest) => {
         try {
             //validate project id
-            validateAssigneeBelongToProhject(pDevTrackerRequest);
-            validateVersionBelongToProhject(pDevTrackerRequest);
+            validateAssigneeBelongToProject(pDevTrackerRequest);
+            validateVersionBelongToProject(pDevTrackerRequest);
 
             const description = await readTemplate('DefectTemplate.textile');
             const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
