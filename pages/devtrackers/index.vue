@@ -17,6 +17,7 @@
           color="primary"
           label="Use Server Token"
           v-model="isUseServerToken"
+          @change="projectsInit"
         ></v-switch>
       </v-container>
     </div>
@@ -128,7 +129,7 @@ import type { VForm } from "vuetify/components";
 const accessKey = ref<string | null>(null);
 const isUseServerToken = ref(false);
 
-const { devTrackers } = useRedmineAPI();
+const { devTrackers, YourOwnRedmineAPI } = useRedmineAPI();
 const { isItemInListByType } = useCommonUtil();
 
 const form = ref<VForm | null>(null);
@@ -147,20 +148,61 @@ const trackerTitle = ref<string>("");
 const { data: dataProjects, error } = await useRedmineAPI().getProject<Project[]>();
 projects.value = dataProjects.value ?? [];
 
+// ===============================
+// LIFECYCLE HOOKS
+// ===============================
+onMounted(() => {
+  const { retriveAccessKey } = useClientUtil();
+  accessKey.value = retriveAccessKey() || "";
+
+  projectsInit();
+});
+
+const projectsInit = async () => {
+  try {
+    const headers: Record<string, string> = {
+      [YourOwnRedmineAPI]: accessKey.value ?? "",
+    };
+
+    const { data: dataProjects } = isUseServerToken.value
+      ? await useRedmineAPI().getProject<Project[]>()
+      : await useRedmineAPI().getProject<Project[]>(headers);
+
+    projects.value = dataProjects.value ?? [];
+
+    //clear selected project, assignee, and version
+    selectedProject.value = undefined;
+    selectedAssignee.value = undefined;
+    selectedVersion.value = undefined;
+  } catch (err) {
+    console.error("Error fetching projects:", error);
+    snackbarMessage.value = "Error fetching projects. Please try again.";
+    snackbarColor.value = "error";
+    snackbar.value = true;
+  }
+};
+
 const projectChange = async (project: Project) => {
   console.log("Selected project:", project);
 
   if (project) {
+    const headers: Record<string, string> = {
+      [YourOwnRedmineAPI]: accessKey.value ?? "",
+    };
+
     const {
       data: dataProjects,
       error: errorProjects,
-    } = await useRedmineAPI().getProjectMemberShip<ProjectMemberShip[]>(project.id);
+    } = await useRedmineAPI().getProjectMemberShip<ProjectMemberShip[]>(
+      project.id,
+      headers
+    );
     projectMembers.value = dataProjects.value ?? [];
 
     const {
       data: dataVersions,
       error: errorVersions,
-    } = await useRedmineAPI().getVersionByProjectId<Version[]>(project.id);
+    } = await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, headers);
     versions.value = dataVersions.value ?? [];
   }
 };
@@ -174,10 +216,6 @@ const validateTitleInput = (value: string) => {
 // ==============================
 // FORM ACTION
 // ==============================
-onMounted(() => {
-  const { retriveAccessKey } = useClientUtil();
-  accessKey.value = retriveAccessKey() || "";
-});
 
 const snackbar = ref(false);
 const snackbarMessage = ref("");
@@ -192,13 +230,21 @@ const handleSubmit = async () => {
 
   console.log("Form submitted successfully");
   try {
-    const IssueId = await useRedmineAPI().createDevTracker(
+    const headers: Record<string, string> = {
+      [YourOwnRedmineAPI]: accessKey.value ?? "",
+    };
+
+    const devTrackerReq: DevTrackerRequest = useRedmineAPI().createDevTrackerRequest(
       selectTracker.value ?? 0,
       selectedProject.value ?? ({} as Project),
       selectedAssignee.value ?? ({} as ProjectMemberShip),
       selectedVersion.value ?? ({} as Version),
       trackerTitle.value
     );
+
+    const IssueId = isUseServerToken.value
+      ? await useRedmineAPI().createDevTracker(devTrackerReq)
+      : await useRedmineAPI().createDevTracker(devTrackerReq, headers);
 
     console.log("Issue created with ID:", IssueId);
 

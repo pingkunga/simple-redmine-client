@@ -4,17 +4,15 @@ import useRedmineAPI from "~/composables/useRedmineAPI";
 
 export default defineEventHandler<{query: { project_id: number } }>(async (event) => {
     //http://localhost:3000/api/projects/project-member?project_id=858
-    //http://localhost:3000/api/projects/project-member?project_id=858
-    
-    const query = getQuery(event);
-
-    const config = useRuntimeConfig(event);
-
     /*
     GET https://www.sample.co.th/redmine/issues.json?fixed_version_id=6032&status_id=* HTTP/1.1
     Content-Type: application/json
     X-Redmine-API-Key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     */
+    const config = useRuntimeConfig(event);
+    const {createBaseRedmineHeader, mapRawMembershipToProjectMemberShip } = useRedmineAPI();
+
+    const query = getQuery(event);
     const { project_id } = query;
     if (!project_id) {
         return {
@@ -23,14 +21,11 @@ export default defineEventHandler<{query: { project_id: number } }>(async (event
     }
 
     const url = `${config.public.redmineUrl}/projects/${project_id}/memberships.json`;
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Redmine-API-Key': config.redmineToken
-    };
+    
+    const req = getRequestHeaders(event);
+    const headers = createBaseRedmineHeader(req);
 
     const issuesData: Issue[] = [];
-
-    const { mapRawMembershipToProjectMemberShip } = useRedmineAPI();
 
     const projectMemberData: Project[] = [];
     let currentOffset: number = 0;

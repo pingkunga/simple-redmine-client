@@ -1,5 +1,8 @@
+import useClientUtil from "~/composables/useClientUtil";
 
 export default () => {
+    const YOUR_OWN_REDMINE_API = "x-my-redmine-api-key"; 
+
     enum TRACKER {
         PROGRAM_SPEC = 11,
         FEATURE = 14,
@@ -105,12 +108,14 @@ export default () => {
         }
     }
 
-    const getVersions = async <T>() => {
-        return await useFetch<Version[]>("/api/versions");
+    const getVersions = async <T>(headers?: Record<string, string>) => {
+        const options = headers ? { headers } : undefined;
+        return await useFetch<Version[]>("/api/versions", options);
     };
 
-    const getVersionByProjectId = async <T>(projectId: Number) => {
-        return await useFetch<Version[]>(`/api/versions/?projectId=${projectId}`);
+    const getVersionByProjectId = async <T>(projectId: Number, headers?: Record<string, string>) => {
+        const options = headers ? { headers } : undefined;
+        return await useFetch<Version[]>(`/api/versions/?projectId=${projectId}`, options);
     };
 
     function mapRawVersionToVersion(rawVersion: RawVersion): Version {
@@ -164,8 +169,9 @@ export default () => {
         };
     }
 
-    const getProject = async <T>() => {
-        return await useFetch<Project[]>("/api/projects");
+    const getProject = async <T>(headers?: Record<string, string>) => {
+        const options = headers ? { headers } : undefined;
+        return await useFetch<Project[]>("/api/projects", options);
     };
 
     function mapRawProjectToProject(rawProject: RawProject): Project {
@@ -176,8 +182,9 @@ export default () => {
     }
 
     // Project MemberShip
-    const getProjectMemberShip = async<T>(projectId: Number) => {
-        return await useFetch<ProjectMemberShip[]>(`/api/projects/project-member?project_id=${projectId}`);
+    const getProjectMemberShip = async<T>(projectId: Number, headers?: Record<string, string>) => {
+        const options = headers ? { headers } : undefined;
+        return await useFetch<ProjectMemberShip[]>(`/api/projects/project-member?project_id=${projectId}`, options);
     }
     function mapRawMembershipToProjectMemberShip(rawMembership: RawMembership): ProjectMemberShip {
         return {
@@ -190,40 +197,80 @@ export default () => {
     }
 
     //Dev Tracker
-    const createDevTracker = async<T>(trackerId: number
-                                    , project: Project
-                                    , assignTo: ProjectMemberShip
-                                    , targetVerion: Version
-                                    , subject: String): Promise<string> => {
-        const body = {
-            DevTrackerRequest: {
-                tracker_id: trackerId,
-                project: project,
-                assignTo: assignTo,
-                targetVerion: targetVerion,
-                subject: subject
-            }
+    const createDevTrackerRequest = <T>(trackerId: number
+                                      , project: Project
+                                      , assignTo: ProjectMemberShip
+                                      , targetVerion: Version
+                                      , subject: string): DevTrackerRequest => {
+        
+        const DevTrackerRequest = {
+            tracker_id: trackerId,
+            project: project,
+            assignTo: assignTo,
+            targetVerion: targetVerion,
+            subject: subject
         };
 
-        const { data, error } = await useFetch<string>("/api/devtrackers", {
-            method: "POST",
-            body: JSON.stringify(body)
-        });
-
-        if (error.value) {
-            throw createError({
-              ...error.value,
-              statusMessage: `Failed to create Dev Tracker: ${error.value.statusMessage}`,
-            });
-        }
-
-        return  data.value ?? 'No found Issue ID returned.'; 
+        return DevTrackerRequest;
     }
+
+    const createDevTracker = async<T>(devTrackerRequest: DevTrackerRequest
+                                    , headers?: Record<string, string>): Promise<string> => {
+        const body = {
+            DevTrackerRequest: devTrackerRequest
+        };
+    
+        try {
+            const { data, error } = await useFetch<string>("/api/devtrackers", {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: headers
+            });
+    
+            if (error.value) {
+                throw createError({
+                    ...error.value,
+                    statusMessage: `Failed to create Dev Tracker: ${error.value.statusMessage}`,
+                });
+            }
+    
+            return data.value ?? 'No found Issue ID returned.';
+
+        } catch (error) {
+            console.error('Error creating Dev Tracker:', error);
+            return 'Error occurred while creating Dev Tracker.';
+        }
+    };
+
+    //==========================================================
+    // SERVER SIDE API
+    //==========================================================
+    const createBaseRedmineHeader = (pCustomHeader?: Record<string, string | string[] | undefined>) => {
+        
+        const {decryptedAccessKey} = useClientUtil();
+        const config = useRuntimeConfig();
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Redmine-API-Key': config.redmineToken,
+        };
+
+        if (pCustomHeader) {
+            if (pCustomHeader[YOUR_OWN_REDMINE_API]) {
+                const apiKey = pCustomHeader[YOUR_OWN_REDMINE_API];
+                if (typeof apiKey === 'string') {
+                    headers['X-Redmine-API-Key'] = decryptedAccessKey(apiKey);
+                }
+            }
+        }
+        return headers;
+        
+    };
 
     return { addVersion, updateVersion, deleteVersion, getVersions, getVersionByProjectId, mapRawVersionToVersion
            , getIssuesByVersion, mapRawIssueToIssue
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
-           , createDevTracker
-           , versionStatuses, versionShareType, versionShares, devTrackers, buildTrackers, TRACKER};
+           , createDevTrackerRequest, createDevTracker
+           , createBaseRedmineHeader
+           , YourOwnRedmineAPI: YOUR_OWN_REDMINE_API, versionStatuses, versionShareType, versionShares, devTrackers, buildTrackers, TRACKER};
 }
