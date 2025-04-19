@@ -181,16 +181,14 @@ export default defineEventHandler(async (event) => {
     }
     //=================================
 
-    const {TRACKER} = useRedmineAPI()
+    const {createBaseRedmineHeader, TRACKER} = useRedmineAPI()
     const config = useRuntimeConfig(event)
 
     const url = `${config.public.redmineUrl}/issues.json`
     const baseUpdateUrl = `${config.public.redmineUrl}/issues/`
 
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Redmine-API-Key': config.redmineToken
-    }
+    const req = getRequestHeaders(event)
+    const headers = createBaseRedmineHeader(req)
 
     const body = await readBody(event)
     const devTrackerRequest : DevTrackerRequest = body.DevTrackerRequest

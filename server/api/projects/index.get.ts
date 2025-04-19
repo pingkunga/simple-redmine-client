@@ -3,14 +3,12 @@ import useRedmineAPI from "~/composables/useRedmineAPI";
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig(event);
-
+    const {createBaseRedmineHeader, mapRawProjectToProject } = useRedmineAPI();
+ 
     const url = `${config.public.redmineUrl}/projects.json`;
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Redmine-API-Key': config.redmineToken
-    };
-
-    const { mapRawProjectToProject } = useRedmineAPI();
+    
+    const req = getRequestHeaders(event);
+    const headers = createBaseRedmineHeader(req);
 
     const projectData: Project[] = [];
     let currentOffset: number = 0;

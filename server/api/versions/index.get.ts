@@ -5,6 +5,7 @@ export default defineEventHandler<{query: { projectId: Number } }>(async (event)
   
     const versionsData: Version[] = [];
     const config = useRuntimeConfig(event);
+    const { createBaseRedmineHeader, mapRawVersionToVersion } = useRedmineAPI();
 
     // ================================
     // Check Query Parameter
@@ -17,12 +18,8 @@ export default defineEventHandler<{query: { projectId: Number } }>(async (event)
     // ================================
 
     const url = `${config.public.redmineUrl}/projects/${filterProjectId}/versions.json`;
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Redmine-API-Key': config.redmineToken
-    };
-
-    const { mapRawVersionToVersion } = useRedmineAPI();
+    const req = getRequestHeaders(event);
+    const headers = createBaseRedmineHeader(req);
 
     try {
       const response = await axios.get<VersionsResponse>(url, { headers });
