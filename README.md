@@ -12,6 +12,7 @@
 - [x] List Versions (On Specific Project Id)
 - [x] List Issue from versions 
 - [x] New Dev Tracker (Program Spec / Defect)
+* [x] Set your own access Token
 - [ ] New Build Tracker (Build Request)
 
 # Plan List
