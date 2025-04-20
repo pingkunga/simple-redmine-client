@@ -26,17 +26,17 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Convert JUnit XML to readable format
-        uses: mikepenz/action-junit-report@v4
-        with:
-          report_paths: ./test-results.xml
-
       - name: Unit Test
         run: |
           docker build --target test -t redmine-client:test . --no-cache
           container_id=$(docker create redmine-client:test)
           docker cp $container_id:/app/test-results.xml ./test-results.xml
           docker rm $container_id
+          
+      - name: Convert JUnit XML to readable format
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: ./test-results.xml
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
