@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Test Build and Push Docker Image
 
 on:
   push:
@@ -26,6 +26,19 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Unit Test
+        run: |
+          docker build --target test -t redmine-client:test . --no-cache
+          container_id=$(docker create redmine-client:test)
+          docker cp $container_id:/app/test-results.xml ./test-results.xml
+          docker rm $container_id
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: ./test-results.xml
+        
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
