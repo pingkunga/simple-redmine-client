@@ -222,14 +222,22 @@ const snackbarMessage = ref("");
 const snackbarColor = ref("");
 
 const handleSubmit = async () => {
-  const { valid } = (await form.value?.validate()) ?? { valid: false };
-  if (!valid) {
-    console.log("Form validation failed");
-    return;
-  }
-
-  console.log("Form submitted successfully");
   try {
+    if (!accessKey.value) {
+      snackbarMessage.value = "Please set your access key in Client Setting";
+      snackbarColor.value = "error";
+      snackbar.value = true;
+      return;
+    }
+
+    const { valid } = (await form.value?.validate()) ?? { valid: false };
+    if (!valid) {
+      console.log("Form validation failed");
+      return;
+    }
+
+    console.log("Form submitted successfully");
+
     const headers: Record<string, string> = {
       [YourOwnRedmineAPI]: accessKey.value ?? "",
     };
