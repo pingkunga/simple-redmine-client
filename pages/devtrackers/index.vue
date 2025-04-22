@@ -115,11 +115,12 @@
     <v-btn color="primary" @click="handleSubmit">Submit</v-btn>
     <v-btn color="blue-darken-1" @click="handleReset">Clear</v-btn>
   </v-form>
-  <!-- Snackbar for error notifications -->
-  <v-snackbar v-model="snackbar" :timeout="5000" top right :color="snackbarColor">
-    {{ snackbarMessage }}
-    <v-btn color="white" @click="snackbar = false">Close</v-btn>
-  </v-snackbar>
+
+  <Snackbar
+    v-model:isVisible="snackbar"
+    :message="snackbarMessage"
+    :color="snackbarColor"
+  />
 </template>
 
 <script setup lang="ts">

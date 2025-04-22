@@ -15,10 +15,21 @@
         >
       </div>
     </div>
+    <Snackbar
+      v-model:isVisible="snackbar"
+      :message="snackbarMessage"
+      :color="snackbarColor"
+    />
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
+import Snackbar from "~/components/Snackbar.vue";
+
+const snackbar = ref(false);
+const snackbarMessage = ref("");
+const snackbarColor = ref("");
+
 const accessKey = ref<string>();
 
 //get access key from local storage
@@ -27,16 +38,27 @@ accessKey.value = retriveAccessKey() ?? undefined;
 
 const handleSaveAccessKey = async () => {
   if (!accessKey.value) {
+    snackbarMessage.value = "Please enter a valid access key.";
+    snackbarColor.value = "error";
+    snackbar.value = true;
     return;
   }
   const { storeAccessKey } = useClientUtil();
   storeAccessKey(accessKey.value!);
+
+  snackbarMessage.value = "Access key saved successfully.";
+  snackbarColor.value = "success";
+  snackbar.value = true;
 };
 
 const handleRemoveAccessKey = async () => {
   const { removeAccessKey } = useClientUtil();
   removeAccessKey();
   accessKey.value = "";
+
+  snackbarMessage.value = "Access key removed successfully.";
+  snackbarColor.value = "success";
+  snackbar.value = true;
 };
 </script>
 
