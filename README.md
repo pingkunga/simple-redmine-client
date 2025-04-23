@@ -12,14 +12,14 @@
 - [x] List Versions (On Specific Project Id)
 - [x] List Issue from versions 
 - [x] New Dev Tracker (Program Spec / Defect)
-* [x] Set your own access Token
+- [x] Set your own access Token
 - [ ] New Build Tracker (Build Request)
+- [/] Add Unit Test 
 
 # Plan List
 
-* Add Unit Test 
-* Set your own access Token
-* Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) / Tracker Template with some hardcode id of custom field
+- Add Unit Test 
+- Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) / Tracker Template with some hardcode id of custom field
 
 # Nuxt Minimal Starter
 
