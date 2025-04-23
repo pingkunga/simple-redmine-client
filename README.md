@@ -18,7 +18,9 @@
 
 # Plan List
 
-- Add Unit Test 
+- Add Coverage Report
+- Add Component Test
+- Add API Test
 - Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) / Tracker Template with some hardcode id of custom field
 
 # Nuxt Minimal Starter
