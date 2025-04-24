@@ -14,7 +14,7 @@
 - [x] New Dev Tracker (Program Spec / Defect)
 - [x] Set your own access Token
 - [ ] New Build Tracker (Build Request)
-- [/] Add Unit Test 
+- [ ] Add Unit Test (Initial)
 
 # Plan List
 
