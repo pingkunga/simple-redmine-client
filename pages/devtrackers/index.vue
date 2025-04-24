@@ -35,9 +35,9 @@
       :rules="[(v) => !!v || 'Tracker is required']"
       required
     ></v-combobox>
-    <div>
+    <!-- <div>
       {{ selectTracker }}
-    </div>
+    </div> -->
     <v-text-field
       v-model="trackerTitle"
       label="Tracker Title - Pattern [SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title"
@@ -64,9 +64,9 @@
       ]"
       required
     ></v-combobox>
-    <div>
+    <!-- <div>
       {{ selectedProject }}
-    </div>
+    </div> -->
     <v-combobox
       single
       v-model="selectedAssignee"
@@ -87,9 +87,9 @@
       required
     >
     </v-combobox>
-    <div>
+    <!-- <div>
       {{ selectedAssignee }}
-    </div>
+    </div> -->
     <v-combobox
       single
       v-model="selectedVersion"
@@ -108,12 +108,13 @@
       required
     >
     </v-combobox>
-    <div>
+    <!-- <div>
       {{ selectedVersion }}
+    </div> -->
+    <div class="button-container">
+      <v-btn color="primary" class="button" @click="handleSubmit">Submit</v-btn>
+      <v-btn color="blue-darken-1" class="button" @click="handleReset">Clear</v-btn>
     </div>
-
-    <v-btn color="primary" @click="handleSubmit">Submit</v-btn>
-    <v-btn color="blue-darken-1" @click="handleReset">Clear</v-btn>
   </v-form>
 
   <Snackbar
@@ -283,4 +284,15 @@ const handleReset = () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.button-container {
+  display: flex;
+  gap: 5px; /* Add spacing between buttons */
+}
+
+.button {
+  max-width: 200px; /* Set a maximum width for the buttons */
+  flex: 1; /* Make buttons take equal space */
+  text-align: center; /* Center the text inside the button */
+}
+</style>
