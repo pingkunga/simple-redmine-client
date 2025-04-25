@@ -26,6 +26,7 @@
 import sidebarItems from "./sidebarItems";
 const sidebarMenu = ref(sidebarItems);
 
+console.log(import.meta.env.VITE_APP_VERSION)
 const version = ref(import.meta.env.VITE_APP_VERSION || "0.2.0-DEV");
 </script>
 
