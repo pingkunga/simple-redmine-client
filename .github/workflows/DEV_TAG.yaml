@@ -1,11 +1,45 @@
-name: Build and Push Docker Image
+name: Test / Build and Push Docker Image
 
 on:
   push:
     tags:
       - '*'
 
+permissions:
+  checks: write
+
 jobs:
+  test: 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest # Replace with a specific version if needed
+
+      - name: Unit Test
+        run: | 
+          BUN_POSTINSTALL=enable bun install --frozen-lockfile
+          bun x vitest --reporter=verbose --run --reporter=junit --outputFile=test-results.xml 
+          
+      - name: Convert JUnit XML to readable format
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: ./test-results.xml
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./test-results.xml
+
+      - name: Log out from Docker Hub
+        run: docker logout
+      
   build:
     runs-on: ubuntu-latest
 
@@ -25,7 +59,7 @@ jobs:
       - name: Extract version from tag
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
+        
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:

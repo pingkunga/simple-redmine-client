@@ -1,7 +1,8 @@
 <template>
   <div>
     <div class="scrollnavbar">
-      <v-list class="pa-4">
+      <div class="version-text">version: {{ version }}</div>
+      <v-list class="pt-0 pr-4 pb-4 pl-4">
         <!-- ---------------------------------------------- -->
         <!---Menu Loop -->
         <!-- ---------------------------------------------- -->
@@ -24,6 +25,23 @@
 <script setup lang="ts">
 import sidebarItems from "./sidebarItems";
 const sidebarMenu = ref(sidebarItems);
+
+console.log(import.meta.env.VITE_APP_VERSION)
+const config = useRuntimeConfig();
+console.log(config.public.appVersion);
+  
+const version = ref(config.public.appVersion || "0.2.0-DEV");
 </script>
 
-<style scoped></style>
+<style scoped>
+.version-text {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  height: 50px; /* Adjust height as needed */
+  font-size: 16px; /* Adjust font size as needed */
+  font-weight: bold; /* Optional: Make the text bold */
+  text-align: center; /* Ensure text alignment */
+  padding-bottom: 0px;
+}
+</style>
