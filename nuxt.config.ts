@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       redmineUrl: "https://redmine.example.com",
-      appVersion: process.env.VITE_APP_VERSION
+      appVersion: "0.2.0-DEV"
     },
     redmineToken: "no_token"
   },
