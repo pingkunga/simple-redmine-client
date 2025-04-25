@@ -1,12 +1,27 @@
 # Simple Redmine Client
 
 * A simple redmine client to manange redmine data via REST API https://www.redmine.org/projects/redmine/wiki/Rest_api
-* Develop with Nuxt3 + vuetify
+* Develop with Nuxt3 + vuetify + TypeScript
+
+# Overview Architecture
+
+![Architecture Diagram](./redmineClientArch.svg "Architecture Diagram")
 
 # Feature
 
-* List Versions
-* List Issue from versions
+- [x] List Versions (On Specific Project Id)
+- [x] List Issue from versions 
+- [x] New Dev Tracker (Program Spec / Defect)
+- [x] Set your own access Token
+- [ ] New Build Tracker (Build Request)
+- [ ] Add Unit Test (Initial)
+
+# Plan List
+
+- Add Coverage Report
+- Add Component Test
+- Add API Test
+- Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) / Tracker Template with some hardcode id of custom field
 
 # Nuxt Minimal Starter
 
@@ -99,4 +114,12 @@ docker build --pull -t bun-redmine:1.0.0 .
 docker build --pull -t bun-redmine:1.0.0 . --no-cache --progress=plain 
 
 docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:1.0.0
+```
+
+## Test
+
+```
+bun add -d vitest @vitest/ui @vue/test-utils jsdom
+
+bun test
 ```

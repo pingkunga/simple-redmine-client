@@ -1,18 +1,25 @@
 import axios from "axios";
 import useRedmineAPI from "~/composables/useRedmineAPI";
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler<{query: { projectId: Number } }>(async (event) => {
   
     const versionsData: Version[] = [];
     const config = useRuntimeConfig(event);
+    const { createBaseRedmineHeader, mapRawVersionToVersion } = useRedmineAPI();
 
-    const url = `${config.public.redmineUrl}/projects/858/versions.json`;
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Redmine-API-Key': config.redmineToken
-    };
+    // ================================
+    // Check Query Parameter
+    const query = getQuery(event);
 
-    const { mapRawVersionToVersion } = useRedmineAPI();
+    let filterProjectId: number = 858;
+    if (query.projectId) {
+        filterProjectId= 858
+    }
+    // ================================
+
+    const url = `${config.public.redmineUrl}/projects/${filterProjectId}/versions.json`;
+    const req = getRequestHeaders(event);
+    const headers = createBaseRedmineHeader(req);
 
     try {
       const response = await axios.get<VersionsResponse>(url, { headers });
@@ -20,12 +27,10 @@ export default defineEventHandler(async (event) => {
 
       const versions: Version[] = response.data.versions.map(mapRawVersionToVersion);
       versionsData.push(...versions);
-  } 
-  catch (error) {
-      console.error('Error fetching issues:', error);
-      throw error;
-  }
-
-  return versionsData;
-
+    } 
+    catch (error) {
+        console.error('Error fetching issues:', error);
+        throw error;
+    }
+    return versionsData;
 });
