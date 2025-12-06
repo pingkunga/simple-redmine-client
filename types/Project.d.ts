@@ -1,16 +1,16 @@
-interface Project {
+export interface Project {
   id: number;
   name: string;
 }
 
 //เดี๋ยวย้ายไปที่อื่น
-interface CustomField {
+export interface CustomField {
   id: number;
   name: string;
   value: string | null;
 }
 
-interface RawProject {
+export interface RawProject {
   id: number;
   name: string;
   identifier: string;
@@ -27,7 +27,7 @@ interface RawProject {
 //================================
 // Project MemberShip
 
-interface RawMembership {
+export interface RawMembership {
   id: number;
   project: RawMembershipProject;
   group?: RawMembershipGroup;
@@ -56,7 +56,7 @@ interface RawMembershipUser {
   name: string;
 }
 
-interface ProjectMemberShip {
+export interface ProjectMemberShip {
   projectId: number;
   type: string;
   id: number;

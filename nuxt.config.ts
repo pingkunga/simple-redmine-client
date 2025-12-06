@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     redmineToken: "no_token"
   },
 
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
   build: {
@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   modules: [
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
-        // @ts-expect-error
+        config.plugins = config.plugins || []
         config.plugins.push(vuetify({ autoImport: true }))
       })
     },
@@ -36,6 +36,12 @@ export default defineNuxtConfig({
       template: {
         transformAssetUrls,
       },
+    },
+  },
+
+  typescript: {
+    tsConfig: {
+      include: ['../types/**/*'],
     },
   },
 
