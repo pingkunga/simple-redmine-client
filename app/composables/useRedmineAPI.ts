@@ -135,7 +135,9 @@ export default () => {
     }
 
     const getIssuesByVersion = async<T>(versionId: String) => {
-        return await useFetch<Issue[]>(`/api/issues/issue-version?version_id=${versionId}`);
+        return await useFetch<Issue[]>(`/api/issues/issue-version?version_id=${versionId}`, {
+            deep: true
+        });
     }
 
     function mapRawIssueToIssue(rawIssue: RawIssue): Issue {

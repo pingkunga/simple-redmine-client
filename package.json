@@ -13,7 +13,7 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.7.9",
-    "nuxt": "^3.16.2",
+    "nuxt": "^4.2.1",
     "nuxt-app": "file:",
     "sass": "^1.83.0",
     "vite-plugin-vuetify": "^2.0.4",
