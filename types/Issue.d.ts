@@ -1,4 +1,4 @@
-interface Issue {
+export interface Issue {
     id: number;
     projectId: number;
     projectName: string;
@@ -26,7 +26,7 @@ interface Issue {
 }
 
 //จาก redmine json
-interface RawIssue {
+export interface RawIssue {
     id: number;
     project: { id: number; name: string };
     tracker: { id: number; name: string };

@@ -1,4 +1,4 @@
-interface RawVersion {
+export interface RawVersion {
     id: number;
     project: Project;
     name: string;
@@ -11,7 +11,7 @@ interface RawVersion {
     updated_on: string;
   }
 
-interface Version{
+export interface Version{
     id: number;
     projectid: number;
     projectname: string;

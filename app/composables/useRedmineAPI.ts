@@ -1,4 +1,6 @@
-import useClientUtil from "~/composables/useClientUtil";
+import useClientUtil from "./useClientUtil";
+
+
 
 export default () => {
     const YOUR_OWN_REDMINE_API = "x-my-redmine-api-key"; 
@@ -141,7 +143,7 @@ export default () => {
     }
 
     function mapRawIssueToIssue(rawIssue: RawIssue): Issue {
-        const impactNoteField = rawIssue.custom_fields.find(field => field.name === "Developer's Comment");
+        const impactNoteField = rawIssue.custom_fields.find((field: { name: string; }) => field.name === "Developer's Comment");
         
         return {
             id: rawIssue.id,
@@ -205,7 +207,7 @@ export default () => {
                                       , targetVerion: Version
                                       , subject: string): DevTrackerRequest => {
         
-        const DevTrackerRequest = {
+        const request = {
             tracker_id: trackerId,
             project: project,
             assignTo: assignTo,
@@ -213,7 +215,7 @@ export default () => {
             subject: subject
         };
 
-        return DevTrackerRequest;
+        return request;
     }
 
     const createDevTracker = async<T>(devTrackerRequest: DevTrackerRequest
