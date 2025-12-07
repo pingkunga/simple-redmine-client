@@ -1,4 +1,4 @@
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -16,27 +16,16 @@ export default defineNuxtConfig({
     redmineToken: "no_token"
   },
 
+  css: ['~/assets/css/main.css'],
+
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  build: {
-    transpile: ['vuetify'],
-  },
-
   modules: [
-    (_options, nuxt) => {
-      nuxt.hooks.hook('vite:extendConfig', (config) => {
-        config.plugins = config.plugins || []
-        config.plugins.push(vuetify({ autoImport: true }))
-      })
-    },
+    '@nuxt/ui'
   ],
   vite: {
-    vue: {
-      template: {
-        transformAssetUrls,
-      },
-    },
+    plugins: [tailwindcss()]
   },
 
   typescript: {

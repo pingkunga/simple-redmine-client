@@ -1,27 +1,27 @@
 export default [
     {
       title: "Home",
-      icon: "mdi-view-dashboard-outline",
+      icon: "i-mdi-view-dashboard-outline",
       to: "/",
     },
     {
       title: "Versions List",
-      icon: "mdi-storefront-outline",
+      icon: "i-mdi-storefront-outline",
       to: "/versions",
     },
     {
       title: "Issues List",
-      icon: "mdi-format-list-bulleted",
+      icon: "i-mdi-format-list-bulleted",
       to: "/issues",
     },
     {
       title: "New Dev Trackers",
-      icon: "mdi mdi-code-block-braces",
+      icon: "i-mdi-code-block-braces",
       to: "/devtrackers",
     },
     {
       title: "Client Setting",
-      icon: "mdi mdi-window-shutter-cog",
+      icon: "i-mdi-window-shutter-cog",
       to: "/clientsetting",
     },
   ]
