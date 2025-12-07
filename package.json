@@ -11,17 +11,18 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@mdi/font": "^7.4.47",
+    "@nuxt/ui": "^4.2.1",
     "axios": "^1.7.9",
+    "baseline-browser-mapping": "^2.9.3",
+    "caniuse-lite": "^1.0.30001759",
     "nuxt": "^4.2.1",
     "nuxt-app": "file:",
-    "sass": "^1.83.0",
-    "vite-plugin-vuetify": "^2.0.4",
+    "tailwindcss": "^4.1.17",
     "vue": "latest",
-    "vue-router": "latest",
-    "vuetify": "^3.7.6"
+    "vue-router": "latest"
   },
   "devDependencies": {
+    "@iconify-json/mdi": "^1.2.3",
     "@nuxt/test-utils": "^3.17.2",
     "@vitest/ui": "^3.1.1",
     "@vue/test-utils": "^2.4.6",

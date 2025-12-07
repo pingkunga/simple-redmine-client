@@ -1,9 +1,11 @@
 <!-- filepath: d:\2WarRoom\2024RedmineClient\redmine-client\components\Snackbar.vue -->
 <template>
-  <v-snackbar v-model="localVisible" :timeout="timeout" :color="color" top right>
+  <UAlert v-if="localVisible" :color="color" variant="outline" class="fixed top-4 right-4 z-50">
     {{ message }}
-    <v-btn color="white" @click="closeSnackbar">Close</v-btn>
-  </v-snackbar>
+    <template #actions>
+      <UButton color="gray" variant="ghost" @click="closeSnackbar">Close</UButton>
+    </template>
+  </UAlert>
 </template>
 
 <script setup lang="ts">
@@ -42,4 +44,11 @@ const localVisible = computed({
 const closeSnackbar = () => {
   localVisible.value = false;
 };
+
+// Auto close after timeout
+if (props.timeout > 0) {
+  setTimeout(() => {
+    closeSnackbar();
+  }, props.timeout);
+}
 </script>

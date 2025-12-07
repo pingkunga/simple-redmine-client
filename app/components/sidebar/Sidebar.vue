@@ -2,22 +2,21 @@
   <div>
     <div class="scrollnavbar">
       <div class="version-text">version: {{ version }}</div>
-      <v-list class="pt-0 pr-4 pb-4 pl-4">
+      <ul class="pt-0 pr-4 pb-4 pl-4">
         <!-- ---------------------------------------------- -->
         <!---Menu Loop -->
         <!-- ---------------------------------------------- -->
-        <template v-for="(item, i) in sidebarMenu" :key="i">
-          <!-- ---------------------------------------------- -->
-          <!---Single Item-->
-          <!-- ---------------------------------------------- -->
-          <v-list-item :to="item.to" rounded="lg" class="mb-1">
-            <template v-slot:prepend>
-              <v-icon :icon="item.icon"></v-icon>
-            </template>
-            <v-list-item-title v-text="item.title"></v-list-item-title>
-          </v-list-item>
-        </template>
-      </v-list>
+        <li
+          v-for="(item, i) in sidebarMenu"
+          :key="i"
+          class="mb-1"
+        >
+          <NuxtLink :to="item.to" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            <UIcon :name="item.icon" class="mr-2" />
+            {{ item.title }}
+          </NuxtLink>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -29,7 +28,7 @@ const sidebarMenu = ref(sidebarItems);
 console.log(import.meta.env.VITE_APP_VERSION)
 const config = useRuntimeConfig();
 console.log(config.public.appVersion);
-  
+
 const version = ref(config.public.appVersion || "0.2.0-DEV");
 </script>
 

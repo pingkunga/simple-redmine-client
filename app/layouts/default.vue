@@ -1,46 +1,64 @@
 <template>
-  <v-app>
+  <div class="min-h-screen flex">
     <!-- Header -->
-    <v-app-bar>
-      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>Redmine Client Tools</v-toolbar-title>
-    </v-app-bar>
+    <UHeader class="w-full fixed top-0 z-50">
+      <UButton
+        @click="drawer = !drawer"
+        icon="i-lucide-menu"
+        variant="ghost"
+        size="lg"
+        class="lg:hidden"
+      />
+      <div class="flex-1">Redmine Client Tools</div>
+    </UHeader>
 
-    <v-main>
-      <!-- Sidebar -->
-      <v-navigation-drawer
-        v-model="drawer"
-        left
-        elevation="10"
-        app
-        :permanent="isLgAndUp"
-        :clipped="isLgAndUp"
-        :temporary="isMdAndDown"
-        :location="$vuetify.display.mobile ? 'bottom' : undefined"
-      >
-        <sidebar />
-      </v-navigation-drawer>
+    <!-- Sidebar -->
+    <div
+      v-show="isDesktop || drawer"
+      class="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-shrink-0"
+      :class="{
+        'fixed inset-y-0 left-0 z-40 pt-16': !isDesktop,
+        'relative pt-16': isDesktop
+      }"
+    >
+      <Sidebar />
+    </div>
 
-      <!-- Main content -->
-      <v-container fluid class="page-wrapper">
+    <!-- Overlay for mobile -->
+    <div
+      v-show="drawer && isMdAndDown"
+      @click="drawer = false"
+      class="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+    ></div>
+
+    <!-- Main content -->
+    <main class="flex-1 pt-16">
+      <div class="container mx-auto p-4 page-wrapper">
         <NuxtPage />
-      </v-container>
-    </v-main>
-  </v-app>
+      </div>
+    </main>
+  </div>
 </template>
 
 <script setup>
-import { useDisplay } from "vuetify";
+const isDesktop = computed(() => {
+  if (process.client) {
+    return window.innerWidth >= 1024;
+  }
+  return true; // Default to desktop for SSR
+});
 
+// For mobile drawer
 const drawer = ref(false);
-
-const { mdAndDown, lgAndUp } = useDisplay();
-
-const isMdAndDown = computed(() => mdAndDown.value);
-const isLgAndUp = computed(() => lgAndUp.value);
+const isMdAndDown = computed(() => {
+  if (process.client) {
+    return window.innerWidth < 1024;
+  }
+  return false; // Default to desktop for SSR
+});
 
 // Set the initial state of the drawer based on the screen size
 onMounted(() => {
-  drawer.value = isLgAndUp.value;
+  drawer.value = isDesktop.value;
 });
 </script>
