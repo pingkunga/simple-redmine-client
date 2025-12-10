@@ -3,9 +3,16 @@
     <h1>Versions</h1>
     <p>Versions count: {{ versions.length }}</p>
     <!-- <pre>{{ versions }}</pre> -->
-    <div class="flex px-4 py-3.5 border-b border-accented justify-between items-center">
-      <UInput v-model="searchText" class="max-w-sm" placeholder="Filter..." />
-      <UButton @click="openNewDialog">New Item</UButton>
+    <div class="px-4 py-3.5 border-b border-accented">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <UInput v-model="searchText" class="max-w-sm" placeholder="Filter..." />
+          <div class="flex items-center gap-2">
+            <USelect v-model="selectedStatus" :items="versionStatuses" placeholder="Filter by status..." class="w-48" />
+          </div>
+        </div>
+        <UButton @click="openNewDialog">New Item</UButton>
+      </div>
     </div>
 
     <UTable ref="table" :data="versions" :columns="columns" :loading="loading" loading-color="primary"
@@ -59,14 +66,6 @@
         </UForm>
       </template>
     </UModal>
-
-    <!-- Chips for filtering -->
-    <div class="flex gap-2 mt-4">
-      <UChip v-for="versionStatus in versionStatuses" :key="versionStatus" @click="toggleVersionStatus(versionStatus)"
-        :variant="selectedStatuses.includes(versionStatus) ? 'solid' : 'outline'">
-        {{ versionStatus }}
-      </UChip>
-    </div>
   </div>
 </template>
 
@@ -77,7 +76,7 @@ import { UBadge, UButton } from '#components'
 
 const table = useTemplateRef('table')
 
-const selectVersionStatus = ref<string[]>([]);
+const selectedStatus = ref<string>('');
 
 const { versionStatuses, versionShares } = useRedmineAPI();
 
@@ -103,26 +102,15 @@ onMounted(() => {
   fetchVersions();
 });
 
-watch(selectVersionStatus, () => {
-  if (selectVersionStatus.value.length === 0) {
+watch(selectedStatus, () => {
+  if (!selectedStatus.value || selectedStatus.value === '') {
     versions.value = dataversions.value ?? [];
   } else {
     versions.value = dataversions.value?.filter((version) =>
-      selectVersionStatus.value.includes(version.status)
+      selectedStatus.value === version.status
     ) ?? [];
   }
 });
-
-const selectedStatuses = selectVersionStatus;
-
-const toggleVersionStatus = (versionStatus: string) => {
-  const index = selectVersionStatus.value.indexOf(versionStatus);
-  if (index === -1) {
-    selectVersionStatus.value.push(versionStatus);
-  } else {
-    selectVersionStatus.value.splice(index, 1);
-  }
-};
 
 //const searchText = ref("");
 const searchText = ref<string | undefined>(undefined);
