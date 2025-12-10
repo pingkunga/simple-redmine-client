@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Versions</h1>
-    <p>Versions count: {{ versions.length }}</p>
+    <p>Versions count: {{ dataversions.length }}</p>
     <!-- <pre>{{ versions }}</pre> -->
     <div class="px-4 py-3.5 border-b border-accented">
       <div class="flex justify-between items-center">
@@ -15,8 +15,8 @@
       </div>
     </div>
 
-    <UTable ref="table" :data="versions" :columns="columns" :loading="loading" loading-color="primary"
-      loading-animation="carousel" v-model:global-filter="searchText" v-model:pagination="pagination"
+    <UTable ref="table" :data="dataversions || []" :columns="columns" :loading="loading" loading-color="primary"
+      loading-animation="carousel" v-model:global-filter="searchText" v-model:pagination="pagination" :column-filters="columnFilters"
       :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
     </UTable>
 
@@ -72,17 +72,19 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
 import { getPaginationRowModel } from '@tanstack/vue-table'
+import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
 
 const table = useTemplateRef('table')
 
 const selectedStatuses = ref<string[]>([]);
 
+const columnFilters = ref<ColumnFilter[]>([]);
+
 const { versionStatuses, versionShares } = useRedmineAPI();
 
-const dataversions = ref<Version[] | null>([]);
+const dataversions = ref<Version[]>([]);
 
-const versions = ref<Version[]>([]);
 const loading = ref(false);
 
 const fetchVersions = async () => {
@@ -90,7 +92,6 @@ const fetchVersions = async () => {
   try {
     const { data } = await useRedmineAPI().getVersions<Version[]>();
     dataversions.value = data.value || [];
-    versions.value = dataversions.value;
   } catch (err) {
     console.error("Failed to fetch versions:", err);
   } finally {
@@ -103,13 +104,7 @@ onMounted(() => {
 });
 
 watch(selectedStatuses, () => {
-  if (selectedStatuses.value.length === 0) {
-    versions.value = dataversions.value ?? [];
-  } else {
-    versions.value = dataversions.value?.filter((version) =>
-      selectedStatuses.value.includes(version.status)
-    ) ?? [];
-  }
+  columnFilters.value = [{ id: 'status', value: selectedStatuses.value }];
 });
 
 //const searchText = ref("");
@@ -172,7 +167,8 @@ const columns: TableColumn<Version>[] = [
     accessorKey: 'description',
     header: ({ column }) => h('div', { class: 'text-left' }, 'Description'),
     cell: ({ row }) => h('div', { class: 'text-left' }, row.getValue('description') || '-'),
-    size: 200
+    size: 200,
+    maxSize: 200
   },
   {
     accessorKey: 'status',
@@ -187,6 +183,7 @@ const columns: TableColumn<Version>[] = [
 
       return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () => status)
     },
+    filterFn: 'includesString',
     size: 100
   },
   {
