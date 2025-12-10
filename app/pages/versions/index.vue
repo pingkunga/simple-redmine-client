@@ -8,7 +8,7 @@
         <div class="flex items-center gap-4">
           <UInput v-model="searchText" class="max-w-sm" placeholder="Filter..." />
           <div class="flex items-center gap-2">
-            <USelect v-model="selectedStatus" :items="versionStatuses" placeholder="Filter by status..." class="w-48" />
+            <USelect v-model="selectedStatuses" :items="versionStatuses" multiple placeholder="Filter by status..." class="w-48" />
           </div>
         </div>
         <UButton @click="openNewDialog">New Item</UButton>
@@ -76,7 +76,7 @@ import { UBadge, UButton } from '#components'
 
 const table = useTemplateRef('table')
 
-const selectedStatus = ref<string>('');
+const selectedStatuses = ref<string[]>([]);
 
 const { versionStatuses, versionShares } = useRedmineAPI();
 
@@ -102,12 +102,12 @@ onMounted(() => {
   fetchVersions();
 });
 
-watch(selectedStatus, () => {
-  if (!selectedStatus.value || selectedStatus.value === '') {
+watch(selectedStatuses, () => {
+  if (selectedStatuses.value.length === 0) {
     versions.value = dataversions.value ?? [];
   } else {
     versions.value = dataversions.value?.filter((version) =>
-      selectedStatus.value === version.status
+      selectedStatuses.value.includes(version.status)
     ) ?? [];
   }
 });
