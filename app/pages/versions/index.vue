@@ -1,7 +1,6 @@
 <template>
   <div>
-    <h1>Versions</h1>
-    <p>Versions count: {{ dataversions.length }}</p>
+    <h1>Versions ({{ dataversions.length }}) </h1>
     <!-- <pre>{{ versions }}</pre> -->
     <div class="px-4 py-3.5 border-b border-accented">
       <div class="flex justify-between items-center">
