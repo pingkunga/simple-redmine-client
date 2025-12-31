@@ -1,27 +1,28 @@
 <template>
   <div>Dev Trackers (Program Spec / Defect)</div>
-  <client>
+  <ClientOnly>
     <!--check if found access key in local storage-->
-    <div v-if="!accessKey" style="color: red">
+    <div v-if="!accessKey" class="text-red-500 mb-4">
       Please set your access key in Client Setting
     </div>
-    <div v-else>
-      <v-container>
-        <v-text-field
-          label="Encrypt Access Key"
+    <div v-else class="mb-8 space-y-8 pt-4">
+      <UFormGroup label="Encrypt Access Key">
+        <UInput
           v-model="accessKey"
           readonly
-          type="Password"
-        ></v-text-field>
-        <v-switch
-          color="primary"
-          label="Use Server Token"
+          type="password"
+          icon="i-heroicons-lock-closed"
+        />
+      </UFormGroup>
+      <div class="flex items-center gap-6 pt-4">
+        <USwitch
           v-model="isUseServerToken"
-          @change="projectsInit"
-        ></v-switch>
-      </v-container>
+          @update:model-value="projectsInit"
+        />
+        <span class="text-sm text-gray-700 dark:text-gray-200">Use Server Token</span>
+      </div>
     </div>
-  </client>
+  </ClientOnly>
   <v-form ref="form" v-model="isFormValid">
     <v-combobox
       single
