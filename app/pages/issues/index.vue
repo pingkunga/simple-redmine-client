@@ -151,7 +151,7 @@ const columns: TableColumn<Issue>[] = [
     header: ({ column }) => h('div', '#'),
     cell: ({ row }) => {
       if (row.getIsGrouped()) {
-        const columnId = row.groupingColumnId
+        const columnId = row.groupingColumnId as string
         const label = columnLabels[columnId] || columnId
         return h('div', { 
           class: 'flex items-center gap-2',
