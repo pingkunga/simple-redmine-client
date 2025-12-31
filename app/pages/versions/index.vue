@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <UTable ref="table" :data="dataversions || []" :columns="columns" :loading="loading" loading-color="primary"
+    <UTable :key="refreshKey" ref="table" :data="dataversions || []" :columns="columns" :loading="loading" loading-color="primary"
       loading-animation="carousel" v-model:global-filter="searchText" v-model:pagination="pagination" :column-filters="columnFilters"
       :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }">
     </UTable>
@@ -84,6 +84,7 @@ const columnFilters = ref<ColumnFilter[]>([]);
 const { versionStatuses, versionShares } = useRedmineAPI();
 
 const dataversions = ref<Version[]>([]);
+const refreshKey = ref(0);
 
 const loading = ref(false);
 
@@ -92,6 +93,7 @@ const fetchVersions = async (pIsClear?: boolean) => {
   try {
     const { data } = await useRedmineAPI().getVersions<Version[]>(undefined, pIsClear);
     dataversions.value = data.value || [];
+    refreshKey.value++; // Force table re-render
   } catch (err) {
     console.error("Failed to fetch versions:", err);
   } finally {
