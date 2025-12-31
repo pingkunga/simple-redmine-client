@@ -90,7 +90,7 @@ const loading = ref(false);
 const fetchVersions = async (pIsClear?: boolean) => {
   loading.value = true;
   try {
-    const { data } = await useRedmineAPI().getVersions<Version[]>();
+    const { data } = await useRedmineAPI().getVersions<Version[]>(undefined, pIsClear);
     dataversions.value = data.value || [];
   } catch (err) {
     console.error("Failed to fetch versions:", err);
