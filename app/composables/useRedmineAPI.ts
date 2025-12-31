@@ -110,8 +110,18 @@ export default () => {
         }
     }
 
-    const getVersions = async <T>(headers?: Record<string, string>) => {
-        const options = headers ? { headers } : undefined;
+    // const getVersions = async <T>(headers?: Record<string, string>) => {
+    //     const options = headers ? { headers } : undefined;
+    //     return await useFetch<Version[]>("/api/versions", options);
+    // };
+
+    const getVersions = async <T>(headers?: Record<string, string>, pClear?: boolean) => {
+        const options: any = headers ? { headers } : {};
+        //Add key 
+
+        if (pClear) {
+            options.query = { t: Date.now() };
+        }
         return await useFetch<Version[]>("/api/versions", options);
     };
 

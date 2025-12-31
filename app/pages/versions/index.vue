@@ -73,6 +73,7 @@ import type { TableColumn } from "@nuxt/ui";
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
+import { tr } from "@nuxt/ui/runtime/locale/index.js";
 
 const table = useTemplateRef('table')
 
@@ -86,7 +87,7 @@ const dataversions = ref<Version[]>([]);
 
 const loading = ref(false);
 
-const fetchVersions = async () => {
+const fetchVersions = async (pIsClear?: boolean) => {
   loading.value = true;
   try {
     const { data } = await useRedmineAPI().getVersions<Version[]>();
@@ -103,7 +104,11 @@ onMounted(() => {
 });
 
 watch(selectedStatuses, () => {
-  columnFilters.value = [{ id: 'status', value: selectedStatuses.value }];
+  if (selectedStatuses.value.length === 0) {
+    columnFilters.value = [];
+  } else {
+    columnFilters.value = [{ id: 'status', value: selectedStatuses.value }];
+  }
 });
 
 //const searchText = ref("");
@@ -182,7 +187,9 @@ const columns: TableColumn<Version>[] = [
 
       return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () => status)
     },
-    filterFn: 'includesString',
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
     size: 100
   },
   {
@@ -282,7 +289,7 @@ const save = async () => {
       await useRedmineAPI().updateVersion(editedItem.value);
     }
     //refresh data
-    await fetchVersions();
+    await fetchVersions(true);
     close();
   } catch (error) {
     console.error("Failed to save version:", error);
@@ -294,7 +301,7 @@ const deleteItem = async (row: Version) => {
     try {
       await useRedmineAPI().deleteVersion(row.id.toString());
       //refresh data
-      await fetchVersions();
+      await fetchVersions(true);
     } catch (error) {
       console.error("Failed to delete version:", error);
     }
