@@ -17,19 +17,21 @@
           />
         </UFormGroup>
 
-        <div class="flex gap-4">
+        <div class="flex gap-4 pt-4">
           <UButton 
             color="primary" 
             @click="handleSaveAccessKey"
             icon="i-heroicons-check"
+            class="w-32 justify-center"
           >
             Save
           </UButton>
           <UButton 
-            color="red" 
+            color="error" 
             variant="soft"
             @click="handleRemoveAccessKey"
             icon="i-heroicons-trash"
+            class="w-32 justify-center"
           >
             Remove Key
           </UButton>
@@ -52,7 +54,7 @@ const handleSaveAccessKey = async () => {
     toast.add({
       title: 'Error',
       description: 'Please enter a valid access key.',
-      color: 'red',
+      color: 'error',
       icon: 'i-heroicons-exclamation-circle'
     });
     return;
@@ -63,7 +65,7 @@ const handleSaveAccessKey = async () => {
   toast.add({
     title: 'Success',
     description: 'Access key saved successfully.',
-    color: 'green',
+    color: 'success',
     icon: 'i-heroicons-check-circle'
   });
 };
@@ -75,7 +77,7 @@ const handleRemoveAccessKey = async () => {
   toast.add({
     title: 'Success',
     description: 'Access key removed successfully.',
-    color: 'green',
+    color: 'success',
     icon: 'i-heroicons-check-circle'
   });
 };
