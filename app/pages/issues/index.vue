@@ -15,9 +15,9 @@
             :search-input="{ placeholder: 'Search versions...' }"
             virtualize
           >
-            <template #label>
-              <span v-if="selectedVersions.length" class="truncate">
-                {{ selectedVersions.map(v => v.name).join(', ') }}
+            <template #default="{ modelValue }">
+              <span v-if="modelValue?.length" class="truncate">
+                {{ modelValue.map((v: Version) => v.name).join(', ') }}
               </span>
               <span v-else class="text-gray-500 dark:text-gray-400">Select Versions</span>
             </template>
