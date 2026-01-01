@@ -203,7 +203,7 @@ export default () => {
     function mapRawMembershipToProjectMemberShip(rawMembership: RawMembership): ProjectMemberShip {
         return {
             projectId: rawMembership.project.id,
-            type: rawMembership.group ? "group" : "user",
+            memberType: rawMembership.group ? "group" : "user",
             id: rawMembership.group ? rawMembership.group!.id : rawMembership.user!.id,
             name: rawMembership.group? rawMembership.group!.name : rawMembership.user!.name,
             membershipid: (rawMembership.group ? "group" : "user") + (rawMembership.group ? rawMembership.group!.id : rawMembership.user!.id),

@@ -58,7 +58,7 @@ interface RawMembershipUser {
 
 export interface ProjectMemberShip {
   projectId: number;
-  type: string;
+  memberType: string;
   id: number;
   name: string;
 
