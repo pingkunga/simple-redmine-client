@@ -19,7 +19,8 @@
     "nuxt-app": "file:",
     "tailwindcss": "^4.1.17",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "zod": "^4.3.4"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
