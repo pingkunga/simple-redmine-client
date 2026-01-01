@@ -3,12 +3,6 @@ export interface Project {
   name: string;
 }
 
-//เดี๋ยวย้ายไปที่อื่น
-export interface CustomField {
-  id: number;
-  name: string;
-  value: string | null;
-}
 
 export interface RawProject {
   id: number;

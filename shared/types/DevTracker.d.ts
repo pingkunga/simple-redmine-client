@@ -26,8 +26,3 @@ export interface ProgramSpec {
   due_date: string;
   custom_fields: CustomField[];
 }
-
-export interface CustomField {
-  value: string;
-  id: number;
-}
