@@ -11,13 +11,13 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@nuxt/ui": "^4.2.1",
-    "axios": "^1.7.9",
+    "@nuxt/ui": "4.2.1",
+    "axios": "^1.13.2",
     "baseline-browser-mapping": "^2.9.11",
     "caniuse-lite": "^1.0.30001762",
-    "nuxt": "^4.2.1",
+    "nuxt": "^4.2.2",
     "nuxt-app": "file:",
-    "tailwindcss": "^4.1.17",
+    "tailwindcss": "^4.1.18",
     "vue": "latest",
     "vue-router": "latest",
     "zod": "^4.3.4"
