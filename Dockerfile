@@ -1,12 +1,12 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1 AS base
+FROM oven/bun:1.3 AS base
 WORKDIR /app
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds
 FROM base AS install
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 COPY . .
 RUN BUN_POSTINSTALL=enable bun install --frozen-lockfile
 
@@ -25,7 +25,7 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # Copy production dependencies and source code into final image
-FROM oven/bun:1.0.18-alpine AS runtime
+FROM oven/bun:1.3-alpine AS runtime
 WORKDIR /app
 
 # Copy necessary files from the 'install' stage to the 'runtime' stage
