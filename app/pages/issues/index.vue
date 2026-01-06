@@ -180,26 +180,51 @@ const columns: TableColumn<Issue>[] = [
     accessorKey: 'projectName',
     header: ({ column }) => renderDraggableHeader('Project Name', 'projectName'),
     cell: ({ row }) => row.getValue('projectName'),
+    meta: {
+      class: {
+          td: 'w-48 whitespace-normal',
+      },
+    },
   },
   {
     accessorKey: 'versionName',
     header: ({ column }) => renderDraggableHeader('Version', 'versionName'),
     cell: ({ row }) => row.getValue('versionName'),
+    meta: {
+      class: {
+          td: 'w-16 whitespace-normal',
+      },
+    },
   },
   {
     accessorKey: 'assignedToUserName',
     header: ({ column }) => renderDraggableHeader('Assignee', 'assignedToUserName'),
     cell: ({ row }) => row.getValue('assignedToUserName'),
+    meta: {
+      class: {
+          td: 'w-16 whitespace-normal',
+      },
+    },
   },
   {
     accessorKey: 'subject',
     header: ({ column }) => h('div', 'Subject'),
     cell: ({ row }) => row.getValue('subject'),
+    meta: {
+      class: {
+          td: 'w-48 whitespace-normal',
+      },
+    },
   },
   {
     accessorKey: 'statusName',
     header: ({ column }) => renderDraggableHeader('Status', 'statusName'),
     cell: ({ row }) => row.getValue('statusName'),
+    meta: {
+      class: {
+          td: 'w-16 whitespace-normal',
+      },
+    },
   },
   {
     accessorKey: 'impactNote',
