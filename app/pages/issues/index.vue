@@ -237,7 +237,7 @@ const columns: TableColumn<Issue>[] = [
     cell: ({ row }) => row.getValue('subject'),
     meta: {
       class: {
-          td: 'w-64 whitespace-normal',
+          td: 'w-96 min-w-[30rem] whitespace-normal',
       },
     },
   },
