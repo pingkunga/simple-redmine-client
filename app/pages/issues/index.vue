@@ -16,9 +16,19 @@
             virtualize
           >
             <template #default="{ modelValue }">
-              <span v-if="modelValue?.length" class="truncate">
-                {{ modelValue.map((v: Version) => v.name).join(', ') }}
-              </span>
+              <div v-if="modelValue?.length" class="flex gap-2 items-center overflow-x-auto">
+                <UBadge
+                  v-for="v in modelValue"
+                  :key="v.id"
+                  variant="subtle"
+                  size="lg"
+                >
+                  {{ v.name }}
+                  <template #trailing>
+                    <UIcon name="i-heroicons-x-mark" class="cursor-pointer" @click.stop="removeSelectedVersion(v)" />
+                  </template>
+                </UBadge>
+              </div>
               <span v-else class="text-gray-500 dark:text-gray-400">Select Versions</span>
             </template>
           </USelectMenu>
@@ -134,6 +144,10 @@ const handleGetIssuesByVersion = async () => {
   );
   IssuesByVersions.value = data.value ?? [];
 };
+
+const removeSelectedVersion = (v: Version) => {
+  selectedVersions.value = selectedVersions.value.filter(sv => sv.id !== v.id)
+}
 
 const renderDraggableHeader = (title: string, columnId: string) => {
   return h('div', {
