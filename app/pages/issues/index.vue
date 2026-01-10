@@ -66,6 +66,7 @@
         groupedColumnMode: 'remove',
         getGroupedRowModel: getGroupedRowModel()
       }"
+      :ui="{ td: 'empty:p-0' }"
       class="w-full"
     />
   </div>
@@ -175,6 +176,16 @@ const columns: TableColumn<Issue>[] = [
         style: { paddingLeft: `${row.depth * 1.5}rem` }
       }, `${row.getValue('id')}`)
     },
+    meta: {
+      class: {
+        td: 'w-8 overflow-visible'
+      },
+      colspan: {
+        td: (cell: any) => {
+          return cell.row?.getIsGrouped() ? cell.row.getAllCells().length : undefined
+        }
+      }
+    },
   },
   {
     accessorKey: 'projectName',
@@ -212,7 +223,7 @@ const columns: TableColumn<Issue>[] = [
     cell: ({ row }) => row.getValue('subject'),
     meta: {
       class: {
-          td: 'w-48 whitespace-normal',
+          td: 'w-64 whitespace-normal',
       },
     },
   },
