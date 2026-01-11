@@ -10,6 +10,9 @@
         class="lg:hidden"
       />
       <div class="flex-1">Redmine Client Tools</div>
+      <div class="ms-4">
+        <ThemeToggle />
+      </div>
     </UHeader>
 
     <!-- Sidebar -->
@@ -41,6 +44,7 @@
 </template>
 
 <script setup>
+import ThemeToggle from '~/components/ThemeToggle.vue'
 const isDesktop = computed(() => {
   if (process.client) {
     return window.innerWidth >= 1024;
