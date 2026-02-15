@@ -1,50 +1,44 @@
 import tailwindcss from "@tailwindcss/vite";
-import { resolve } from 'path';
+
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 
-  /*
-  ** ENV File
-  NUXT_REDMINE_TOKEN=your_token
-  */
+  future: {
+    compatibilityVersion: 4,
+  },
 
   runtimeConfig: {
+    redmineToken: "no_token",
+    smtpHost: "smtp.example.com",
+    smtpPort: 587,
+    smtpSecure: false,
+    smtpUser: "user@example.com",
+    smtpPass: "password",
+    smtpFrom: "noreply@example.com",
     public: {
       redmineUrl: "https://redmine.example.com",
       appVersion: "0.3.0-DEV"
     },
-    redmineToken: "no_token"
   },
-
-  css: ['~/assets/css/main.css'],
-
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
+  css: ['./app/assets/css/main.css'],
   devtools: { enabled: true },
 
   modules: [
     '@nuxt/ui',
   ],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+    ],
     resolve: {
-      alias: { 'vue': resolve(__dirname, 'node_modules/vue') },
+      alias: { 
+        'vue': 'vue' },
       dedupe: ['vue']
     }
   },
-
-  // typescript: {
-  //   tsConfig: {
-  //     include: ['../types/**/*'],
-  //   },
-  // },
-
-  // imports: {
-  //   dirs: ['types/*.ts', 'store/*.ts', 'types/**/*.ts'],
-  // },
-
-  // or sourcemap: true
-  sourcemap: {
+  sourcemap: { 
     server: true,
     client: true,
   },
