@@ -162,9 +162,9 @@ const projectsInit = async () => {
     state.selectedProject = undefined;
     state.selectedAssignee = undefined;
     state.selectedVersion = undefined;
-  } catch (err) {
-    console.error("Error fetching projects:", error);
-    toast.add({ title: 'Error', description: 'Error fetching projects. Please try again.', color: 'error', icon: 'i-heroicons-exclamation-circle' });
+  } catch (err : unknown) {
+    console.error("Error fetching projects:", err);
+    toast.add({ title: 'Error', description: 'Error fetching projects. ' + (err instanceof Error ? err.message : '') + ' Please try again.', color: 'error', icon: 'i-heroicons-exclamation-circle' });
   }
 };
 
@@ -239,7 +239,7 @@ const handleSubmit = async () => {
     });
 
     handleReset();
-  } catch (error) {
+  } catch (error : unknown) {
     console.error("Failed to save issue:", error);
     const nError = error as NuxtError;
     const errorMessage =
