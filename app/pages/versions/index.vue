@@ -74,8 +74,12 @@ import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
 import { tr } from "@nuxt/ui/runtime/locale/index.js";
+import type { AxiosError } from "axios";
+import type { un } from "vue-router/dist/router-CWoNjPRp.mjs";
 
 const table = useTemplateRef('table')
+const toast = useToast();
+
 
 const selectedStatuses = ref<string[]>([]);
 
@@ -292,9 +296,11 @@ const save = async () => {
     }
     //refresh data
     await fetchVersions(true);
+    toast.add({ title: 'Success', description: 'Version saved successfully.', color: 'success', icon: 'i-heroicons-check-circle' });
     close();
-  } catch (error) {
+  } catch (error : unknown) {
     console.error("Failed to save version:", error);
+    toast.add({ title: 'Error', description: 'Failed to save version. ' + (error instanceof Error ? error.message : '') + ' Please try again.', color: 'error', icon: 'i-heroicons-exclamation-circle' });
   }
 };
 
@@ -304,8 +310,10 @@ const deleteItem = async (row: Version) => {
       await useRedmineAPI().deleteVersion(row.id.toString());
       //refresh data
       await fetchVersions(true);
-    } catch (error) {
+      toast.add({ title: 'Success', description: 'Version deleted successfully.', color: 'success', icon: 'i-heroicons-check-circle' });
+    } catch (error : unknown) {
       console.error("Failed to delete version:", error);
+      toast.add({ title: 'Error', description: 'Failed to delete version. ' + (error instanceof Error ? error.message : '') + ' Please try again.', color: 'error', icon: 'i-heroicons-exclamation-circle' });
     }
   }
 };
