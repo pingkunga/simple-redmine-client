@@ -36,6 +36,9 @@
             Remove Key
           </UButton>
         </div>
+        <div class="pt-6">
+          <img src="/images/HowToGetRedmineAccessKey.webp" alt="Access Key Guide" class="w-full rounded-md border" />
+        </div>
       </div>
     </UCard>
   </ClientOnly>
