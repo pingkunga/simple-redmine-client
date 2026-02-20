@@ -24,3 +24,17 @@ export interface Version{
     created_on: string;
     updated_on: string;
 } 
+
+export interface VersionWithReleaseNotes extends Version {
+    versionText: string;
+    wikiFullURL: string;
+    
+    ownerTeam: string;
+
+    currentBuildSeries : string;
+    currentReleaseBranch : string;
+
+    buildFor: string;
+    nextWeekReleaseVersion : string;
+    versionDueDateText: string;
+}
