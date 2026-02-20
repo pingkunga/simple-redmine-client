@@ -173,7 +173,7 @@ const columns: TableColumn<Issue>[] = [
           style: { paddingLeft: `${row.depth * 1.5}rem` }
         }, [
           h(resolveComponent('UButton'), {
-            color: 'gray',
+            color: 'neutral',
             variant: 'ghost',
             icon: row.getIsExpanded() ? 'i-heroicons-minus' : 'i-heroicons-plus',
             size: 'xs',
