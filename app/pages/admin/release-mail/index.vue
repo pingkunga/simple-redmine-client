@@ -31,8 +31,14 @@
                 link: { openOnClick: false }
               }"
               :extensions="[
-                Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
+                CustomHighlight.configure({ multicolor: false }),
+                Link.configure({ openOnClick: false }),
+                Table.configure({ resizable: true }),
+                TableRow,
+                TableHeader,
+                TableCell,
               ]"
+              :handlers="customHandlers"
               placeholder="Design your email content here..." 
               class="min-h-[400px] p-4"
             >
@@ -98,7 +104,25 @@
 
 <script setup lang="ts">
 import { Highlight } from '@tiptap/extension-highlight'
-import type { un } from 'vue-router/dist/router-CWoNjPRp.mjs';
+import { Link } from '@tiptap/extension-link'
+
+// CustomHighlight to migrate span -> mark
+const CustomHighlight = Highlight.extend({
+  parseHTML() {
+    return [
+      { tag: 'mark' },
+      { tag: 'span', getAttrs: node => (node as HTMLElement).classList.contains('highlight') && null },
+      { tag: 'span', getAttrs: node => (node as HTMLElement).style.backgroundColor && null },
+    ]
+  }
+})
+
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableHeader } from '@tiptap/extension-table-header'
+import { TableCell } from '@tiptap/extension-table-cell'
+import type { Editor } from '@tiptap/vue-3'
+import type { EditorCustomHandlers } from '@nuxt/ui'
 import type { VersionWithReleaseNotes } from '~~/shared/types/Version';
 
 const toast = useToast();
@@ -109,6 +133,64 @@ const templateData = ref({ body: '', style: '' });
 const versions = ref<VersionWithReleaseNotes[]>([]);
 const selectedVersionId = ref<number>();
 
+const customHandlers = {
+  highlight: {
+    canExecute: (editor: Editor) => !!editor.can().toggleHighlight(),
+    execute: (editor: Editor) => editor.chain().focus().toggleHighlight().run(),
+    isActive: (editor: Editor) => editor.isActive('highlight'),
+  },
+  insertTable: {
+    canExecute: (editor: Editor) => !!editor.can().insertTable(),
+    execute: (editor: Editor) => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+    isActive: (editor: Editor) => editor.isActive('table'),
+  },
+  addRowBefore: {
+    canExecute: (editor: Editor) => !!editor.can().addRowBefore(),
+    execute: (editor: Editor) => editor.chain().focus().addRowBefore().run(),
+    isActive: () => false,
+  },
+  addRowAfter: {
+    canExecute: (editor: Editor) => !!editor.can().addRowAfter(),
+    execute: (editor: Editor) => editor.chain().focus().addRowAfter().run(),
+    isActive: () => false,
+  },
+  addColumnBefore: {
+    canExecute: (editor: Editor) => !!editor.can().addColumnBefore(),
+    execute: (editor: Editor) => editor.chain().focus().addColumnBefore().run(),
+    isActive: () => false,
+  },
+  addColumnAfter: {
+    canExecute: (editor: Editor) => !!editor.can().addColumnAfter(),
+    execute: (editor: Editor) => editor.chain().focus().addColumnAfter().run(),
+    isActive: () => false,
+  },
+  deleteRow: {
+    canExecute: (editor: Editor) => !!editor.can().deleteRow(),
+    execute: (editor: Editor) => editor.chain().focus().deleteRow().run(),
+    isActive: () => false,
+  },
+  deleteColumn: {
+    canExecute: (editor: Editor) => !!editor.can().deleteColumn(),
+    execute: (editor: Editor) => editor.chain().focus().deleteColumn().run(),
+    isActive: () => false,
+  },
+  deleteTable: {
+    canExecute: (editor: Editor) => !!editor.can().deleteTable(),
+    execute: (editor: Editor) => editor.chain().focus().deleteTable().run(),
+    isActive: () => false,
+  },
+  mergeCells: {
+    canExecute: (editor: Editor) => !!editor.can().mergeCells(),
+    execute: (editor: Editor) => editor.chain().focus().mergeCells().run(),
+    isActive: () => false,
+  },
+  splitCell: {
+    canExecute: (editor: Editor) => !!editor.can().splitCell(),
+    execute: (editor: Editor) => editor.chain().focus().splitCell().run(),
+    isActive: () => false,
+  }
+} satisfies EditorCustomHandlers
+
 const tabItems = [
   { slot: 'visual', label: 'Visual Editor', icon: 'i-mdi-format-color-text' },
   { slot: 'style', label: 'Styles (CSS)', icon: 'i-mdi-language-css3' },
@@ -117,7 +199,7 @@ const tabItems = [
 
 const placeholders = [
   'versionText', 'wikiFullURL', 'ownerTeam', 'nextWeekReleaseVersion', 
-  'versionDueDateText', 'version', 'currentReleaseBranch', 'buildFor'
+  'versionDueDateText', 'version', 'currentReleaseBranch', 'buildFor', 'name'
 ];
 
 const toolbarItems = [
@@ -153,8 +235,7 @@ const toolbarItems = [
     icon: 'i-mdi-format-strikethrough',
     label: 'Strikethrough'
   },{
-    kind: 'mark',
-    mark: 'highlight', // เพิ่มปุ่ม Highlight
+    kind: 'highlight',
     icon: 'i-mdi-format-color-highlight',
     label: 'Highlight'
   },{
@@ -180,27 +261,54 @@ const toolbarItems = [
     icon: 'i-mdi-code-tags',
     label: 'Code'
   }],
-  // [{
-  //   kind: 'command',
-  //   icon: 'i-mdi-table-plus',
-  //   label: 'Insert Table',
-  //   click: ({ editor }: any) => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-  // }, {
-  //   kind: 'command',
-  //   icon: 'i-mdi-table-row-plus-after',
-  //   label: 'Add Row After',
-  //   click: ({ editor }: any) => editor.chain().focus().addRowAfter().run()
-  // }, {
-  //   kind: 'command',
-  //   icon: 'i-mdi-table-column-plus-after',
-  //   label: 'Add Col After',
-  //   click: ({ editor }: any) => editor.chain().focus().addColumnAfter().run()
-  // }, {
-  //   kind: 'command',
-  //   icon: 'i-mdi-table-remove',
-  //   label: 'Delete Table',
-  //   click: ({ editor }: any) => editor.chain().focus().deleteTable().run()
-  // }]
+  [{
+    icon: 'i-mdi-table',
+    tooltip: { text: 'Table' },
+    content: {
+      align: 'start'
+    },
+    items: [{
+      label: 'Insert Table',
+      icon: 'i-mdi-table-plus',
+      kind: 'insertTable'
+    }, {
+      label: 'Add Row Before',
+      icon: 'i-mdi-table-row-plus-before',
+      kind: 'addRowBefore'
+    }, {
+      label: 'Add Row After',
+      icon: 'i-mdi-table-row-plus-after',
+      kind: 'addRowAfter'
+    }, {
+      label: 'Add Col Before',
+      icon: 'i-mdi-table-column-plus-before',
+      kind: 'addColumnBefore'
+    }, {
+      label: 'Add Col After',
+      icon: 'i-mdi-table-column-plus-after',
+      kind: 'addColumnAfter'
+    }, {
+      label: 'Delete Row',
+      icon: 'i-mdi-table-row-remove',
+      kind: 'deleteRow'
+    }, {
+      label: 'Delete Col',
+      icon: 'i-mdi-table-column-remove',
+      kind: 'deleteColumn'
+    }, {
+      label: 'Delete Table',
+      icon: 'i-mdi-table-remove',
+      kind: 'deleteTable'
+    }, {
+      label: 'Merge Cells',
+      icon: 'i-mdi-table-merge-cells',
+      kind: 'mergeCells'
+    }, {
+      label: 'Split Cell',
+      icon: 'i-mdi-table-split-cell',
+      kind: 'splitCell'
+    }]
+  }]
 ];
 
 // Fetch Data
@@ -242,7 +350,11 @@ const finalPreviewHtml = computed(() => {
         });
     }
 
-    return `<html><head><style>${style}</style></head><body><div class="mail-content">${html}</div></body></html>`;
+    // Return content with style tag for live preview. 
+    // Note: In some browsers, style inside v-html might need to be handled carefully, 
+    // but usually in Vue, it works for simple cases. 
+    // We add .mail-preview-container to scope the styles to the preview area.
+    return `<style>${style}</style><div class="mail-content">${html}</div>`;
 });
 
 const insertPlaceholder = (p: string) => {
@@ -307,32 +419,59 @@ const handleSendTest = async () => {
     padding-left: 2em !important;
     margin: 1em 0;
 }
-.mail-preview-container :deep(.highlight) {
-    background-color: #FFFF00;
+.mail-preview-container :deep(.highlight), .mail-preview-container :deep(mark) {
+    background-color: #FFFF00 !important;
+    color: black !important;
+}
+
+/* Editor highlight style */
+:deep(.tiptap mark), :deep(.ProseMirror mark) {
+  background-color: #FFFF00 !important;
+  color: black !important;
 }
 
 /* Editor table styles */
-/* :deep(.tiptap table) {
+:deep(.tiptap table), :deep(.ProseMirror table) {
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
-  margin: 0;
+  margin: 1em 0;
   overflow: hidden;
 }
-:deep(.tiptap td), :deep(.tiptap th) {
+:deep(.tiptap td), :deep(.tiptap th), :deep(.ProseMirror td), :deep(.ProseMirror th) {
   min-width: 1em;
   border: 1px solid #ddd;
-  padding: 3px 5px;
+  padding: 8px;
   vertical-align: top;
   box-sizing: border-box;
   position: relative;
 }
-:deep(.tiptap th) {
+:deep(.tiptap th), :deep(.ProseMirror th) {
   font-weight: bold;
   text-align: left;
   background-color: #f1f3f5;
 }
-:deep(.dark .tiptap th) {
+:deep(.dark .tiptap th), :deep(.dark .ProseMirror th) {
     background-color: #1a202c;
-} */
+}
+:deep(.tiptap .selectedCell:after), :deep(.ProseMirror .selectedCell:after) {
+  z-index: 2;
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
+:deep(.tiptap .column-resize-handle), :deep(.ProseMirror .column-resize-handle) {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: #adf;
+  pointer-events: none;
+}
 </style>
