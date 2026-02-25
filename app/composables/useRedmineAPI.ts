@@ -136,6 +136,7 @@ export default () => {
             projectid: rawVersion.project?.id,
             projectname: rawVersion.project?.name,
             name: rawVersion.name,
+            versionName: rawVersion.name,
             description: rawVersion.description,
             status: rawVersion.status,
             due_date: rawVersion.due_date,
