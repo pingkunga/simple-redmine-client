@@ -31,9 +31,22 @@
                 link: { openOnClick: false }
               }"
               :extensions="[
-                CustomHighlight.configure({ multicolor: false }),
+                //Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
+                Highlight.configure({ 
+                  multicolor: true, 
+                  HTMLAttributes: { 
+                    style: 'background-color: #FFFF00; color: black; padding: 2px; border-radius: 2px;' 
+                  } 
+                }),
                 Link.configure({ openOnClick: false }),
-                Table.configure({ resizable: true }),
+                //Table.configure({ resizable: true }),
+                Table.configure({ 
+                  resizable: true,
+                  HTMLAttributes: {
+                    style: 'border-collapse: collapse; width: 100%;',
+                    border: '1'
+                  }
+                }),
                 TableRow,
                 TableHeader,
                 TableCell,
@@ -106,17 +119,6 @@
 import { Highlight } from '@tiptap/extension-highlight'
 import { Link } from '@tiptap/extension-link'
 
-// CustomHighlight to migrate span -> mark
-const CustomHighlight = Highlight.extend({
-  parseHTML() {
-    return [
-      { tag: 'mark' },
-      { tag: 'span', getAttrs: node => (node as HTMLElement).classList.contains('highlight') && null },
-      { tag: 'span', getAttrs: node => (node as HTMLElement).style.backgroundColor && null },
-    ]
-  }
-})
-
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableHeader } from '@tiptap/extension-table-header'
@@ -134,11 +136,6 @@ const versions = ref<VersionWithReleaseNotes[]>([]);
 const selectedVersionId = ref<number>();
 
 const customHandlers = {
-  highlight: {
-    canExecute: (editor: Editor) => !!editor.can().toggleHighlight(),
-    execute: (editor: Editor) => editor.chain().focus().toggleHighlight().run(),
-    isActive: (editor: Editor) => editor.isActive('highlight'),
-  },
   insertTable: {
     canExecute: (editor: Editor) => !!editor.can().insertTable(),
     execute: (editor: Editor) => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
@@ -199,7 +196,7 @@ const tabItems = [
 
 const placeholders = [
   'versionText', 'wikiFullURL', 'ownerTeam', 'nextWeekReleaseVersion', 
-  'versionDueDateText', 'version', 'currentReleaseBranch', 'buildFor', 'name'
+  'versionDueDateText', 'version', 'currentReleaseBranch', 'buildFor', 'versionName'
 ];
 
 const toolbarItems = [
@@ -235,7 +232,8 @@ const toolbarItems = [
     icon: 'i-mdi-format-strikethrough',
     label: 'Strikethrough'
   },{
-    kind: 'highlight',
+    kind: 'mark',
+    mark: 'highlight',
     icon: 'i-mdi-format-color-highlight',
     label: 'Highlight'
   },{
@@ -419,15 +417,8 @@ const handleSendTest = async () => {
     padding-left: 2em !important;
     margin: 1em 0;
 }
-.mail-preview-container :deep(.highlight), .mail-preview-container :deep(mark) {
-    background-color: #FFFF00 !important;
-    color: black !important;
-}
-
-/* Editor highlight style */
-:deep(.tiptap mark), :deep(.ProseMirror mark) {
-  background-color: #FFFF00 !important;
-  color: black !important;
+.mail-preview-container :deep(.highlight) {
+    background-color: #FFFF00;
 }
 
 /* Editor table styles */
