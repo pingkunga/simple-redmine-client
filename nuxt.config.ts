@@ -16,6 +16,8 @@ export default defineNuxtConfig({
     smtpUser: "user@example.com",
     smtpPass: "password",
     smtpFrom: "noreply@example.com",
+    notifyReleaseMailApiKey: "",
+    notifyReleaseMailAllowedIps: "",
     public: {
       redmineUrl: "https://redmine.example.com",
       appVersion: "0.3.0-DEV"
