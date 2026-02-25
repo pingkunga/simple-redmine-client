@@ -30,7 +30,7 @@ WORKDIR /app
 
 # Copy necessary files from the 'install' stage to the 'runtime' stage
 # COPY --from=install /app/node_modules ./node_modules
-COPY --from=build /app/.output .
+COPY --from=build --chown=bun:bun /app/.output .
 
 # Set user and expose port
 USER bun
