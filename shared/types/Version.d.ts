@@ -1,3 +1,4 @@
+import { Version } from './Version.d';
 export interface RawVersion {
     id: number;
     project: Project;
@@ -16,6 +17,7 @@ export interface Version{
     projectid: number;
     projectname: string;
     name: string;
+    versionName: string;
     description: string;
     status: string;
     due_date: string | null;
