@@ -16,6 +16,16 @@
             {{ item.title }}
           </NuxtLink>
         </li>
+        <!-- Admin Section -->
+        <li v-if="isLoggedIn" class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <div class="px-2 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Admin
+          </div>
+          <NuxtLink to="/admin/release-mail" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium">
+            <UIcon name="i-mdi-email-fast-outline" class="mr-2" />
+            Release Mail
+          </NuxtLink>
+        </li>
       </ul>
     </div>
   </div>
@@ -24,6 +34,9 @@
 <script setup lang="ts">
 import sidebarItems from "./sidebarItems";
 const sidebarMenu = ref(sidebarItems);
+
+const authCookie = useCookie('admin_session')
+const isLoggedIn = computed(() => !!authCookie.value)
 
 console.log(import.meta.env.VITE_APP_VERSION)
 const config = useRuntimeConfig();

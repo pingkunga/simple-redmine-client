@@ -9,9 +9,18 @@
         size="lg"
         class="lg:hidden"
       />
-      <div class="flex-1">Redmine Client Tools</div>
-      <div class="ms-4">
+      <div class="flex-1 text-sm font-semibold truncate px-2">Redmine Client Tools</div>
+      <div class="ms-4 flex items-center gap-1">
         <ThemeToggle />
+        <UButton
+          v-if="isLoggedIn"
+          icon="i-mdi-logout"
+          color="error"
+          variant="ghost"
+          size="sm"
+          @click="handleLogout"
+          title="Logout"
+        />
       </div>
     </UHeader>
 
@@ -45,6 +54,20 @@
 
 <script setup>
 import ThemeToggle from '~/components/ThemeToggle.vue'
+
+const authCookie = useCookie('admin_session')
+const isLoggedIn = computed(() => !!authCookie.value)
+
+const handleLogout = async () => {
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    authCookie.value = null
+    navigateTo('/login')
+  } catch (err) {
+    console.error('Logout failed', err)
+  }
+}
+
 const isDesktop = computed(() => {
   if (process.client) {
     return window.innerWidth >= 1024;
