@@ -5,22 +5,6 @@ import type { VersionWithReleaseNotes } from '~~/shared/types/Version';
 
 export default defineEventHandler(async (event) => {
 
-  // // IP Whitelisting
-  // const allowedIps = (useRuntimeConfig().notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
-  // const requestIp = event.node.req.socket.remoteAddress || '';
-  // if (allowedIps.length > 0 && !allowedIps.includes(requestIp)) {
-  //   console.warn(`Unauthorized IP ${requestIp} attempted to access send-release-mail API`);
-  //   throw createError({ statusCode: 403, statusMessage: 'Forbidden' });
-  // }
-
-  // // API Key Authentication
-  // const apiKey = useRuntimeConfig().notifyReleaseMailApiKey;
-  // const requestApiKey = event.node.req.headers['x-api-key'] || '';
-  // if (apiKey && requestApiKey !== apiKey) {
-  //   console.warn(`Unauthorized API key attempt from IP ${requestIp}`);
-  //   throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
-  // }
-
   const body = await readBody(event);
   const { projectId, versionId, recipients: _recipients, to, template: _template } = body;
 
