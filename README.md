@@ -109,11 +109,14 @@ bun add axios
 ## Build & Run
 
 ```
-docker build --pull -t bun-redmine:1.0.0 .
+docker build --pull -t bun-redmine:0.3.0rc10 .
 
-docker build --pull -t bun-redmine:1.0.0 . --no-cache --progress=plain 
+docker build --pull -t bun-redmine:0.3.0rc10 . --no-cache --progress=plain 
 
-docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:1.0.0
+docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:0.3.0rc10
+
+docker tag bun-redmine:0.3.0rc10 pingkunga/bun-redmine:0.3.0rc10
+docker push pingkunga/bun-redmine:0.3.0rc10
 ```
 
 ## Test
