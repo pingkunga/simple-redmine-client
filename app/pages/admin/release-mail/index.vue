@@ -31,25 +31,39 @@
                 link: { openOnClick: false }
               }"
               :extensions="[
-                //Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
                 Highlight.configure({ 
                   multicolor: true, 
                   HTMLAttributes: { 
                     style: 'background-color: #FFFF00; color: black; padding: 2px; border-radius: 2px;' 
                   } 
                 }),
-                Link.configure({ openOnClick: false }),
-                //Table.configure({ resizable: true }),
+                Link.configure({ 
+                  openOnClick: false,
+                  HTMLAttributes: {
+                    style: 'color: #3b82f6; text-decoration: underline;'
+                  }
+                }),
                 Table.configure({ 
                   resizable: true,
                   HTMLAttributes: {
-                    style: 'border-collapse: collapse; width: 100%;',
-                    border: '1'
+                    style: 'border-collapse: collapse; width: 100%; border: 1px solid #dddddd;',
                   }
                 }),
-                TableRow,
-                TableHeader,
-                TableCell,
+                TableRow.configure({
+                  HTMLAttributes: {
+                    style: 'border: 1px solid #dddddd;'
+                  }
+                }),
+                TableHeader.configure({
+                  HTMLAttributes: {
+                    style: 'border: 1px solid #dddddd; padding: 8px; background-color: #f1f3f5; font-weight: bold; text-align: left;'
+                  }
+                }),
+                TableCell.configure({
+                  HTMLAttributes: {
+                    style: 'border: 1px solid #dddddd; padding: 8px; text-align: left;'
+                  }
+                }),
               ]"
               :handlers="customHandlers"
               placeholder="Design your email content here..." 
@@ -65,14 +79,6 @@
           </div>
         </template>
         
-        <template #style>
-          <div class="mt-4">
-            <UFormField label="Global CSS Styles" description="CSS for tables, fonts, and highlights">
-              <UTextarea v-model="templateData.style" :rows="16" class="font-mono text-xs" />
-            </UFormField>
-          </div>
-        </template>
-
         <template #preview>
           <div class="mt-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-lg overflow-hidden">
             <div class="px-3 py-2 border-b text-xs font-medium text-gray-400 bg-gray-50 dark:bg-gray-800 flex justify-between">
@@ -190,7 +196,6 @@ const customHandlers = {
 
 const tabItems = [
   { slot: 'visual', label: 'Visual Editor', icon: 'i-mdi-format-color-text' },
-  { slot: 'style', label: 'Styles (CSS)', icon: 'i-mdi-language-css3' },
   { slot: 'preview', label: 'Live Preview', icon: 'i-mdi-eye' }
 ];
 
@@ -337,7 +342,6 @@ const currentPreviewVersion = computed(() => versions.value.find(v => v.id === s
 // Merge logic for Preview
 const finalPreviewHtml = computed(() => {
     let html = templateData.value.body;
-    const style = templateData.value.style;
     const v = currentPreviewVersion.value;
     
     if (v) {
@@ -348,11 +352,8 @@ const finalPreviewHtml = computed(() => {
         });
     }
 
-    // Return content with style tag for live preview. 
-    // Note: In some browsers, style inside v-html might need to be handled carefully, 
-    // but usually in Vue, it works for simple cases. 
-    // We add .mail-preview-container to scope the styles to the preview area.
-    return `<style>${style}</style><div class="mail-content">${html}</div>`;
+    // Return content with inline base styles for live preview.
+    return `<div class="mail-content" style="font-family: sans-serif; font-size: 14px; line-height: 1.6; color: #333;">${html}</div>`;
 });
 
 const insertPlaceholder = (p: string) => {
