@@ -66,7 +66,7 @@
               ]"
               :handlers="customHandlers"
               placeholder="Design your email content here..." 
-              class="min-h-[400px] p-4"
+              class="max-h-[600px] overflow-y-auto p-4"
             >
               <template #default="{ editor }">
                 {{ setEditorRef(editor) }}
@@ -433,6 +433,12 @@ const handleSendTest = async () => {
 }
 .mail-preview-container :deep(.highlight) {
     background-color: #FFFF00;
+}
+
+/* Fix Tiptap editor scrolling and height */
+:deep(.ProseMirror) {
+    outline: none;
+    min-height: 400px;
 }
 
 /* Editor table styles */
