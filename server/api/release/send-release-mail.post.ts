@@ -35,10 +35,8 @@ export default defineEventHandler(async (event) => {
     // Use template from body (for Designer Test) or load from file
     let html = '';
     if (_template && _template.body) {
-      // Combine body and style from the designer if provided
-      const style = _template.style || '';
-      
-      html = `<html><head><style>${style}</style></head><body><div class="mail-content">${_template.body}</div></body></html>`;
+      // Use inline-first approach from the designer
+      html = `<html><body style="margin: 0; padding: 0; font-family: sans-serif;"><div class="mail-content" style="padding: 20px; font-size: 14px; line-height: 1.6; color: #333;">${_template.body}</div></body></html>`;
     } else {
       html = await loadAndStandardize();
     }
