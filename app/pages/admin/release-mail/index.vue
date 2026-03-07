@@ -16,7 +16,6 @@
         <template #visual>
           <div class="mt-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-lg overflow-hidden">
             <UEditor 
-              v-slot="{ editor }"
               v-model="templateData.body" 
               content-type="html" 
               :starter-kit="{
@@ -69,12 +68,15 @@
               placeholder="Design your email content here..." 
               class="min-h-[400px] p-4"
             >
-              <UEditorToolbar 
-                :editor="editor" 
-                :items="toolbarItems" 
-                size="sm" 
-                class="border-b border-gray-200 dark:border-gray-800 p-1.5 bg-gray-50 dark:bg-gray-800" 
-              />
+              <template #default="{ editor }">
+                {{ setEditorRef(editor) }}
+                <UEditorToolbar 
+                  :editor="editor" 
+                  :items="toolbarItems" 
+                  size="sm" 
+                  class="border-b border-gray-200 dark:border-gray-800 p-1.5 bg-gray-50 dark:bg-gray-800" 
+                />
+              </template>
             </UEditor>
           </div>
         </template>
@@ -140,6 +142,7 @@ const testRecipient = ref('');
 const templateData = ref({ body: '', style: '' });
 const versions = ref<VersionWithReleaseNotes[]>([]);
 const selectedVersionId = ref<number>();
+const editorRef = ref<Editor | null>(null);
 
 const customHandlers = {
   insertTable: {
@@ -357,8 +360,18 @@ const finalPreviewHtml = computed(() => {
 });
 
 const insertPlaceholder = (p: string) => {
-    templateData.value.body += ` {{${p}}}`;
+    if (editorRef.value) {
+        editorRef.value.chain().focus().insertContent(`{{${p}}}`).run();
+    } else {
+        templateData.value.body += ` {{${p}}}`;
+    }
     toast.add({ title: 'Added', description: `Variable {{${p}}} added to template`, color: 'info', duration: 1000 });
+};
+
+const setEditorRef = (editor: any) => {
+  if (editor && !editorRef.value) {
+    editorRef.value = editor;
+  }
 };
 
 const handleSave = async () => {
