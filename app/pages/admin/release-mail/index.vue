@@ -240,17 +240,14 @@ const toolbarItems = [
     kind: 'mark',
     mark: 'bold',
     icon: 'i-mdi-format-bold',
-    label: 'Bold'
   }, {
     kind: 'mark',
     mark: 'italic',
     icon: 'i-mdi-format-italic',
-    label: 'Italic'
   }, {
     kind: 'mark',
     mark: 'strike',
     icon: 'i-mdi-format-strikethrough',
-    label: 'Strikethrough'
   },{
     kind: 'mark',
     mark: 'highlight',
@@ -326,6 +323,15 @@ const toolbarItems = [
       icon: 'i-mdi-table-split-cell',
       kind: 'splitCell'
     }]
+  }],
+  [{
+    icon: 'i-mdi-variable',
+    label: 'Insert Variable',
+    tooltip: { text: 'Available placeholders' },
+    items: placeholders.map(p => ({
+      label: `{{${p}}}`,
+      onClick: () => insertPlaceholder(p)
+    }))
   }]
 ];
 
@@ -350,17 +356,17 @@ const floatingToolbarItems = [
     kind: 'mark',
     mark: 'bold',
     icon: 'i-mdi-format-bold',
-    label: 'Bold'
+    //label: 'Bold'
   }, {
     kind: 'mark',
     mark: 'italic',
     icon: 'i-mdi-format-italic',
-    label: 'Italic'
+    //label: 'Italic'
   }, {
     kind: 'mark',
     mark: 'strike',
     icon: 'i-mdi-format-strikethrough',
-    label: 'Strikethrough'
+    //label: 'Strikethrough'
   },{
     kind: 'mark',
     mark: 'highlight',
@@ -432,6 +438,15 @@ const floatingToolbarItems = [
       icon: 'i-mdi-table-split-cell',
       kind: 'splitCell'
     }]
+  }],
+  [{
+    icon: 'i-mdi-variable',
+    label: 'Insert Variable',
+    tooltip: { text: 'Available placeholders' },
+    items: placeholders.map(p => ({
+      label: `{{${p}}}`,
+      onClick: () => insertPlaceholder(p)
+    }))
   }]
 ];
 
@@ -456,17 +471,17 @@ const bubbleToolbarItems = [
     kind: 'mark',
     mark: 'bold',
     icon: 'i-mdi-format-bold',
-    label: 'Bold'
+    //label: 'Bold'
   }, {
     kind: 'mark',
     mark: 'italic',
     icon: 'i-mdi-format-italic',
-    label: 'Italic'
+    //label: 'Italic'
   }, {
     kind: 'mark',
     mark: 'strike',
     icon: 'i-mdi-format-strikethrough',
-    label: 'Strikethrough'
+    //label: 'Strikethrough'
   }, {
     kind: 'mark',
     mark: 'highlight',
@@ -476,6 +491,15 @@ const bubbleToolbarItems = [
     kind: 'link',
     icon: 'i-mdi-link',
     label: 'Hyperlink'
+  }],
+  [{
+    icon: 'i-mdi-variable',
+    label: 'Insert Variable',
+    tooltip: { text: 'Available placeholders' },
+    items: placeholders.map(p => ({
+      label: `{{${p}}}`,
+      onClick: () => insertPlaceholder(p)
+    }))
   }]
 ];
 
