@@ -76,6 +76,18 @@
                   size="sm" 
                   class="border-b border-gray-200 dark:border-gray-800 p-1.5 bg-gray-50 dark:bg-gray-800" 
                 />
+                <UEditorToolbar 
+                  :editor="editor" 
+                  :items="floatingToolbarItems" 
+                  layout="floating"
+                  size="sm"
+                />
+                <UEditorToolbar 
+                  :editor="editor" 
+                  :items="bubbleToolbarItems" 
+                  layout="bubble"
+                  size="sm"
+                />
               </template>
             </UEditor>
           </div>
@@ -314,6 +326,156 @@ const toolbarItems = [
       icon: 'i-mdi-table-split-cell',
       kind: 'splitCell'
     }]
+  }]
+];
+
+const floatingToolbarItems = [
+  [{
+    kind: 'heading',
+    level: 1,
+    icon: 'i-mdi-format-header-1',
+    label: 'Heading 1'
+  }, {
+    kind: 'heading',
+    level: 2,
+    icon: 'i-mdi-format-header-2',
+    label: 'Heading 2'
+  }, {
+    kind: 'heading',
+    level: 3,
+    icon: 'i-mdi-format-header-3',
+    label: 'Heading 3'
+  }],
+  [{
+    kind: 'mark',
+    mark: 'bold',
+    icon: 'i-mdi-format-bold',
+    label: 'Bold'
+  }, {
+    kind: 'mark',
+    mark: 'italic',
+    icon: 'i-mdi-format-italic',
+    label: 'Italic'
+  }, {
+    kind: 'mark',
+    mark: 'strike',
+    icon: 'i-mdi-format-strikethrough',
+    label: 'Strikethrough'
+  },{
+    kind: 'mark',
+    mark: 'highlight',
+    icon: 'i-mdi-format-color-highlight',
+    label: 'Highlight'
+  },{
+    kind: 'link', // เพิ่มปุ่ม Link
+    icon: 'i-mdi-link',
+    label: 'Hyperlink'
+  }],
+  [{
+    kind: 'bulletList',
+    icon: 'i-mdi-format-list-bulleted',
+    label: 'Bullet List'
+  }, {
+    kind: 'orderedList',
+    icon: 'i-mdi-format-list-numbered',
+    label: 'Numbered List'
+  }],
+  [{
+    kind: 'blockquote',
+    icon: 'i-mdi-format-quote-close',
+    label: 'Quote'
+  }],
+  [{
+    icon: 'i-mdi-table',
+    tooltip: { text: 'Table' },
+    content: {
+      align: 'start'
+    },
+    items: [{
+      label: 'Insert Table',
+      icon: 'i-mdi-table-plus',
+      kind: 'insertTable'
+    }, {
+      label: 'Add Row Before',
+      icon: 'i-mdi-table-row-plus-before',
+      kind: 'addRowBefore'
+    }, {
+      label: 'Add Row After',
+      icon: 'i-mdi-table-row-plus-after',
+      kind: 'addRowAfter'
+    }, {
+      label: 'Add Col Before',
+      icon: 'i-mdi-table-column-plus-before',
+      kind: 'addColumnBefore'
+    }, {
+      label: 'Add Col After',
+      icon: 'i-mdi-table-column-plus-after',
+      kind: 'addColumnAfter'
+    }, {
+      label: 'Delete Row',
+      icon: 'i-mdi-table-row-remove',
+      kind: 'deleteRow'
+    }, {
+      label: 'Delete Col',
+      icon: 'i-mdi-table-column-remove',
+      kind: 'deleteColumn'
+    }, {
+      label: 'Delete Table',
+      icon: 'i-mdi-table-remove',
+      kind: 'deleteTable'
+    }, {
+      label: 'Merge Cells',
+      icon: 'i-mdi-table-merge-cells',
+      kind: 'mergeCells'
+    }, {
+      label: 'Split Cell',
+      icon: 'i-mdi-table-split-cell',
+      kind: 'splitCell'
+    }]
+  }]
+];
+
+const bubbleToolbarItems = [
+  [{
+    kind: 'heading',
+    level: 1,
+    icon: 'i-mdi-format-header-1',
+    label: 'Heading 1'
+  }, {
+    kind: 'heading',
+    level: 2,
+    icon: 'i-mdi-format-header-2',
+    label: 'Heading 2'
+  }, {
+    kind: 'heading',
+    level: 3,
+    icon: 'i-mdi-format-header-3',
+    label: 'Heading 3'
+  }],
+  [{
+    kind: 'mark',
+    mark: 'bold',
+    icon: 'i-mdi-format-bold',
+    label: 'Bold'
+  }, {
+    kind: 'mark',
+    mark: 'italic',
+    icon: 'i-mdi-format-italic',
+    label: 'Italic'
+  }, {
+    kind: 'mark',
+    mark: 'strike',
+    icon: 'i-mdi-format-strikethrough',
+    label: 'Strikethrough'
+  }, {
+    kind: 'mark',
+    mark: 'highlight',
+    icon: 'i-mdi-format-color-highlight',
+    label: 'Highlight'
+  }, {
+    kind: 'link',
+    icon: 'i-mdi-link',
+    label: 'Hyperlink'
   }]
 ];
 
