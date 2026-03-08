@@ -607,6 +607,41 @@ const handleSendTest = async () => {
     width: 100% !important;
     border-collapse: collapse;
 }
+.mail-preview-container :deep(h1) {
+    display: block;
+    font-size: 2em;
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+.mail-preview-container :deep(h2) {
+    display: block;
+    font-size: 1.5em;
+    margin-top: 0.83em;
+    margin-bottom: 0.83em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+.mail-preview-container :deep(h3) {
+    display: block;
+    font-size: 1.17em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+.mail-preview-container :deep(h4) {
+    display: block;
+    margin-top: 1.33em;
+    margin-bottom: 1.33em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
 .mail-preview-container :deep(td), .mail-preview-container :deep(th) {
     border: 1px solid #dddddd;
     text-align: left;
@@ -625,6 +660,22 @@ const handleSendTest = async () => {
 :deep(.ProseMirror) {
     outline: none;
     min-height: 400px;
+}
+
+:deep(.ProseMirror h1) {
+  font-size: 2em;
+  font-weight: bold;
+}
+:deep(.ProseMirror h2) {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+:deep(.ProseMirror h3) {
+  font-size: 1.17em;
+  font-weight: bold;
+}
+:deep(.ProseMirror h4) {
+  font-weight: bold;
 }
 
 /* Editor table styles */
