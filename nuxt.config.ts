@@ -21,6 +21,7 @@ export default defineNuxtConfig({
     adminUser: "admin",
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",
+    adminSessionSecure: true,
     public: {
       redmineUrl: "https://redmine.example.com",
       appVersion: "0.3.0-DEV"

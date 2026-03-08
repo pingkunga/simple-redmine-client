@@ -24,13 +24,14 @@ export const getSessionUser = (event: H3Event) => {
 };
 
 export const setSessionUser = (event: H3Event, user: string) => {
+  const config = useRuntimeConfig(event);
   const expiry = Date.now() + (24 * 60 * 60 * 1000); // 1 day
   const data = JSON.stringify({ user, expiry });
   const base64Data = Buffer.from(data).toString('base64');
   
   setCookie(event, SESSION_COOKIE_NAME, base64Data, {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    secure: config.adminSessionSecure as boolean,
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 // 1 day in seconds
   });
