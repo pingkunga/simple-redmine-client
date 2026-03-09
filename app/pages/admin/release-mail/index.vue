@@ -607,41 +607,6 @@ const handleSendTest = async () => {
     width: 100% !important;
     border-collapse: collapse;
 }
-.mail-preview-container :deep(h1) {
-    display: block;
-    font-size: 2em;
-    margin-top: 0.67em;
-    margin-bottom: 0.67em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
-}
-.mail-preview-container :deep(h2) {
-    display: block;
-    font-size: 1.5em;
-    margin-top: 0.83em;
-    margin-bottom: 0.83em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
-}
-.mail-preview-container :deep(h3) {
-    display: block;
-    font-size: 1.17em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
-}
-.mail-preview-container :deep(h4) {
-    display: block;
-    margin-top: 1.33em;
-    margin-bottom: 1.33em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
-}
 .mail-preview-container :deep(td), .mail-preview-container :deep(th) {
     border: 1px solid #dddddd;
     text-align: left;
@@ -656,6 +621,29 @@ const handleSendTest = async () => {
     background-color: #FFFF00;
 }
 
+.mail-preview-container :deep(h1) {
+    font-size: 2.25rem !important;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid;
+    padding-bottom: 0.5rem;
+}
+.mail-preview-container :deep(h2) {
+    font-size: 1.875rem !important;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+}
+.mail-preview-container :deep(h3) {
+    font-size: 1.5rem !important;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.mail-preview-container :deep(h4) {
+    font-size: 1.25rem !important;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
 /* Fix Tiptap editor scrolling and height */
 :deep(.ProseMirror) {
     outline: none;
@@ -663,19 +651,26 @@ const handleSendTest = async () => {
 }
 
 :deep(.ProseMirror h1) {
-  font-size: 2em;
-  font-weight: bold;
+    font-size: 2.25rem !important;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid;
+    padding-bottom: 0.5rem;
 }
 :deep(.ProseMirror h2) {
-  font-size: 1.5em;
-  font-weight: bold;
+    font-size: 1.875rem !important;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
 }
 :deep(.ProseMirror h3) {
-  font-size: 1.17em;
-  font-weight: bold;
+    font-size: 1.5rem !important;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
 }
 :deep(.ProseMirror h4) {
-  font-weight: bold;
+    font-size: 1.25rem !important;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
 }
 
 /* Editor table styles */
