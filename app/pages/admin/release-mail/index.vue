@@ -493,6 +493,54 @@ const bubbleToolbarItems = [
     label: 'Hyperlink'
   }],
   [{
+    icon: 'i-mdi-table',
+    tooltip: { text: 'Table' },
+    content: {
+      align: 'start'
+    },
+    items: [{
+      label: 'Insert Table',
+      icon: 'i-mdi-table-plus',
+      kind: 'insertTable'
+    }, {
+      label: 'Add Row Before',
+      icon: 'i-mdi-table-row-plus-before',
+      kind: 'addRowBefore'
+    }, {
+      label: 'Add Row After',
+      icon: 'i-mdi-table-row-plus-after',
+      kind: 'addRowAfter'
+    }, {
+      label: 'Add Col Before',
+      icon: 'i-mdi-table-column-plus-before',
+      kind: 'addColumnBefore'
+    }, {
+      label: 'Add Col After',
+      icon: 'i-mdi-table-column-plus-after',
+      kind: 'addColumnAfter'
+    }, {
+      label: 'Delete Row',
+      icon: 'i-mdi-table-row-remove',
+      kind: 'deleteRow'
+    }, {
+      label: 'Delete Col',
+      icon: 'i-mdi-table-column-remove',
+      kind: 'deleteColumn'
+    }, {
+      label: 'Delete Table',
+      icon: 'i-mdi-table-remove',
+      kind: 'deleteTable'
+    }, {
+      label: 'Merge Cells',
+      icon: 'i-mdi-table-merge-cells',
+      kind: 'mergeCells'
+    }, {
+      label: 'Split Cell',
+      icon: 'i-mdi-table-split-cell',
+      kind: 'splitCell'
+    }]
+  }],
+  [{
     icon: 'i-mdi-variable',
     label: 'Insert Variable',
     tooltip: { text: 'Available placeholders' },
