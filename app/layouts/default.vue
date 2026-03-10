@@ -56,12 +56,14 @@
 import ThemeToggle from '~/components/ThemeToggle.vue'
 
 const authCookie = useCookie('admin_session')
-const isLoggedIn = computed(() => !!authCookie.value)
+const isLoggedInCookie = useCookie('is_logged_in')
+const isLoggedIn = computed(() => !!isLoggedInCookie.value)
 
 const handleLogout = async () => {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
     authCookie.value = null
+    isLoggedInCookie.value = null
     navigateTo('/login')
   } catch (err) {
     console.error('Logout failed', err)

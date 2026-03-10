@@ -36,7 +36,8 @@ import sidebarItems from "./sidebarItems";
 const sidebarMenu = ref(sidebarItems);
 
 const authCookie = useCookie('admin_session')
-const isLoggedIn = computed(() => !!authCookie.value)
+const isLoggedInCookie = useCookie('is_logged_in')
+const isLoggedIn = computed(() => !!isLoggedInCookie.value)
 
 console.log(import.meta.env.VITE_APP_VERSION)
 const config = useRuntimeConfig();
