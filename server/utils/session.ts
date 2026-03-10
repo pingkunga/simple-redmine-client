@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3';
 
 export const SESSION_COOKIE_NAME = 'admin_session';
+export const CLIENT_SESSION_STATUS = 'is_logged_in';
 
 export const getSessionUser = (event: H3Event) => {
   const cookie = getCookie(event, SESSION_COOKIE_NAME);
@@ -35,8 +36,16 @@ export const setSessionUser = (event: H3Event, user: string) => {
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 // 1 day in seconds
   });
+
+  setCookie(event, CLIENT_SESSION_STATUS, 'true', {
+    httpOnly: false, // Accessible by client side
+    secure: config.adminSessionSecure as boolean,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 // 1 day in seconds
+  });
 };
 
 export const clearSessionUser = (event: H3Event) => {
   deleteCookie(event, SESSION_COOKIE_NAME);
+  deleteCookie(event, CLIENT_SESSION_STATUS);
 };
