@@ -6,6 +6,24 @@ export async function getThisWeekVersions(event: any, projectId: number): Promis
   const config = useRuntimeConfig();
   const { createBaseRedmineHeader, mapRawVersionToVersion } = useRedmineAPI();
 
+  const dueDateWorkingDayText = (version: Version): string => {
+    if (!version.due_date) 
+      return '';
+
+    const date = new Date(version.due_date);
+    const day = date.getDay();          // 0 (Sun) to 6 (Sat)
+    if (day !== 5) {                    // If not Friday
+        const diff = (day + 2) % 7;     // Calculate difference to previous Friday
+        date.setDate(date.getDate() - diff);
+    }
+
+    const d = date.getDate().toString().padStart(2, '0');
+    const m = date.toLocaleString('en-GB', { month: 'short' }).toUpperCase();
+    const y = date.getFullYear();
+                
+    return `${d}-${m}-${y}`;
+  }
+
   const filterThisWeekVersion = (versions: Version[], versionMode: "PREVIOUS" | "NEXT") => {
     const now = new Date();
     if (versionMode === "PREVIOUS") {
@@ -37,9 +55,12 @@ export async function getThisWeekVersions(event: any, projectId: number): Promis
     }
 
     let versionDueDateText = "";
+    let versionDueDateWorkingDayText = "";
     if (version.due_date) {
       const d = new Date(version.due_date);
       versionDueDateText = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+        
+      versionDueDateWorkingDayText = dueDateWorkingDayText(version);
     }
 
     const parts = version.name ? version.name.split('.') : [];
@@ -74,6 +95,7 @@ export async function getThisWeekVersions(event: any, projectId: number): Promis
       buildFor,
       nextWeekReleaseVersion,
       versionDueDateText,
+      versionDueDateWorkingDayText
     };
 
     return result;

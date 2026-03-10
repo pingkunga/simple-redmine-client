@@ -215,7 +215,7 @@ const tabItems = [
 ];
 
 const placeholders = [
-  'versionText', 'wikiFullURL', 'ownerTeam', 'nextWeekReleaseVersion', 
+  'versionText', 'wikiFullURL', 'ownerTeam', 'nextWeekReleaseVersion', 'versionDueDateWorkingDayText',
   'versionDueDateText', 'version', 'currentReleaseBranch', 'buildFor', 'versionName'
 ];
 

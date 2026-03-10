@@ -39,4 +39,5 @@ export interface VersionWithReleaseNotes extends Version {
     buildFor: string;
     nextWeekReleaseVersion : string;
     versionDueDateText: string;
+    versionDueDateWorkingDayText: string;
 }
