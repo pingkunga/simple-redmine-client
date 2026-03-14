@@ -8,6 +8,9 @@ WORKDIR /app
 FROM base AS install
 COPY package.json bun.lock ./
 COPY . .
+ENV npm_config_optional=true
+ENV npm_config_platform=linux
+ENV npm_config_arch=x64
 RUN BUN_POSTINSTALL=enable bun install --frozen-lockfile
 
 # Copy project files into the image
