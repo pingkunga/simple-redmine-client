@@ -25,7 +25,8 @@ export default defineVitestConfig({
   },
   resolve: {
     alias: {
-      "~": resolve(__dirname), // Map `~` to the project root
+      '~': '.',
+      '@': '.',
     },
   },
 });

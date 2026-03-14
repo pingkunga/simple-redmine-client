@@ -1,45 +1,52 @@
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import tailwindcss from "@tailwindcss/vite";
+
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 
-  /*
-  ** ENV File
-  NUXT_REDMINE_TOKEN=your_token
-  */
+  future: {
+    compatibilityVersion: 4,
+  },
 
   runtimeConfig: {
+    redmineToken: "no_token",
+    smtpHost: "smtp.example.com",
+    smtpPort: 587,
+    smtpSecure: false,
+    smtpUser: "user@example.com",
+    smtpPass: "password",
+    smtpFrom: "noreply@example.com",
+    notifyReleaseMailApiKey: "",
+    notifyReleaseMailAllowedIps: "",
+    adminUser: "admin",
+    adminPass: "password",
+    adminSessionSecret: "a-very-secret-key-12345",
+    adminSessionSecure: true,
     public: {
       redmineUrl: "https://redmine.example.com",
-      appVersion: "0.2.0-DEV"
+      appVersion: "0.3.0-DEV"
     },
-    redmineToken: "no_token"
   },
-
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: "2025-07-15",
+  css: ['./app/assets/css/main.css'],
   devtools: { enabled: true },
 
-  build: {
-    transpile: ['vuetify'],
-  },
-
   modules: [
-    (_options, nuxt) => {
-      nuxt.hooks.hook('vite:extendConfig', (config) => {
-        // @ts-expect-error
-        config.plugins.push(vuetify({ autoImport: true }))
-      })
-    },
+    '@nuxt/ui',
   ],
   vite: {
-    vue: {
-      template: {
-        transformAssetUrls,
-      },
-    },
+    plugins: [
+      tailwindcss(),
+    ],
+    resolve: {
+      alias: { 
+        'vue': 'vue' },
+      dedupe: ['vue']
+    }
   },
-
-  imports: {
-    dirs: ['types/*.ts', 'store/*.ts', 'types/**/*.ts'],
+  sourcemap: { 
+    server: true,
+    client: true,
   },
 })
+
