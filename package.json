@@ -11,17 +11,26 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@mdi/font": "^7.4.47",
-    "axios": "^1.7.9",
-    "nuxt": "^3.16.2",
+    "@nuxt/ui": "4.4.0",
+    "@tiptap/extension-highlight": "^3.19.0",
+    "@tiptap/extension-link": "^3.19.0",
+    "@tiptap/extension-table": "^3.19.0",
+    "@tiptap/extension-table-cell": "^3.19.0",
+    "@tiptap/extension-table-header": "^3.19.0",
+    "@tiptap/extension-table-row": "^3.19.0",
+    "axios": "^1.13.2",
+    "baseline-browser-mapping": "^2.9.11",
+    "caniuse-lite": "^1.0.30001762",
+    "nodemailer": "^7.0.12",
+    "nuxt": "^4.3.1",
     "nuxt-app": "file:",
-    "sass": "^1.83.0",
-    "vite-plugin-vuetify": "^2.0.4",
+    "tailwindcss": "^4.1.18",
     "vue": "latest",
     "vue-router": "latest",
-    "vuetify": "^3.7.6"
+    "zod": "^4.3.4"
   },
   "devDependencies": {
+    "@iconify-json/mdi": "^1.2.3",
     "@nuxt/test-utils": "^3.17.2",
     "@vitest/ui": "^3.1.1",
     "@vue/test-utils": "^2.4.6",
@@ -29,5 +38,13 @@
     "jsdom": "^26.1.0",
     "playwright-core": "^1.52.0",
     "vitest": "^3.1.2"
+  },
+  "optionalDependencies": {
+    "@oxc-parser/binding-linux-x64-gnu": "latest",
+    "@rollup/rollup-linux-x64-gnu": "latest",
+    "@oxc-transform/binding-linux-x64-gnu": "latest",
+    "@oxc-minify/binding-linux-x64-gnu": "latest",
+    "@tailwindcss/oxide-linux-x64-gnu": "latest",
+    "lightningcss-linux-x64-gnu": "latest"
   }
 }
