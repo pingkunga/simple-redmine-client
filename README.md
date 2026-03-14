@@ -1,7 +1,8 @@
 # Simple Redmine Client
 
 * A simple redmine client to manange redmine data via REST API https://www.redmine.org/projects/redmine/wiki/Rest_api
-* Develop with Nuxt3 + vuetify + TypeScript
+* Ver 1.0 - 2.0 Develop with Nuxt3 + vuetify + TypeScript
+* Ver 3.0 Upgrade to Nuxt4 + Nuxt UI + TypeScript https://github.com/pingkunga/simple-redmine-client/pull/5
 
 # Overview Architecture
 
