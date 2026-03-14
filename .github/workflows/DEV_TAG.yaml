@@ -29,13 +29,13 @@ jobs:
       - name: Convert JUnit XML to readable format
         uses: mikepenz/action-junit-report@v6
         with:
-          report_paths: ./test-results.xml
+          report_paths: '**/test-results.xml'
 
       - name: Upload test report
         uses: actions/upload-artifact@v6
         with:
           name: test-results
-          path: ./test-results.xml
+          path: '**/test-results.xml'
 
       - name: Log out from Docker Hub
         run: docker logout
