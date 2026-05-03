@@ -28,7 +28,14 @@
     <UModal v-model:open="isModalOpen" :title="formTitle" size="md">
       <template #body>
         <UForm :state="editedItem" @submit="save" class="space-y-4">
-          <!-- Row 1: Version / Sharing / Due Date -->
+          <!-- Row 1: Project Dropdown -->
+          <div class="grid grid-cols-1 gap-4" v-if="editedIndex === -1">
+            <UFormField label="Project" name="projectid">
+              <USelect v-model="editedItem.projectid" :items="supportProjects" label-key="name" value-key="id" class="w-full" placeholder="Select Project" />
+            </UFormField>
+          </div>
+
+          <!-- Row 2: Version / Sharing / Due Date -->
           <div class="grid grid-cols-3 gap-4">
             <UFormField label="Version" name="name">
               <UInput v-model="editedItem.name" class="w-full" />
@@ -41,7 +48,7 @@
             </UFormField>
           </div>
           
-          <!-- Row 2: Status (1/3) / Wiki Page (2/3) -->
+          <!-- Row 3: Status (1/3) / Wiki Page (2/3) -->
           <div class="grid grid-cols-3 gap-4">
             <UFormField label="Status" name="status">
               <USelect v-model="editedItem.status" :items="versionStatuses" class="w-full" />
@@ -53,7 +60,7 @@
             </div>
           </div>
           
-          <!-- Row 3: Description (full width) -->
+          <!-- Row 4: Description (full width) -->
           <UFormField label="Description" name="description" class="w-full">
             <UTextarea v-model="editedItem.description" class="w-full" />
           </UFormField>
@@ -88,9 +95,19 @@ const columnFilters = ref<ColumnFilter[]>([]);
 const { versionStatuses, versionShares } = useRedmineAPI();
 
 const dataversions = ref<Version[]>([]);
+const supportProjects = ref<any[]>([]);
 const refreshKey = ref(0);
 
 const loading = ref(false);
+
+const fetchProjects = async () => {
+  try {
+    const { data } = await useFetch<any[]>('/api/projects/support');
+    supportProjects.value = data.value || [];
+  } catch (err) {
+    console.error("Failed to fetch support projects:", err);
+  }
+};
 
 const fetchVersions = async (pIsClear?: boolean) => {
   loading.value = true;
@@ -106,6 +123,7 @@ const fetchVersions = async (pIsClear?: boolean) => {
 };
 
 onMounted(() => {
+  fetchProjects();
   fetchVersions();
 });
 
@@ -289,7 +307,7 @@ const save = async () => {
   try {
     if (editedIndex.value === -1) {
       // Create new item
-      await useRedmineAPI().addVersion(editedItem.value);
+      await useRedmineAPI().addVersion(editedItem.value, editedItem.value.projectid);
     } else {
       // Update existing item
       await useRedmineAPI().updateVersion(editedItem.value);

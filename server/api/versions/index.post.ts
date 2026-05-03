@@ -20,14 +20,15 @@ export default defineEventHandler(async (event) => {
     */
 
     const config = useRuntimeConfig(event)
-    const url = `${config.public.redmineUrl}/projects/858/versions.json`
+    const body = await readBody(event)
+    const version: Version = body.version
+    const projectId = body.projectId || 858 // Fallback to 858 if not provided
+
+    const url = `${config.public.redmineUrl}/projects/${projectId}/versions.json`
     const headers = {
         'Content-Type': 'application/json',
         'X-Redmine-API-Key': config.redmineToken
     }
-
-    const body = await readBody(event)
-    const version : Version  = body.version
 
     try {
         const response = await axios.post(url, { version }, { headers })
