@@ -1,0 +1,12 @@
+[
+    {
+        "id": 858,
+        "name": "Investment .NET",
+        "purpose": "Product"
+    },
+    {
+        "id": 862,
+        "name": ".NET-Common-Lib",
+        "purpose": "Library"
+    }
+]
