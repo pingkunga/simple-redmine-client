@@ -1,28 +1,10 @@
 <template>
   <div>Dev Trackers (Program Spec / Defect)</div>
-  <ClientOnly>
-    <!--check if found access key in local storage-->
-    <div v-if="!accessKey" class="text-red-500 mb-4">
-      Please set your access key in Client Setting
-    </div>
-    <div v-else class="mb-8 space-y-8 pt-4">
-      <UFormGroup label="Encrypt Access Key">
-        <UInput
-          v-model="accessKey"
-          readonly
-          type="password"
-          icon="i-heroicons-lock-closed"
-        />
-      </UFormGroup>
-      <div class="flex items-center gap-6 pt-4">
-        <USwitch
-          v-model="isUseServerToken"
-          @update:model-value="projectsInit"
-        />
-        <span class="text-sm text-gray-700 dark:text-gray-200">Use Server Token</span>
-      </div>
-    </div>
-  </ClientOnly>
+  <DevtrackersClientAccessKey
+    v-model:isUseServerToken="isUseServerToken"
+    :access-key="accessKey"
+    @update:isUseServerToken="projectsInit"
+  />
   <UForm :schema="schema" :state="state" class="flex flex-col gap-6" @submit="handleSubmit">
     <UFormField label="Select Tracker" name="selectTracker" required>
       <USelectMenu
