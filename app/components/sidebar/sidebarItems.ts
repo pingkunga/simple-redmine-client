@@ -20,6 +20,11 @@ export default [
       to: "/devtrackers",
     },
     {
+      title: "New Build Request\n(NET COMMON)",
+      icon: "i-mdi-code-tags-check",
+      to: "/buildnetcommon",
+    },
+    {
       title: "Client Setting",
       icon: "i-mdi-window-shutter-cog",
       to: "/clientsetting",
