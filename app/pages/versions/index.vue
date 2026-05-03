@@ -273,6 +273,7 @@ const formTitle = computed(() =>
 const defaultVersion: Version = {
   id: -1,
   name: "",
+  versionName: "",
   description: "",
   status: "",
   due_date: "",
@@ -295,6 +296,12 @@ const editItem = (row: Version) => {
 const openNewDialog = () => {
   editedIndex.value = -1;
   editedItem.value = { ...defaultVersion };
+  
+  // Set default project to the first one in the list
+  if (supportProjects.value.length > 0) {
+    editedItem.value.projectid = supportProjects.value[0].id;
+  }
+  
   isModalOpen.value = true;
 };
 
