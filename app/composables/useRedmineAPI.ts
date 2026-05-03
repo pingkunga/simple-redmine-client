@@ -258,6 +258,49 @@ export default () => {
         }
     };
 
+    const createBuildNetCommonRequest = (trackerId: number,
+                                         project: Project,
+                                         assignTo: ProjectMemberShip,
+                                         targetVerion: Version,
+                                         subject: string,
+                                         options: BuildNetCommonOptions): BuildNetCommonRequest => {
+        return {
+            tracker_id: trackerId,
+            project,
+            assignTo,
+            targetVerion,
+            subject,
+            options
+        };
+    }
+
+    const createBuildNetCommon = async (buildNetCommonRequest: BuildNetCommonRequest,
+                                        headers?: Record<string, string>): Promise<string> => {
+        const body = {
+            BuildNetCommonRequest: buildNetCommonRequest
+        };
+
+        try {
+            const { data, error } = await useFetch<string>("/api/buildnetcommon", {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers
+            });
+
+            if (error.value) {
+                throw createError({
+                    ...error.value,
+                    statusMessage: `Failed to create Build Request: ${error.value.statusMessage}`,
+                });
+            }
+
+            return data.value ?? 'No found Issue ID returned.';
+        } catch (error) {
+            console.error('Error creating Build Request:', error);
+            return 'Error occurred while creating Build Request.';
+        }
+    };
+
     //==========================================================
     // SERVER SIDE API
     //==========================================================
@@ -287,6 +330,7 @@ export default () => {
            , getProject, mapRawProjectToProject
            , getProjectMemberShip, mapRawMembershipToProjectMemberShip
            , createDevTrackerRequest, createDevTracker
+            , createBuildNetCommonRequest, createBuildNetCommon
            , createBaseRedmineHeader
            , YourOwnRedmineAPI: YOUR_OWN_REDMINE_API, versionStatuses, versionShareType, versionShares, devTrackers, buildTrackers, TRACKER};
 }
