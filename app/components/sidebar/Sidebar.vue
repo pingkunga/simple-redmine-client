@@ -13,7 +13,7 @@
         >
           <NuxtLink :to="item.to" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
             <UIcon :name="item.icon" class="mr-2" />
-            {{ item.title }}
+            <span class="sidebar-title">{{ item.title }}</span>
           </NuxtLink>
         </li>
         <!-- Admin Section -->
@@ -56,5 +56,9 @@ const version = ref(config.public.appVersion || "0.2.0-DEV");
   font-weight: bold; /* Optional: Make the text bold */
   text-align: center; /* Ensure text alignment */
   padding-bottom: 0px;
+}
+
+.sidebar-title {
+  white-space: pre-line; /* honor \n in strings and wrap accordingly */
 }
 </style>
