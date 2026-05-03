@@ -6,7 +6,7 @@
       </template>
       
       <div class="space-y-6">
-        <UFormGroup label="Access Key" required>
+        <UFormField label="Access Key" required>
           <UInput
             v-model="accessKey"
             type="password"
@@ -15,7 +15,7 @@
             :ui="{ base: 'min-w-[40ch]' }"
             placeholder="Enter your Redmine Access Key"
           />
-        </UFormGroup>
+        </UFormField>
 
         <div class="flex gap-4 pt-4">
           <UButton 
