@@ -1,0 +1,10 @@
+[
+    {
+        "name": "SCM Official Build",
+        "purpose": "CommonRelease"
+    },
+    {
+        "name": "System Trigger Test",
+        "purpose": "CommonRelease"
+    }
+]
