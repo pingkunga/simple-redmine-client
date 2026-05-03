@@ -1,82 +1,94 @@
 <template>
-  <div>Dev Trackers (Program Spec / Defect)</div>
-  <DevtrackersClientAccessKey
-    v-model:isUseServerToken="isUseServerToken"
-    :access-key="accessKey"
-    @update:isUseServerToken="projectsInit"
-  />
-  <UForm :schema="schema" :state="state" class="flex flex-col gap-6" @submit="handleSubmit">
-    <UFormField label="Select Tracker" name="selectTracker" required>
-      <USelectMenu
-        v-model="state.selectTracker"
-        :items="devTrackers"
-        label-key="name"
-        value-key="id"
-        placeholder="Select Tracker"
-        class="w-full"
-      />
-    </UFormField>
-
-    <UFormField label="Tracker Title" name="trackerTitle" required help="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title">
-      <UInput
-        v-model="state.trackerTitle"
-        placeholder="Tracker Title - Pattern [SITENAME][MODULE][IMPACT] Your Desire Title..."
-        class="w-full"
-      />
-    </UFormField>
-
-    <UFormField label="Select Project" name="selectedProject" required>
-      <USelectMenu
-        v-model="state.selectedProject"
-        :items="projects"
-        label-key="name"
-        placeholder="Select Project"
-        @update:model-value="projectChange"
-        class="w-full"
-      />
-    </UFormField>
-
-    <UFormField label="Select Assignee" name="selectedAssignee" required>
-      <USelectMenu
-        v-model="state.selectedAssignee"
-        :items="projectMembers"
-        label-key="name"
-        placeholder="Select Assignee"
-        class="w-full"
-        virtualize
-      />
-    </UFormField>
-
-    <UFormField label="Select Version" name="selectedVersion" required>
-      <USelectMenu
-        v-model="state.selectedVersion"
-        :items="versions"
-        label-key="name"
-        placeholder="Select Version"
-        class="w-full"
-        virtualize
-      />
-    </UFormField>
-
-    <div class="flex gap-2 pt-4">
-      <UButton 
-        type="submit" 
-        color="primary" 
-        block 
-        class="w-32 justify-center" >
-        Submit
-      </UButton>
-      <UButton 
-        color="neutral" 
-        variant="solid" 
-        block 
-        class="w-32 justify-center" 
-        @click="handleReset">
-        Clear
-      </UButton>
+  <div class="space-y-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-highlighted">Dev Trackers (Program Spec / Defect)</h1>
+      <p class="mt-1 text-sm text-toned">
+        Create Dev Tracker in Redmine directly from here. Please make sure you have set the access key in Client Setting before using this feature.
+      </p>
     </div>
-  </UForm>
 
+    <div class="rounded-lg border border-default bg-default p-3 shadow-sm">
+      <DevtrackersClientAccessKey
+        v-model:isUseServerToken="isUseServerToken"
+        :access-key="accessKey"
+        @update:isUseServerToken="projectsInit"
+      />
+    </div>
+
+    <UForm :schema="schema" :state="state" class="flex flex-col gap-6" @submit="handleSubmit">
+      <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
+        <h2 class="text-base font-semibold text-highlighted">Spec Information</h2>
+        <UFormField label="Select Tracker" name="selectTracker" required>
+          <USelectMenu
+            v-model="state.selectTracker"
+            :items="devTrackers"
+            label-key="name"
+            value-key="id"
+            placeholder="Select Tracker"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Tracker Title" name="trackerTitle" required help="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title">
+          <UInput
+            v-model="state.trackerTitle"
+            placeholder="Tracker Title - Pattern [SITENAME][MODULE][IMPACT] Your Desire Title..."
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Select Project" name="selectedProject" required>
+          <USelectMenu
+            v-model="state.selectedProject"
+            :items="projects"
+            label-key="name"
+            placeholder="Select Project"
+            @update:model-value="projectChange"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Select Assignee" name="selectedAssignee" required>
+          <USelectMenu
+            v-model="state.selectedAssignee"
+            :items="projectMembers"
+            label-key="name"
+            placeholder="Select Assignee"
+            class="w-full"
+            virtualize
+          />
+        </UFormField>
+
+        <UFormField label="Select Version" name="selectedVersion" required>
+          <USelectMenu
+            v-model="state.selectedVersion"
+            :items="versions"
+            label-key="name"
+            placeholder="Select Version"
+            class="w-full"
+            virtualize
+          />
+        </UFormField>
+      </div>  
+      <div class="flex gap-2 pt-4">
+        <UButton 
+          type="submit" 
+          color="primary" 
+          block 
+          class="w-32 justify-center" >
+          Submit
+        </UButton>
+        <UButton 
+          color="neutral" 
+          variant="solid" 
+          block 
+          class="w-32 justify-center" 
+          @click="handleReset">
+          Clear
+        </UButton>
+      </div>
+    </UForm>
+  </div>
   <!-- useToast is used instead of inline UToast component -->
 </template>
 
