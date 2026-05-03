@@ -4,7 +4,7 @@
     <div v-if="!accessKey" class="text-red-500 mb-4">
       Please set your access key in Client Setting
     </div>
-    <div v-else class="mb-8 space-y-4 pt-4">
+    <div v-else class="mb-2 space-y-2 pt-2">
       <UFormField label="Encrypt Access Key">
         <UInput
           :model-value="accessKey"
