@@ -1,0 +1,36 @@
+{{toc}}
+
+
+h1. - SCM BUILD JOB - http://128.1.0.56:8080/view/03NUGET_BUILD/job/free_ds-common-net/
+
+
+|_.  COMMON_VERSION  |_. TAG_VERSION      |_. EXECUTE_TEST  |_. SONARANALYSIS  |_. PUBLISH_DC  |_. PUBLISH_DR |_. BUILD_PURPOSE    |_. SENDNOTIFY  |
+| [BNZSELECTVERSION] | [BNZSELECTVERSION] |=. [BNZEXE_TEST] |=. [BNZEXE_SONAR] |=. [BNZPUB_DC] |=. [BNZPUB_DR]| [BNZBUILDPURPOSE] |=.    /        |
+
+* Revision: bf65163a8f3c657079c44707752a26cd66d96adb
+* +NOTE:+ TAG_VERSION = "[BNZSELECTVERSION]":http://dev.free_ds.local/dotnet-common/net-lib-free_ds/-/tags/[BNZSELECTVERSION]
+
+
+h1. - Related Dev Version 
+
+* Revision: รบกวน [BNZISSUEAUTHOR] แปะ Revision หน่อย
+* +NOTE:+ TAG_VERSION = "รบกวน [BNZISSUEAUTHOR] เช่น 3.3.5-pre-alpha1":"http://dev.free_ds.local/dotnet-common/net-lib-free_ds/-/tags/[BNZISSUEAUTHOR]
+* Nuget: 3.3.5-pre-alpha290
+
+h1. - Dev Build Test Job - http://128.1.0.56:8080/view/03NUGET_BUILD/job/free_ds-common-net-dev/
+
+รบกวน Dev แปะรูป 
+
+h2. Automate Test (#CODETEST) / Unit Test
+
+#CODETEST Automate Test
+- มี Test โดยชื่อ Test มี Pattern ดังนี้ T[BNZGENREDMINEID]_xxxx โดยให้ตรวจสอบ Automate Test Report Version [BNZSELECTVERSION] และ Coverage Report http://128.1.0.56:8888/netcommoncoverage/[BNZSELECTVERSION] 
+
+h1. - Merge Request 
+
+* develop: รบกวน [BNZISSUEAUTHOR] แปะ Link Merge Request
+* master: รบกวน [BNZISSUEAUTHOR] แปะ Link Merge Request
+* hotfix/x.y.z: รบกวน [BNZISSUEAUTHOR] แปะ Link Merge Request (ถ้ามี)
+
+
+รบกวน [BNZISSUEAUTHOR] ในรายละเอียดการปรับแก้ ถ้า Owner ไม่ยอม key redmine ตาม Version ที่วาง Roadmap ไว้
