@@ -155,17 +155,30 @@ const removeSelectedVersion = (v: Version) => {
   selectedVersions.value = selectedVersions.value.filter(sv => sv.id !== v.id)
 }
 
+const normalizeCellText = (text: string): string => {
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\u00a0/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 const stripHtml = (html: string | null | undefined): string => {
   if (!html) {
     return ''
   }
 
+  const htmlWithBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|tr|h[1-6])>/gi, '\n')
+
   if (import.meta.client) {
-    const doc = new DOMParser().parseFromString(html, 'text/html')
-    return (doc.body.textContent || '').replace(/\s+/g, ' ').trim()
+    const doc = new DOMParser().parseFromString(htmlWithBreaks, 'text/html')
+    return normalizeCellText(doc.body.textContent || '')
   }
 
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return normalizeCellText(htmlWithBreaks.replace(/<[^>]*>/g, ''))
 }
 
 const flattenLeafRows = <TData>(rows: Row<TData>[]): TData[] => {
