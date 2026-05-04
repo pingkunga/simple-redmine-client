@@ -33,14 +33,15 @@
             </template>
           </USelectMenu>
         </div>
-        <div>
+        <div class="flex items-center gap-2">
           <UButton icon="i-heroicons-magnifying-glass" @click="handleGetIssuesByVersion">Search</UButton>
+          <UButton icon="i-heroicons-document-arrow-down" variant="outline" @click="exportToExcel">Export Excel</UButton>
         </div>
       </div>
       
       <!-- Group Panel Drop Zone -->
       <div 
-        class="w-full min-h-[40px] border-2 border-dashed rounded-lg flex items-center px-4 transition-colors"
+        class="w-full min-h-10 border-2 border-dashed rounded-lg flex items-center px-4 transition-colors"
         :class="isDragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-300 dark:border-gray-700'"
         @dragover.prevent="isDragOver = true"
         @dragleave="isDragOver = false"
@@ -69,6 +70,7 @@
     </div>
 
     <UTable 
+      ref="issuesTable"
       :data="IssuesByVersions" 
       :columns="columns"
       v-model:grouping="groupedColumns"
@@ -85,7 +87,10 @@
 <script setup lang="ts">
 import { useRuntimeConfig } from "#app";
 import type { TableColumn } from "@nuxt/ui";
+import { saveAs } from 'file-saver'
+import * as XLSX from 'xlsx'
 import { getGroupedRowModel } from '@tanstack/vue-table'
+import type { Cell, Row, Table } from '@tanstack/vue-table'
 
 const config = useRuntimeConfig();
 const baseUrl = config.public.redmineUrl;
@@ -95,6 +100,7 @@ const versions = computed(() => dataversions.value ?? []);
 
 const selectedVersions = ref<Version[]>([]);
 const IssuesByVersions = ref<Issue[]>([]);
+const issuesTable = useTemplateRef<{ tableApi: Table<Issue> }>('issuesTable')
 
 const groupedColumns = ref<string[]>([])
 
@@ -149,6 +155,95 @@ const removeSelectedVersion = (v: Version) => {
   selectedVersions.value = selectedVersions.value.filter(sv => sv.id !== v.id)
 }
 
+const stripHtml = (html: string | null | undefined): string => {
+  if (!html) {
+    return ''
+  }
+
+  if (import.meta.client) {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    return (doc.body.textContent || '').replace(/\s+/g, ' ').trim()
+  }
+
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+const flattenLeafRows = <TData>(rows: Row<TData>[]): TData[] => {
+  const result: TData[] = []
+
+  const visitRow = (row: Row<TData>): void => {
+    if (row.getIsGrouped()) {
+      row.subRows.forEach(visitRow)
+      return
+    }
+
+    result.push(row.original)
+  }
+
+  rows.forEach(visitRow)
+  return result
+}
+
+const getExportIssues = (): Issue[] => {
+  const tableApi = issuesTable.value?.tableApi
+  if (!tableApi) {
+    return IssuesByVersions.value
+  }
+
+  return flattenLeafRows(tableApi.getPrePaginationRowModel().rows)
+}
+
+const formatExportDate = (value: string | null | undefined): string => {
+  if (!value) {
+    return ''
+  }
+
+  return new Date(value).toLocaleDateString()
+}
+
+const exportToExcel = (): void => {
+  const exportIssues = getExportIssues()
+  if (!exportIssues.length) {
+    return
+  }
+
+  const rows = exportIssues.map((issue) => ({
+    ID: issue.id,
+    Project: issue.projectName || '',
+    Version: issue.versionName || '',
+    Assignee: issue.assignedToUserName || '',
+    Subject: issue.subject || '',
+    Status: issue.statusName || '',
+    ImpactNote: stripHtml(issue.impactNote),
+    CreatedOn: formatExportDate(issue.created_on),
+    UpdatedOn: formatExportDate(issue.updated_on)
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(rows)
+  worksheet['!cols'] = [
+    { wch: 10 },
+    { wch: 24 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 60 },
+    { wch: 18 },
+    { wch: 50 },
+    { wch: 14 },
+    { wch: 14 }
+  ]
+
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Issues')
+
+  const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  })
+
+  const fileName = `issues_${new Date().toISOString().slice(0, 10)}.xlsx`
+  saveAs(blob, fileName)
+}
+
 const renderDraggableHeader = (title: string, columnId: string) => {
   return h('div', {
     draggable: true,
@@ -195,8 +290,8 @@ const columns: TableColumn<Issue>[] = [
         td: 'w-8 overflow-visible'
       },
       colspan: {
-        td: (cell: any) => {
-          return cell.row?.getIsGrouped() ? cell.row.getAllCells().length : undefined
+        td: (cell: Cell<Issue, unknown>) => {
+          return cell.row.getIsGrouped() ? String(cell.row.getAllCells().length) : '1'
         }
       }
     },
