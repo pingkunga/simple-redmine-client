@@ -23,18 +23,22 @@ export default defineEventHandler(async (event) => {
   if (url.pathname.startsWith('/api/release/')) {
     const clientIp = getRequestIP(event, { xForwardedFor: true });
     
-    // Whitelist: If same machine (localhost) or User is logged in, allow
-    const isSameMachine = clientIp === '127.0.0.1' || clientIp === '::1';
-    if (user || isSameMachine) {
+    // Internal Check: If request is from server-to-self (SSR) or localhost
+    const isInternalRequest = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+    
+    // Whitelist: User is logged in or IP is allowed
+    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
+    const isWhitelisted = allowedIps.includes(clientIp || '');
+
+    if (user || isInternalRequest || isWhitelisted) {
         return;
     }
 
-    // No session or not localhost, check API Key and IP
+    // No session/whitelist, check API Key and IP requirement
     const requestApiKey = getHeader(event, 'x-api-key');
-    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
-    
-    // Check IP
-    if (allowedIps.length > 0 && (!clientIp || !allowedIps.includes(clientIp))) {
+
+    // Check IP separately if needed for other scenarios
+    if (allowedIps.length > 0 && (!clientIp || !isWhitelisted)) {
         throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not allowed` });
     }
 
