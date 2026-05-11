@@ -21,31 +21,30 @@ export default defineEventHandler(async (event) => {
   // 3. For API calls, we allow session or fallback to API Key + IP Whitelist
   // Note: We check specifically for /api/release/*
   if (url.pathname.startsWith('/api/release/')) {
-    if (user) {
-        // User logged in via UI session, allow
+    const clientIp = getRequestIP(event, { xForwardedFor: true });
+    console.log(`Auth Middleware: Client IP - ${clientIp}, User - ${user ? user.username : 'None'}`);
+    // Internal Check: If SSR/Internal Fetch (!clientIp) or Localhost
+    const isInternal = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+    
+    // Whitelist Check: IP matches explicitly allowed list
+    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
+    const isWhitelisted = clientIp && allowedIps.includes(clientIp);
+
+    if (user || isInternal || isWhitelisted) {
         return;
     }
 
-    // No session, check API Key and IP
-    const clientIp = getRequestIP(event, { xForwardedFor: true });
+    // No session/whitelist, check API Key and IP requirement
     const requestApiKey = getHeader(event, 'x-api-key');
-    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
-    
-    // Check IP
-    if (allowedIps.length > 0 && (!clientIp || !allowedIps.includes(clientIp))) {
+
+    // Check IP separately for more specific error message if whitelist is configured
+    if (allowedIps.length > 0 && !isWhitelisted) {
         throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not allowed` });
     }
 
     // Check API Key
     if (config.notifyReleaseMailApiKey && requestApiKey !== config.notifyReleaseMailApiKey) {
         throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Invalid API Key' });
-    }
-
-    // If neither session nor apiKey present (if apiKey configured)
-    if (!config.notifyReleaseMailApiKey && !user && !allowedIps.length) {
-        // If nothing is configured, maybe it's wide open (as before) or we want to block?
-        // Let's allow it for now or force auth if required.
-        // But for safety, let's at least expect a session or key if we're adding auth.
     }
   }
 
