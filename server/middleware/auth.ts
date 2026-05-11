@@ -21,24 +21,18 @@ export default defineEventHandler(async (event) => {
   // 3. For API calls, we allow session or fallback to API Key + IP Whitelist
   // Note: We check specifically for /api/release/*
   if (url.pathname.startsWith('/api/release/')) {
-    const clientIp = getRequestIP(event, { xForwardedFor: true });
-    
-    // Internal Check: If request is from server-to-self (SSR) or localhost
-    const isInternalRequest = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
-    
-    // Whitelist: User is logged in or IP is allowed
-    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
-    const isWhitelisted = allowedIps.includes(clientIp || '');
-
-    if (user || isInternalRequest || isWhitelisted) {
+    if (user) {
+        // User logged in via UI session, allow
         return;
     }
 
-    // No session/whitelist, check API Key and IP requirement
+    // No session, check API Key and IP
+    const clientIp = getRequestIP(event, { xForwardedFor: true });
     const requestApiKey = getHeader(event, 'x-api-key');
-
-    // Check IP separately if needed for other scenarios
-    if (allowedIps.length > 0 && (!clientIp || !isWhitelisted)) {
+    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
+    
+    // Check IP
+    if (allowedIps.length > 0 && (!clientIp || !allowedIps.includes(clientIp))) {
         throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not allowed` });
     }
 
