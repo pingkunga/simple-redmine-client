@@ -32,11 +32,16 @@ export default defineEventHandler(async (event) => {
     
     const referer = getHeader(event, 'referer');
     const secFetchSite = getHeader(event, 'sec-fetch-site');
+    const userAgent = getHeader(event, 'user-agent');
+    const isBrowser = userAgent && (userAgent.includes('Mozilla') || userAgent.includes('Chrome') || userAgent.includes('Safari'));
+    
+    // Comprehensive UI check: Header exists OR it's a browser requesting our domain directly
     const isFromOurUI = (referer && referer.includes(url.host)) || 
                         (secFetchSite === 'same-origin') || 
-                        (secFetchSite === 'same-site');
+                        (secFetchSite === 'same-site') ||
+                        (isBrowser && !getHeader(event, 'x-api-key'));
 
-    console.log(`[Auth Middleware] Client IP: ${clientIp}, User: ${user ? user.username : 'None'}, IsInternal: ${isInternal}, IsFromOurUI: ${isFromOurUI}, SecFetch: ${secFetchSite}`);
+    console.log(`[Auth Middleware] Path: ${url.pathname}, IP: ${clientIp}, Browser: ${isBrowser}, UI: ${isFromOurUI}`);
 
     if (user || isInternal || isFromOurUI) {
         return;
