@@ -21,13 +21,15 @@ export default defineEventHandler(async (event) => {
   // 3. For API calls, we allow session or fallback to API Key + IP Whitelist
   // Note: We check specifically for /api/release/*
   if (url.pathname.startsWith('/api/release/')) {
-    if (user) {
-        // User logged in via UI session, allow
+    const clientIp = getRequestIP(event, { xForwardedFor: true });
+    
+    // Whitelist: If same machine (localhost) or User is logged in, allow
+    const isSameMachine = clientIp === '127.0.0.1' || clientIp === '::1';
+    if (user || isSameMachine) {
         return;
     }
 
-    // No session, check API Key and IP
-    const clientIp = getRequestIP(event, { xForwardedFor: true });
+    // No session or not localhost, check API Key and IP
     const requestApiKey = getHeader(event, 'x-api-key');
     const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
     
