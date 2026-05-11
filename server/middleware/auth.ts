@@ -27,10 +27,16 @@ export default defineEventHandler(async (event) => {
     // - User is logged in via UI
     // - SSR / Internal Fetch (!clientIp)
     // - Localhost access
-    // - Requested from our own UI (Referer check to handle dynamic home IP)
+    // - Requested from our own UI (Referer/Sec-Fetch-Site check to handle dynamic home IP)
     const isInternal = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
-    const isFromOurUI = getHeader(event, 'referer')?.includes(url.host);
-    console.log(`[Auth Middleware] Client IP: ${clientIp}, User: ${user ? user.username : 'None'}, IsInternal: ${isInternal}, IsFromOurUI: ${isFromOurUI}`);
+    
+    const referer = getHeader(event, 'referer');
+    const secFetchSite = getHeader(event, 'sec-fetch-site');
+    const isFromOurUI = (referer && referer.includes(url.host)) || 
+                        (secFetchSite === 'same-origin') || 
+                        (secFetchSite === 'same-site');
+
+    console.log(`[Auth Middleware] Client IP: ${clientIp}, User: ${user ? user.username : 'None'}, IsInternal: ${isInternal}, IsFromOurUI: ${isFromOurUI}, SecFetch: ${secFetchSite}`);
 
     if (user || isInternal || isFromOurUI) {
         return;
