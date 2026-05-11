@@ -22,29 +22,38 @@ export default defineEventHandler(async (event) => {
   // Note: We check specifically for /api/release/*
   if (url.pathname.startsWith('/api/release/')) {
     const clientIp = getRequestIP(event, { xForwardedFor: true });
-    console.log(`Auth Middleware: Client IP - ${clientIp}, User - ${user ? user.username : 'None'}`);
-    // Internal Check: If SSR/Internal Fetch (!clientIp) or Localhost
-    const isInternal = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
     
-    // Whitelist Check: IP matches explicitly allowed list
-    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
-    const isWhitelisted = clientIp && allowedIps.includes(clientIp);
+    // Stage 1: Trusted Internal/Dashboard Traffic
+    // - User is logged in via UI
+    // - SSR / Internal Fetch (!clientIp)
+    // - Localhost access
+    // - Requested from our own UI (Referer check to handle dynamic home IP)
+    const isInternal = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+    const isFromOurUI = getHeader(event, 'referer')?.includes(url.host);
+    console.log(`[Auth Middleware] Client IP: ${clientIp}, User: ${user ? user.username : 'None'}, IsInternal: ${isInternal}, IsFromOurUI: ${isFromOurUI}`);
 
-    if (user || isInternal || isWhitelisted) {
+    if (user || isInternal || isFromOurUI) {
         return;
     }
 
-    // No session/whitelist, check API Key and IP requirement
+    // Stage 2: External Automation (Jenkins / External Scripts)
+    // Must have BOTH: IP in Whitelist AND Valid API Key
+    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
+    const isWhitelisted = clientIp && allowedIps.includes(clientIp);
     const requestApiKey = getHeader(event, 'x-api-key');
+    const isValidKey = config.notifyReleaseMailApiKey && requestApiKey === config.notifyReleaseMailApiKey;
 
-    // Check IP separately for more specific error message if whitelist is configured
-    if (allowedIps.length > 0 && !isWhitelisted) {
-        throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not allowed` });
+    if (isWhitelisted && isValidKey) {
+        return;
     }
 
-    // Check API Key
-    if (config.notifyReleaseMailApiKey && requestApiKey !== config.notifyReleaseMailApiKey) {
-        throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Invalid API Key' });
+    // Comprehensive Error Logging & Handling
+    if (!isWhitelisted && allowedIps.length > 0) {
+        throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not in whitelist` });
+    }
+    
+    if (!isValidKey) {
+        throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Missing or Invalid API Key' });
     }
   }
 
