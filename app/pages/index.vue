@@ -40,7 +40,7 @@
             </div>
 
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 italic">
-              {{ releases[0]?.ownerTeam }}
+              Maintainer: {{ releases[0]?.ownerTeam }}
             </p>
 
             <div class="space-y-3">
@@ -53,7 +53,7 @@
                   <span class="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {{ rel.name }}
                   </span>
-                  <span class="text-xs text-gray-400 truncate max-w-[150px]" :title="rel.description">
+                  <span class="text-xs text-gray-400 truncate max-w-[350px]" :title="rel.description">
                     {{ rel.description || 'No description' }}
                   </span>
                 </div>
@@ -83,13 +83,19 @@
 </template>
 
 <script setup lang="ts">
-import type { VersionWithReleaseNotes } from '~/shared/types/Version'
+import type { VersionWithReleaseNotes } from '~~/shared/types/Version'
 
 interface GroupedReleases {
   [key: string]: VersionWithReleaseNotes[]
 }
 
-const { data, pending, error } = await useFetch<VersionWithReleaseNotes[]>('/api/release/thisweek-release')
+const config = useRuntimeConfig()
+
+const { data, pending, error } = await useFetch<VersionWithReleaseNotes[]>('/api/release/thisweek-release', {
+  headers: {
+    'x-internal-key': config.public.internalApiKey as string
+  }
+})
 
 const groupedReleases = computed(() => {
   if (!data.value) return {}
