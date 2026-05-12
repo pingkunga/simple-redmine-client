@@ -24,7 +24,8 @@ export default defineNuxtConfig({
     adminSessionSecure: true,
     public: {
       redmineUrl: "https://redmine.example.com",
-      appVersion: "0.3.0-DEV"
+      appVersion: "0.3.0-DEV",
+      internalApiKey: "SAMPLE_INTERNAL_KEY", // This should be overridden in .env for production
     },
   },
   compatibilityDate: "2025-07-15",

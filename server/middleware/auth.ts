@@ -19,36 +19,24 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. For API calls, we allow session or fallback to API Key + IP Whitelist
-  // Note: We check specifically for /api/release/*
   if (url.pathname.startsWith('/api/release/')) {
     const clientIp = getRequestIP(event, { xForwardedFor: true });
     
-    // Stage 1: Trusted Internal/Dashboard Traffic
-    // - User is logged in via UI
-    // - SSR / Internal Fetch (!clientIp)
-    // - Localhost access
-    // - Requested from our own UI (Referer/Sec-Fetch-Site check to handle dynamic home IP)
-    const isInternal = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+    // Stage 1: Secure Internal Traffic
+    // - SSR / Server-to-Server (!clientIp)
+    const isSSR = !clientIp;
     
-    const referer = getHeader(event, 'referer');
-    const secFetchSite = getHeader(event, 'sec-fetch-site');
-    const userAgent = getHeader(event, 'user-agent');
-    const isBrowser = userAgent && (userAgent.includes('Mozilla') || userAgent.includes('Chrome') || userAgent.includes('Safari'));
-    
-    // Comprehensive UI check: Header exists OR it's a browser requesting our domain directly
-    const isFromOurUI = (referer && referer.includes(url.host)) || 
-                        (secFetchSite === 'same-origin') || 
-                        (secFetchSite === 'same-site') ||
-                        (isBrowser && !getHeader(event, 'x-api-key'));
+    // - UI request (x-internal-key)
+    const requestInternalKey = getHeader(event, 'x-internal-key');
+    const isValidInternalKey = config.public.internalApiKey && requestInternalKey === config.public.internalApiKey;
 
-    console.log(`[Auth Middleware] Path: ${url.pathname}, IP: ${clientIp}, Browser: ${isBrowser}, UI: ${isFromOurUI}`);
+    console.log(`[Auth Auth] Path: ${url.pathname}, IP: ${clientIp}, SSR: ${isSSR}, Key: ${!!isValidInternalKey}`);
 
-    if (user || isInternal || isFromOurUI) {
+    if (user || isSSR || isValidInternalKey) {
         return;
     }
 
-    // Stage 2: External Automation (Jenkins / External Scripts)
-    // Must have BOTH: IP in Whitelist AND Valid API Key
+    // Stage 2: External Automation (Jenkins)
     const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
     const isWhitelisted = clientIp && allowedIps.includes(clientIp);
     const requestApiKey = getHeader(event, 'x-api-key');
