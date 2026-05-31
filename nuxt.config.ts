@@ -22,10 +22,12 @@ export default defineNuxtConfig({
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",
     adminSessionSecure: true,
+    gitlabToken: process.env.GITLAB_TOKEN || "no_token",
     public: {
       redmineUrl: "https://redmine.example.com",
       appVersion: "0.3.0-DEV",
       internalApiKey: "SAMPLE_INTERNAL_KEY", // This should be overridden in .env for production
+      gitlabUrl: "http://dev.gutusr.local",
     },
   },
   compatibilityDate: "2025-07-15",
