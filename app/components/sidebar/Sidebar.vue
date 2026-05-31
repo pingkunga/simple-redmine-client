@@ -25,6 +25,10 @@
             <UIcon name="i-mdi-email-fast-outline" class="mr-2" />
             Release Mail
           </NuxtLink>
+          <NuxtLink to="/admin/branches" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium mt-1">
+            <UIcon name="i-mdi-source-branch" class="mr-2" />
+            GitLab Branches
+          </NuxtLink>
         </li>
       </ul>
     </div>
