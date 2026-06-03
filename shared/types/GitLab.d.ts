@@ -28,6 +28,16 @@ export interface GitLabBranch {
     is_direct?: boolean;
 }
 
+export interface GitLabCacheData {
+    projectId: number;
+    branches: Record<string, {
+        creator_name: string;
+        created_at: string;
+        is_direct: boolean;
+    }>;
+    lastUpdated: string;
+}
+
 export interface GitLabEvent {
     id: number;
     project_id: number;
