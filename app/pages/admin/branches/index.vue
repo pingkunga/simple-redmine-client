@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { h, resolveComponent } from 'vue'
+import { h } from 'vue'
 import type { GitLabProject, GitLabBranch } from '~~/shared/types/GitLab'
 import { UBadge, UButton, UIcon } from '#components'
 
-const { fetchGitLabProjects, fetchGitLabBranches } = useGitLabAPI()
+const { fetchGitLabProjects, fetchGitLabBranches, syncGitLabEvents } = useGitLabAPI()
 
 const projects = ref<GitLabProject[]>([])
-const selectedProject = ref<GitLabProject | null>(null)
+const selectedProject = ref<GitLabProject>()
 const branches = ref<GitLabBranch[]>([])
 const loading = ref(false)
+const syncLoading = ref(false)
+const isSyncModalOpen = ref(false)
+
+const toISODate = (date: Date) => date.toISOString().slice(0, 10)
+const syncForm = reactive({
+  after: toISODate(new Date(new Date().setFullYear(new Date().getFullYear() - 3))),
+  before: toISODate(new Date())
+})
 
 const formatDate = (dateString: string | undefined) => {
   if (!dateString) return '-';
@@ -131,7 +139,23 @@ const loadBranches = async () => {
   }
 }
 
+const startEventSync = async () => {
+  if (!selectedProject.value) return
+
+  isSyncModalOpen.value = false
+  syncLoading.value = true
+  try {
+    await syncGitLabEvents(selectedProject.value.id, syncForm.after, syncForm.before)
+    await loadBranches()
+  } catch (error) {
+    console.error('Sync failed', error)
+  } finally {
+    syncLoading.value = false
+  }
+}
+
 watch(selectedProject, () => {
+  if (!selectedProject.value) return
   loadBranches()
 })
 
@@ -157,15 +181,27 @@ onMounted(() => {
             <span v-else>Select Repository</span>
           </template>
         </USelectMenu>
-        <UButton
-          icon="i-mdi-refresh"
-          color="neutral"
-          variant="soft"
-          :loading="loading"
-          @click="loadBranches"
-        >
-          Refresh
-        </UButton>
+        <div class="flex gap-2">
+          <UButton
+            icon="i-mdi-database-refresh"
+            color="neutral"
+            variant="soft"
+            :disabled="!selectedProject || syncLoading"
+            @click="isSyncModalOpen = true"
+          >
+            Initial Cache
+          </UButton>
+          <UButton
+            icon="i-mdi-refresh"
+            color="neutral"
+            variant="soft"
+            :loading="loading"
+            :disabled="syncLoading"
+            @click="loadBranches"
+          >
+            Refresh
+          </UButton>
+        </div>
       </div>
     </div>
 
@@ -175,6 +211,36 @@ onMounted(() => {
       :loading="loading"
       class="w-full"
     />
+
+    <UModal v-model:open="isSyncModalOpen" title="Initial Cache Sync" size="lg">
+      <template #body>
+        <div class="space-y-4">
+          <p class="text-sm text-gray-500">
+            Fetch historical push events to identify branch creators. This action is usually run only once per project.
+          </p>
+
+          <UFormField label="Start Date">
+            <UInput v-model="syncForm.after" type="date" />
+          </UFormField>
+
+          <UFormField label="End Date">
+            <UInput v-model="syncForm.before" type="date" />
+          </UFormField>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton color="neutral" variant="ghost" :disabled="syncLoading" @click="isSyncModalOpen = false">Cancel</UButton>
+            <UButton color="primary" :loading="syncLoading" @click="startEventSync">Start Sync</UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <Teleport to="body">
+      <div v-if="syncLoading" class="fixed bottom-4 right-4 bg-primary-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-pulse z-9999">
+        <UIcon name="i-mdi-sync" class="animate-spin" />
+        <span>Syncing GitLab events... please wait.</span>
+      </div>
+    </Teleport>
   </div>
 </template>
 

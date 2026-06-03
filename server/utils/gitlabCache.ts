@@ -1,7 +1,115 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import axios from 'axios';
-import type { GitLabBranch, GitLabEvent, GitLabCacheData } from '~~/shared/types/GitLab';
+import type { GitLabBranch, GitLabEvent, GitLabCacheData, GitLabSyncResult } from '~~/shared/types/GitLab';
+
+const PER_PAGE = 100;
+
+const createEmptyCache = (projectId: string): GitLabCacheData => ({
+  projectId: Number(projectId),
+  branches: {},
+  events: [],
+  lastUpdated: '',
+});
+
+const mergeEventsById = (baseEvents: GitLabEvent[] = [], incomingEvents: GitLabEvent[] = []) => {
+  const eventById = new Map<number, GitLabEvent>();
+  for (const event of baseEvents) {
+    eventById.set(event.id, event);
+  }
+  for (const event of incomingEvents) {
+    eventById.set(event.id, event);
+  }
+  return Array.from(eventById.values());
+};
+
+const loadCache = async (cacheFilePath: string, projectId: string): Promise<GitLabCacheData> => {
+  try {
+    const fileContent = await fs.readFile(cacheFilePath, 'utf-8');
+    const parsed = JSON.parse(fileContent) as GitLabCacheData;
+    return {
+      ...parsed,
+      projectId: Number(projectId),
+      branches: parsed.branches || {},
+      events: parsed.events || [],
+      lastUpdated: parsed.lastUpdated || '',
+    };
+  } catch {
+    return createEmptyCache(projectId);
+  }
+};
+
+const saveCache = async (cacheFilePath: string, cache: GitLabCacheData) => {
+  await fs.mkdir(path.dirname(cacheFilePath), { recursive: true });
+  await fs.writeFile(cacheFilePath, JSON.stringify(cache, null, 2));
+};
+
+const fetchGitLabEventsPage = async (
+  gitlabUrl: string,
+  headers: Record<string, string>,
+  projectId: string,
+  page: number,
+  after?: string,
+  before?: string,
+) => {
+  const response = await axios.get<GitLabEvent[]>(
+    `${gitlabUrl}/api/v4/projects/${projectId}/events`,
+    {
+      headers,
+      params: {
+        action: 'pushed',
+        per_page: PER_PAGE,
+        page,
+        ...(after ? { after } : {}),
+        ...(before ? { before } : {}),
+      },
+    }
+  );
+
+  const nextPage = Number(response.headers['x-next-page'] || 0);
+  const currentPage = Number(response.headers['x-page'] || page);
+
+  return {
+    events: response.data,
+    nextPage,
+    currentPage,
+  };
+};
+
+const extractCreatedBranchEvents = (events: GitLabEvent[]) => {
+  return events.filter((event) => (
+    event.push_data?.action === 'created' &&
+    event.push_data?.ref_type === 'branch'
+  ));
+};
+
+const buildBranchInfoFromCache = (cache: GitLabCacheData, branch: GitLabBranch) => {
+  const allEvents = extractCreatedBranchEvents(cache.events || []);
+  const matchedEvent = allEvents
+    .filter((event) => event.push_data?.ref === branch.name)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
+
+  if (matchedEvent) {
+    const info = {
+      creator_name: matchedEvent.author.name,
+      created_at: matchedEvent.created_at,
+      is_direct: true,
+    };
+    cache.branches[branch.name] = info;
+    return { ...branch, ...info };
+  }
+
+  if (cache.branches[branch.name] && cache.branches[branch.name].is_direct) {
+    return { ...branch, ...cache.branches[branch.name] };
+  }
+
+  return {
+    ...branch,
+    creator_name: branch.commit.author_name,
+    created_at: branch.commit.authored_date,
+    is_direct: false,
+  };
+};
 
 export const getGitLabBranches = async (projectId: string) => {
   const config = useRuntimeConfig();
@@ -15,17 +123,11 @@ export const getGitLabBranches = async (projectId: string) => {
   };
 
   // 1. Load existing cache
-  let cache: GitLabCacheData = { projectId: Number(projectId), branches: {}, lastUpdated: '' };
   const cacheFilePath = path.join(process.cwd(), gitlabCacheDir, `project-${projectId}.json`);
+  const cache = await loadCache(cacheFilePath, projectId);
 
   if (gitlabCacheMode === 'file') {
-    try {
-      await fs.mkdir(path.dirname(cacheFilePath), { recursive: true });
-      const fileContent = await fs.readFile(cacheFilePath, 'utf-8');
-      cache = JSON.parse(fileContent);
-    } catch (e) {
-      // Cache file doesn't exist yet, proceed with empty cache
-    }
+    await fs.mkdir(path.dirname(cacheFilePath), { recursive: true });
   }
 
   // 2. Fetch current branches from GitLab
@@ -35,56 +137,67 @@ export const getGitLabBranches = async (projectId: string) => {
   );
   const currentBranches = branchesRes.data;
 
-  // 3. Fetch recent push events (The 90-day window)
-  const eventsRes = await axios.get<GitLabEvent[]>(
-    `${gitlabUrl}/api/v4/projects/${projectId}/events`,
-    { 
-      headers, 
-      params: { action: 'pushed', per_page: 100 } 
-    }
-  );
-  const pushEvents = eventsRes.data.filter(e => 
-    e.push_data?.action === "created" && 
-    e.push_data?.ref_type === "branch"
-  );
+  // 3. Incremental sync: always pull latest 100 events and merge to cache
+  const latestPage = await fetchGitLabEventsPage(gitlabUrl, headers, projectId, 1);
+  cache.events = mergeEventsById(cache.events, latestPage.events);
 
   // 4. Merge Logic
-  const mergedBranches = currentBranches.map(branch => {
-    // A. Check recent API events (Direct info)
-    const apiEvent = pushEvents.find(e => e.push_data?.ref === branch.name);
-    if (apiEvent) {
-      const info = {
-        creator_name: apiEvent.author.name,
-        created_at: apiEvent.created_at,
-        is_direct: true
-      };
-      // Upsert into cache
-      cache.branches[branch.name] = info;
-      return { ...branch, ...info };
-    }
-
-    // B. Check persistent cache (Old Direct info)
-    if (cache.branches[branch.name] && cache.branches[branch.name].is_direct) {
-      return { ...branch, ...cache.branches[branch.name] };
-    }
-
-    // C. Fallback: Indirect calculation from Commit
-    return {
-      ...branch,
-      creator_name: branch.commit.author_name,
-      created_at: branch.commit.authored_date, // Using authored_date as primary fallback
-      is_direct: false
-    };
-  });
+  const mergedBranches = currentBranches.map((branch) => buildBranchInfoFromCache(cache, branch));
 
   // 5. Save Cache (Auto-fill)
   if (gitlabCacheMode === 'file') {
     cache.lastUpdated = new Date().toISOString();
-    await fs.writeFile(cacheFilePath, JSON.stringify(cache, null, 2));
+    await saveCache(cacheFilePath, cache);
   } else if (gitlabCacheMode === 'mongodb') {
     // MongoDB implementation placeholder
     console.warn('MongoDB mode not yet fully implemented, check gitlabCache.ts');
   }
 
   return mergedBranches;
+};
+
+export const syncProjectEvents = async (projectId: string, after: string, before: string): Promise<GitLabSyncResult> => {
+  const config = useRuntimeConfig();
+  const gitlabUrl = config.public.gitlabUrl;
+  const gitlabToken = (config as any).gitlabToken;
+  const gitlabCacheMode = (config as any).gitlabCacheMode;
+  const gitlabCacheDir = (config as any).gitlabCacheDir;
+
+  const headers = {
+    'PRIVATE-TOKEN': gitlabToken,
+  };
+
+  const cacheFilePath = path.join(process.cwd(), gitlabCacheDir, `project-${projectId}.json`);
+  const cache = await loadCache(cacheFilePath, projectId);
+
+  let page = 1;
+  let lastPage = 1;
+  const collected: GitLabEvent[] = [];
+
+  // Header-based pagination: keep fetching while x-next-page exists.
+  while (page > 0) {
+    const response = await fetchGitLabEventsPage(gitlabUrl, headers, projectId, page, after, before);
+    collected.push(...response.events);
+    lastPage = response.currentPage;
+    page = response.nextPage;
+  }
+
+  const previousCount = (cache.events || []).length;
+  cache.events = mergeEventsById(cache.events, collected);
+  const totalInCache = (cache.events || []).length;
+  const newlyAdded = Math.max(totalInCache - previousCount, 0);
+  cache.lastUpdated = new Date().toISOString();
+
+  if (gitlabCacheMode === 'file') {
+    await saveCache(cacheFilePath, cache);
+  } else if (gitlabCacheMode === 'mongodb') {
+    console.warn('MongoDB mode not yet fully implemented, check gitlabCache.ts');
+  }
+
+  return {
+    totalFetched: collected.length,
+    newlyAdded,
+    totalInCache,
+    lastPage,
+  };
 };
