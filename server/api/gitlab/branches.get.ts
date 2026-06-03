@@ -1,6 +1,3 @@
-import axios from 'axios'
-import type { GitLabBranch, GitLabEvent } from '~~/shared/types/GitLab'
-
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const projectId = query.projectId as string

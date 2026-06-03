@@ -35,7 +35,15 @@ export interface GitLabCacheData {
         created_at: string;
         is_direct: boolean;
     }>;
+    events?: GitLabEvent[];
     lastUpdated: string;
+}
+
+export interface GitLabSyncResult {
+    totalFetched: number;
+    newlyAdded: number;
+    totalInCache: number;
+    lastPage: number;
 }
 
 export interface GitLabEvent {

@@ -1,4 +1,4 @@
-import type { GitLabProject, GitLabBranch } from "~~/shared/types/GitLab";
+import type { GitLabProject, GitLabBranch, GitLabSyncResult } from "~~/shared/types/GitLab";
 
 export default () => {
   const fetchGitLabProjects = async () => {
@@ -11,8 +11,20 @@ export default () => {
     });
   };
 
+  const syncGitLabEvents = async (projectId: number, after: string, before: string) => {
+    return await $fetch<GitLabSyncResult>("/api/gitlab/sync-events", {
+      method: "POST",
+      body: {
+        projectId,
+        after,
+        before,
+      },
+    });
+  };
+
   return {
     fetchGitLabProjects,
     fetchGitLabBranches,
+    syncGitLabEvents,
   };
 };
