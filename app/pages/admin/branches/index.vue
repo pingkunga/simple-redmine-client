@@ -3,6 +3,8 @@ import { h } from 'vue'
 import type { GitLabProject, GitLabBranch } from '~~/shared/types/GitLab'
 import { UBadge, UButton, UIcon, UInput, USelect, UPagination } from '#components'
 import { getPaginationRowModel } from '@tanstack/vue-table'
+import { saveAs } from 'file-saver'
+import * as XLSX from 'xlsx'
 
 const { fetchGitLabProjects, fetchGitLabBranches, syncGitLabEvents } = useGitLabAPI()
 
@@ -222,6 +224,54 @@ const filteredBranches = computed(() => {
 onMounted(() => {
   loadProjects()
 })
+
+const getExportBranches = () => {
+  const tableApi = table.value?.tableApi
+  if (tableApi) {
+    return tableApi.getPrePaginationRowModel().rows.map((r: any) => r.original)
+  }
+  return filteredBranches.value
+}
+
+const exportToExcel = () => {
+  const exportBranches = getExportBranches()
+  if (!exportBranches || exportBranches.length === 0) return
+
+  const rows = exportBranches.map((b: any) => ({
+    Name: b.name,
+    Creator: b.creator_name || '',
+    CreatedAt: formatDate(b.created_at),
+    Age: getRelativeAge(b.created_at),
+    CommitTitle: b.commit?.title || '',
+    CommitShortId: b.commit?.short_id || '',
+    CommitAuthor: b.commit?.author_name || '',
+    Merged: b.merged ? 'Yes' : 'No',
+    Protected: b.protected ? 'Yes' : 'No',
+    WebUrl: b.web_url || ''
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(rows)
+  worksheet['!cols'] = [
+    { wch: 30 }, // Name
+    { wch: 20 }, // Creator
+    { wch: 14 }, // CreatedAt
+    { wch: 12 }, // Age
+    { wch: 50 }, // CommitTitle
+    { wch: 12 }, // CommitShortId
+    { wch: 20 }, // CommitAuthor
+    { wch: 8 },
+    { wch: 10 },
+    { wch: 40 }
+  ]
+
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Branches')
+
+  const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const fileName = `branches_${new Date().toISOString().slice(0, 10)}.xlsx`
+  saveAs(blob, fileName)
+}
 </script>
 
 <template>
@@ -266,6 +316,14 @@ onMounted(() => {
             @click="loadBranches"
           >
             Refresh
+          </UButton>
+          <UButton
+            icon="i-heroicons-document-arrow-down"
+            color="neutral"
+            variant="outline"
+            @click="exportToExcel"
+          >
+            Export Excel
           </UButton>
         </div>
       </div>
