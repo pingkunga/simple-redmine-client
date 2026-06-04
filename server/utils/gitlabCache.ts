@@ -131,11 +131,15 @@ export const getGitLabBranches = async (projectId: string) => {
   }
 
   // 2. Fetch current branches from GitLab
-  const branchesRes = await axios.get<GitLabBranch[]>(
-    `${gitlabUrl}/api/v4/projects/${projectId}/repository/branches`,
-    { headers }
-  );
-  const currentBranches = branchesRes.data;
+  // const branchesRes = await axios.get<GitLabBranch[]>(
+  //   `${gitlabUrl}/api/v4/projects/${projectId}/repository/branches`,
+  //   { headers }
+  // );
+  
+  // const currentBranches = branchesRes.data;
+
+  const currentBranches = await fetchAllBranches(gitlabUrl, headers, projectId);
+
 
   // 3. Incremental sync: always pull latest 100 events and merge to cache
   const latestPage = await fetchGitLabEventsPage(gitlabUrl, headers, projectId, 1);
@@ -155,6 +159,34 @@ export const getGitLabBranches = async (projectId: string) => {
 
   return mergedBranches;
 };
+
+async function fetchAllBranches(
+  gitlabUrl: string,
+  headers: Record<string, string>,
+  projectId: string
+): Promise<GitLabBranch[]> {
+  const all: GitLabBranch[] = [];
+  let page = 1;
+
+  while (true) {
+    const res = await axios.get<GitLabBranch[]>(
+      `${gitlabUrl}/api/v4/projects/${projectId}/repository/branches`,
+      {
+        headers,
+        params: { per_page: PER_PAGE, page },
+      }
+    );
+    //PER_PAGE
+    all.push(...res.data);
+
+    // GitLab ส่ง next page มาใน header; ถ้าว่าง = หมดแล้ว
+    const nextPage = res.headers['x-next-page'];
+    if (!nextPage) break;
+    page = Number(nextPage);
+  }
+
+  return all;
+}
 
 export const syncProjectEvents = async (projectId: string, after: string, before: string): Promise<GitLabSyncResult> => {
   const config = useRuntimeConfig();
