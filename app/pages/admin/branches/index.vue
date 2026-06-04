@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { h } from 'vue'
 import type { GitLabProject, GitLabBranch } from '~~/shared/types/GitLab'
-import { UBadge, UButton, UIcon } from '#components'
+import { UBadge, UButton, UIcon, UInput, USelect, UPagination } from '#components'
+import { getPaginationRowModel } from '@tanstack/vue-table'
 
 const { fetchGitLabProjects, fetchGitLabBranches, syncGitLabEvents } = useGitLabAPI()
 
@@ -11,6 +12,35 @@ const branches = ref<GitLabBranch[]>([])
 const loading = ref(false)
 const syncLoading = ref(false)
 const isSyncModalOpen = ref(false)
+
+// UI / filter state (match Versions pattern)
+const searchText = ref<string | undefined>(undefined)
+const selectedFlags = ref<string[]>([])
+const columnFilters = ref([])
+const refreshKey = ref(0)
+
+const table = useTemplateRef('table')
+const pagination = ref({ pageIndex: 0, pageSize: 10 })
+const currentPage = ref(1)
+
+watch(
+  () => table.value?.tableApi?.getState().pagination.pageIndex,
+  (newIndex) => {
+    currentPage.value = (newIndex || 0) + 1
+  },
+  { immediate: true }
+)
+
+watch(currentPage, (newPage) => {
+  table.value?.tableApi?.setPageIndex(newPage - 1)
+})
+
+// Options for flag filter (multi-select)
+const flagOptions = [
+  { label: 'Merged', value: 'merged' },
+  { label: 'Protected', value: 'protected' },
+  { label: 'Direct', value: 'direct' }
+]
 
 const toISODate = (date: Date) => date.toISOString().slice(0, 10)
 const syncForm = reactive({
@@ -133,6 +163,7 @@ const loadBranches = async () => {
     const { data } = await fetchGitLabBranches(selectedProject.value.id)
     if (data.value) {
       branches.value = data.value as GitLabBranch[]
+      refreshKey.value++
     }
   } finally {
     loading.value = false
@@ -159,6 +190,35 @@ watch(selectedProject, () => {
   loadBranches()
 })
 
+// computed filtered data (client-side)
+const filteredBranches = computed(() => {
+  const q = (searchText.value || '').toLowerCase().trim()
+  const flags = selectedFlags.value || []
+
+  return branches.value.filter((b) => {
+    // flags filter
+    if (flags.length > 0) {
+      const ok = flags.every((f) => {
+        if (f === 'merged') return !!b.merged
+        if (f === 'protected') return !!b.protected
+        if (f === 'direct') return !!b.is_direct
+        return true
+      })
+      if (!ok) return false
+    }
+
+    if (!q) return true
+    const hay = [
+      b.name,
+      b.creator_name,
+      b.commit?.title,
+      b.commit?.author_name,
+      b.commit?.short_id
+    ].filter(Boolean).join(' ').toLowerCase()
+    return hay.includes(q)
+  })
+})
+
 onMounted(() => {
   loadProjects()
 })
@@ -181,7 +241,13 @@ onMounted(() => {
             <span v-else>Select Repository</span>
           </template>
         </USelectMenu>
-        <div class="flex gap-2">
+
+        <div class="flex items-center gap-4">
+          <UInput v-model="searchText" placeholder="Search branches..." class="w-64" clearable />
+          <USelect v-model="selectedFlags" :items="flagOptions" multiple placeholder="Flags..." class="w-40" />
+        </div>
+
+        <div class="flex gap-2 ml-auto">
           <UButton
             icon="i-mdi-database-refresh"
             color="neutral"
@@ -206,11 +272,22 @@ onMounted(() => {
     </div>
 
     <UTable
-      :data="branches"
+      :key="refreshKey"
+      ref="table"
+      :data="filteredBranches"
       :columns="columns"
       :loading="loading"
       class="w-full"
+      v-model:global-filter="searchText"
+      :column-filters="columnFilters"
+      v-model:pagination="pagination"
+      :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
     />
+
+    <div class="flex justify-end mt-2">
+      <UPagination v-model:page="currentPage" :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+        :total="table?.tableApi?.getFilteredRowModel().rows.length" />
+    </div>
 
     <UModal v-model:open="isSyncModalOpen" title="Initial Cache Sync" size="lg">
       <template #body>
