@@ -82,6 +82,15 @@ const getRelativeAge = (dateString: string | undefined) => {
   return 'just now';
 };
 
+const getAgeDays = (dateString: string | undefined) => {
+  if (!dateString) return 0
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInMilliseconds = now.getTime() - date.getTime()
+
+  return Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24))
+}
+
 const columns = [
   { 
     accessorKey: 'name', 
@@ -118,6 +127,13 @@ const columns = [
             ])
         ])
     }
+  },
+  {
+    id: 'ageDays',
+    accessorFn: (branch: GitLabBranch) => getAgeDays(branch.created_at),
+    header: 'Age (Days)',
+    enableSorting: true,
+    cell: ({ row }: any) => h('span', { class: 'font-medium' }, getAgeDays((row.original as GitLabBranch).created_at).toString())
   },
   { 
     accessorKey: 'commit_title', 
@@ -242,6 +258,7 @@ const exportToExcel = () => {
     Creator: b.creator_name || '',
     CreatedAt: formatDate(b.created_at),
     Age: getRelativeAge(b.created_at),
+    AgeDays: getAgeDays(b.created_at),
     CommitTitle: b.commit?.title || '',
     CommitShortId: b.commit?.short_id || '',
     CommitAuthor: b.commit?.author_name || '',
@@ -256,6 +273,7 @@ const exportToExcel = () => {
     { wch: 20 }, // Creator
     { wch: 14 }, // CreatedAt
     { wch: 12 }, // Age
+    { wch: 10 }, // AgeDays
     { wch: 50 }, // CommitTitle
     { wch: 12 }, // CommitShortId
     { wch: 20 }, // CommitAuthor
@@ -378,4 +396,3 @@ const exportToExcel = () => {
     </Teleport>
   </div>
 </template>
-
