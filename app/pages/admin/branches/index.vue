@@ -50,7 +50,7 @@ const syncForm = reactive({
   before: toISODate(new Date())
 })
 
-const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
+const millisecondsPerDay = 1000 * 60 * 60 * 24;
 
 const formatDate = (dateString: string | undefined) => {
   if (!dateString) return '-';
@@ -91,7 +91,7 @@ const getAgeDays = (dateString: string | undefined) => {
   const now = new Date();
   const diffInMilliseconds = now.getTime() - date.getTime();
 
-  return Math.floor(diffInMilliseconds / MILLISECONDS_PER_DAY);
+  return Math.floor(diffInMilliseconds / millisecondsPerDay);
 };
 
 const columns = [
