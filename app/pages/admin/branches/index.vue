@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import type { GitLabProject, GitLabBranch } from '~~/shared/types/GitLab'
 import { UBadge, UButton, UIcon, UInput, USelect, UPagination } from '#components'
-import { getPaginationRowModel } from '@tanstack/vue-table'
+import { getPaginationRowModel, type CellContext } from '@tanstack/vue-table'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
 
@@ -85,6 +85,7 @@ const getRelativeAge = (dateString: string | undefined) => {
 const getAgeDays = (dateString: string | undefined) => {
   if (!dateString) return 0;
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 0;
   const now = new Date();
   const diffInMilliseconds = now.getTime() - date.getTime();
 
@@ -133,7 +134,7 @@ const columns = [
     accessorFn: (branch: GitLabBranch) => getAgeDays(branch.created_at),
     header: 'Age (Days)',
     enableSorting: true,
-    cell: ({ row }: any) => h('span', { class: 'font-medium' }, row.getValue('ageDays')?.toString?.() || '0')
+    cell: ({ row }: CellContext<GitLabBranch, number>) => h('span', { class: 'font-medium' }, row.getValue('ageDays')?.toString?.() || '0')
   },
   { 
     accessorKey: 'commit_title', 
