@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import type { GitLabProject, GitLabBranch } from '~~/shared/types/GitLab'
 import { UBadge, UButton, UIcon, UInput, USelect, UPagination } from '#components'
-import { getPaginationRowModel } from '@tanstack/vue-table'
+import { getPaginationRowModel, type CellContext } from '@tanstack/vue-table'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
 
@@ -82,6 +82,17 @@ const getRelativeAge = (dateString: string | undefined) => {
   return 'just now';
 };
 
+const getAgeDays = (dateString: string | undefined) => {
+  if (!dateString) return 0;
+  const dayInMilliseconds = 1000 * 60 * 60 * 24;
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 0;
+  const now = new Date();
+  const diffInMilliseconds = Math.max(0, now.getTime() - date.getTime());
+
+  return Math.floor(diffInMilliseconds / dayInMilliseconds);
+};
+
 const columns = [
   { 
     accessorKey: 'name', 
@@ -118,6 +129,13 @@ const columns = [
             ])
         ])
     }
+  },
+  {
+    id: 'ageDays',
+    accessorFn: (branch: GitLabBranch) => getAgeDays(branch.created_at),
+    header: 'Age (Days)',
+    enableSorting: true,
+    cell: ({ row }: CellContext<GitLabBranch, number>) => h('span', { class: 'font-medium' }, row.getValue('ageDays'))
   },
   { 
     accessorKey: 'commit_title', 
@@ -242,6 +260,7 @@ const exportToExcel = () => {
     Creator: b.creator_name || '',
     CreatedAt: formatDate(b.created_at),
     Age: getRelativeAge(b.created_at),
+    AgeDays: getAgeDays(b.created_at),
     CommitTitle: b.commit?.title || '',
     CommitShortId: b.commit?.short_id || '',
     CommitAuthor: b.commit?.author_name || '',
@@ -256,6 +275,7 @@ const exportToExcel = () => {
     { wch: 20 }, // Creator
     { wch: 14 }, // CreatedAt
     { wch: 12 }, // Age
+    { wch: 10 }, // AgeDays
     { wch: 50 }, // CommitTitle
     { wch: 12 }, // CommitShortId
     { wch: 20 }, // CommitAuthor
@@ -378,4 +398,3 @@ const exportToExcel = () => {
     </Teleport>
   </div>
 </template>
-
