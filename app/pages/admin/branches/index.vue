@@ -134,7 +134,7 @@ const columns = [
     accessorFn: (branch: GitLabBranch) => getAgeDays(branch.created_at),
     header: 'Age (Days)',
     enableSorting: true,
-    cell: ({ row }: CellContext<GitLabBranch, number>) => h('span', { class: 'font-medium' }, row.getValue('ageDays')?.toString?.() || '0')
+    cell: ({ row }: CellContext<GitLabBranch, number>) => h('span', { class: 'font-medium' }, row.getValue('ageDays').toString())
   },
   { 
     accessorKey: 'commit_title', 
