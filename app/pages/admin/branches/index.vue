@@ -88,7 +88,7 @@ const getAgeDays = (dateString: string | undefined) => {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return 0;
   const now = new Date();
-  const diffInMilliseconds = now.getTime() - date.getTime();
+  const diffInMilliseconds = Math.max(0, now.getTime() - date.getTime());
 
   return Math.floor(diffInMilliseconds / dayInMilliseconds);
 };
