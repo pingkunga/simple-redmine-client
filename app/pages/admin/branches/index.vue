@@ -50,8 +50,6 @@ const syncForm = reactive({
   before: toISODate(new Date())
 })
 
-const millisecondsPerDay = 1000 * 60 * 60 * 24;
-
 const formatDate = (dateString: string | undefined) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
@@ -86,12 +84,13 @@ const getRelativeAge = (dateString: string | undefined) => {
 
 const getAgeDays = (dateString: string | undefined) => {
   if (!dateString) return 0;
+  const dayInMilliseconds = 1000 * 60 * 60 * 24;
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return 0;
   const now = new Date();
   const diffInMilliseconds = now.getTime() - date.getTime();
 
-  return Math.floor(diffInMilliseconds / millisecondsPerDay);
+  return Math.floor(diffInMilliseconds / dayInMilliseconds);
 };
 
 const columns = [
