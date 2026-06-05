@@ -83,13 +83,13 @@ const getRelativeAge = (dateString: string | undefined) => {
 };
 
 const getAgeDays = (dateString: string | undefined) => {
-  if (!dateString) return 0
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInMilliseconds = now.getTime() - date.getTime()
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMilliseconds = now.getTime() - date.getTime();
 
-  return Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24))
-}
+  return Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+};
 
 const columns = [
   { 
