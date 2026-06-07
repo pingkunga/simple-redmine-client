@@ -7,7 +7,7 @@ import { getPaginationRowModel, getGroupedRowModel, type CellContext,  type Head
 
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
-import { renderCell, renderDraggableHeader } from '~/utils/tableHelpers'
+import { renderCell, renderSortableHeader } from '~/utils/tableHelpers'
 
 const config = useRuntimeConfig();
 const baseUrl = config.public.redmineUrl;
@@ -109,93 +109,6 @@ const allowColumnLabels: Record<string, string> = {
   ageDays: 'Age (Days)'
 }
 
-/*
-const columns = [
-  { 
-    accessorKey: 'name', 
-    header: 'Branch Name',
-    cell: ({ row }: any) => {
-        const branch = row.original as GitLabBranch
-        return h('div', { class: 'flex items-center gap-2' }, [
-            branch.default ? h(UIcon, { name: 'i-mdi-star', class: 'text-yellow-500' }) : null,
-            h('span', { class: 'font-medium' }, branch.name),
-            branch.merged ? h(UBadge, { color: 'success', variant: 'soft', size: 'xs' }, () => 'Merged') : null,
-            branch.protected ? h(UBadge, { color: 'error', variant: 'soft', size: 'xs' }, () => 'Protected') : null
-        ])
-    }
-  },
-  { 
-    accessorKey: 'creator_name', 
-    header: 'Creator' 
-  },
-  { 
-    accessorKey: 'created_at', 
-    header: 'Created At (Age)',
-    cell: ({ row }: any) => {
-        const branch = row.original as GitLabBranch
-        return h('div', { class: 'flex flex-col' }, [
-            h('span', formatDate(branch.created_at)),
-            h('div', { class: 'flex items-center gap-1 mt-0.5' }, [
-                h('span', { class: 'text-xs text-gray-500 font-medium' }, getRelativeAge(branch.created_at)),
-                h(UBadge, { 
-                    color: branch.is_direct ? 'success' : 'neutral', 
-                    variant: 'soft', 
-                    size: 'xs',
-                    class: 'px-1 py-0 text-[10px]'
-                }, () => branch.is_direct ? 'Direct' : 'Indirect')
-            ])
-        ])
-    }
-  },
-  {
-    id: 'ageDays',
-    accessorFn: (branch: GitLabBranch) => getAgeDays(branch.created_at),
-    header: ({ column }: any) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Age (Days)',
-        icon: isSorted === 'asc' 
-          ? 'i-heroicons-arrow-up' 
-          : isSorted === 'desc' 
-            ? 'i-heroicons-arrow-down' 
-            : 'i-heroicons-arrows-up-down',
-        class: '-ml-3',
-        onClick: () => column.toggleSorting(isSorted === 'asc')
-      })
-    },
-    enableSorting: true,
-    cell: ({ row }: CellContext<GitLabBranch, number>) => h('span', { class: 'font-medium' }, row.getValue('ageDays'))
-  },
-  { 
-    accessorKey: 'commit_title', 
-    header: 'Latest Commit',
-    cell: ({ row }: any) => {
-        const branch = row.original as GitLabBranch
-        return h('div', { class: 'flex flex-col max-w-md' }, [
-            h('span', { class: 'text-sm truncate' }, branch.commit.title),
-            h('span', { class: 'text-xs text-gray-500' }, `${branch.commit.short_id} by ${branch.commit.author_name}`)
-        ])
-    }
-  },
-  { 
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }: any) => {
-        const branch = row.original as GitLabBranch
-        return h(UButton, {
-            to: branch.web_url,
-            target: '_blank',
-            icon: 'i-mdi-open-in-new',
-            variant: 'ghost',
-            color: 'neutral',
-            size: 'xs'
-        })
-    }
-  }
-]*/
-
 const columns: TableColumn<GitLabBranch>[] = [
   { 
     accessorKey: 'name',
@@ -219,7 +132,7 @@ const columns: TableColumn<GitLabBranch>[] = [
   },
   { 
     accessorKey: 'creator_name', 
-    header: ({ column }) => renderDraggableHeader('Creator', 'creator_name', handleDragStart),
+    header: ({ column }) => renderGroupOnlyHeader('Creator', 'creator_name', handleDragStart),
     cell: ({ row }) => renderCell(row, allowColumnLabels, 'creator_name'),
     meta: {
       class: {
@@ -250,21 +163,11 @@ const columns: TableColumn<GitLabBranch>[] = [
   {
     id: 'ageDays',
     accessorFn: (branch) => getAgeDays(branch.created_at),
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Age (Days)',
-        icon: isSorted === 'asc' 
-          ? 'i-heroicons-arrow-up' 
-          : isSorted === 'desc' 
-            ? 'i-heroicons-arrow-down' 
-            : 'i-heroicons-arrows-up-down',
-        class: '-ml-3',
-        onClick: () => column.toggleSorting(isSorted === 'asc')
-      })
-    },
+    header: ({ column }) => renderSortableHeader('Age (Days)', column, {
+      draggable: true,
+      columnId: 'ageDays',
+      onDragStart: handleDragStart
+    }),
     enableSorting: true,
     cell: ({ row }) => renderCell(row, allowColumnLabels, 'ageDays', { className: 'font-medium' })
   },
@@ -537,7 +440,7 @@ const exportToExcel = () => {
       :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
       v-model:grouping="groupedColumns"
       :grouping-options="{
-        groupedColumnMode: 'remove',
+        groupedColumnMode: false,
         getGroupedRowModel: getGroupedRowModel()
       }"
     />
