@@ -22,14 +22,10 @@ export default defineNuxtConfig({
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",
     adminSessionSecure: true,
-    // @ts-ignore
     gitlabToken: process.env.GITLAB_TOKEN || "no_token",
     // GitLab Cache Configuration
-    // @ts-ignore
     gitlabCacheMode: process.env.GITLAB_CACHE_MODE || "file", // "file" | "mongodb"
-    // @ts-ignore
     mongodbUri: process.env.MONGODB_URI || "mongodb://localhost:27017/redmine-client",
-    // @ts-ignore
     gitlabCacheDir: process.env.GITLAB_CACHE_DIR || "./data/gitlab-cache",
     
     public: {
