@@ -99,8 +99,12 @@ const buildBranchInfoFromCache = (cache: GitLabCacheData, branch: GitLabBranch) 
     return { ...branch, ...info };
   }
 
-  if (cache.branches[branch.name] && cache.branches[branch.name].is_direct) {
-    return { ...branch, ...cache.branches[branch.name] };
+  if (cache && cache.branches && branch && branch.name) {
+    const cachedBranch = cache.branches[branch.name];
+    
+    if (cachedBranch && cachedBranch.is_direct) {
+      return { ...branch, ...cachedBranch };
+    }
   }
 
   return {
