@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { h } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
 import type { GitLabProject, GitLabBranch } from '~~/shared/types/GitLab'
 import { UBadge, UButton, UIcon, UInput, USelect, UPagination } from '#components'
-import { getPaginationRowModel, type CellContext } from '@tanstack/vue-table'
+import { getPaginationRowModel, getGroupedRowModel, type CellContext,  type HeaderContext, type Row, type Cell } from '@tanstack/vue-table'
+
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
+import { renderCell, renderDraggableHeader } from '~/utils/tableHelpers'
+
+const config = useRuntimeConfig();
+const baseUrl = config.public.redmineUrl;
 
 const { fetchGitLabProjects, fetchGitLabBranches, syncGitLabEvents } = useGitLabAPI()
 
@@ -20,10 +26,13 @@ const searchText = ref<string | undefined>(undefined)
 const selectedFlags = ref<string[]>([])
 const columnFilters = ref([])
 const refreshKey = ref(0)
+const sorting = ref([])
 
 const table = useTemplateRef('table')
 const pagination = ref({ pageIndex: 0, pageSize: 10 })
 const currentPage = ref(1)
+
+
 
 watch(
   () => table.value?.tableApi?.getState().pagination.pageIndex,
@@ -93,6 +102,14 @@ const getAgeDays = (dateString: string | undefined) => {
   return Math.floor(diffInMilliseconds / dayInMilliseconds);
 };
 
+const { groupedColumns, isDragOver, handleDragStart, handleDrop, handleRemoveGroup } = useTableGrouping(['creator_name', 'ageDays']) 
+
+const allowColumnLabels: Record<string, string> = {
+  creator_name: 'Creator',
+  ageDays: 'Age (Days)'
+}
+
+/*
 const columns = [
   { 
     accessorKey: 'name', 
@@ -133,7 +150,21 @@ const columns = [
   {
     id: 'ageDays',
     accessorFn: (branch: GitLabBranch) => getAgeDays(branch.created_at),
-    header: 'Age (Days)',
+    header: ({ column }: any) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Age (Days)',
+        icon: isSorted === 'asc' 
+          ? 'i-heroicons-arrow-up' 
+          : isSorted === 'desc' 
+            ? 'i-heroicons-arrow-down' 
+            : 'i-heroicons-arrows-up-down',
+        class: '-ml-3',
+        onClick: () => column.toggleSorting(isSorted === 'asc')
+      })
+    },
     enableSorting: true,
     cell: ({ row }: CellContext<GitLabBranch, number>) => h('span', { class: 'font-medium' }, row.getValue('ageDays'))
   },
@@ -153,6 +184,108 @@ const columns = [
     header: 'Actions',
     cell: ({ row }: any) => {
         const branch = row.original as GitLabBranch
+        return h(UButton, {
+            to: branch.web_url,
+            target: '_blank',
+            icon: 'i-mdi-open-in-new',
+            variant: 'ghost',
+            color: 'neutral',
+            size: 'xs'
+        })
+    }
+  }
+]*/
+
+const columns: TableColumn<GitLabBranch>[] = [
+  { 
+    accessorKey: 'name',
+    header: 'Branch Name',
+    cell: ({ row }) => {
+        // ใช้ helper สำหรับ Grouping
+        const groupResult = renderCell(row, allowColumnLabels, 'name', { isGroupDisplayColumn: true })
+        if (groupResult) return groupResult
+
+        const branch = row.original
+        return h('div', { 
+          class: 'flex items-center gap-2',
+          style: { paddingLeft: `${row.depth * 1.5}rem` }
+        }, [
+            branch.default ? h(UIcon, { name: 'i-mdi-star', class: 'text-yellow-500' }) : null,
+            h('span', { class: 'font-medium' }, branch.name),
+            branch.merged ? h(UBadge, { color: 'success', variant: 'soft', size: 'xs' }, () => 'Merged') : null,
+            branch.protected ? h(UBadge, { color: 'error', variant: 'soft', size: 'xs' }, () => 'Protected') : null
+        ])
+    }
+  },
+  { 
+    accessorKey: 'creator_name', 
+    header: ({ column }) => renderDraggableHeader('Creator', 'creator_name', handleDragStart),
+    cell: ({ row }) => renderCell(row, allowColumnLabels, 'creator_name'),
+    meta: {
+      class: {
+          td: 'w-16 whitespace-normal',
+      },
+    },
+  },
+  { 
+    accessorKey: 'created_at', 
+    header: 'Created At (Age)',
+    cell: ({ row }) => {
+        if (row.getIsGrouped()) return null
+        const branch = row.original
+        return h('div', { class: 'flex flex-col' }, [
+            h('span', formatDate(branch.created_at)),
+            h('div', { class: 'flex items-center gap-1 mt-0.5' }, [
+                h('span', { class: 'text-xs text-gray-500 font-medium' }, getRelativeAge(branch.created_at)),
+                h(UBadge, { 
+                    color: branch.is_direct ? 'success' : 'neutral', 
+                    variant: 'soft', 
+                    size: 'xs',
+                    class: 'px-1 py-0 text-[10px]'
+                }, () => branch.is_direct ? 'Direct' : 'Indirect')
+            ])
+        ])
+    }
+  },
+  {
+    id: 'ageDays',
+    accessorFn: (branch) => getAgeDays(branch.created_at),
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Age (Days)',
+        icon: isSorted === 'asc' 
+          ? 'i-heroicons-arrow-up' 
+          : isSorted === 'desc' 
+            ? 'i-heroicons-arrow-down' 
+            : 'i-heroicons-arrows-up-down',
+        class: '-ml-3',
+        onClick: () => column.toggleSorting(isSorted === 'asc')
+      })
+    },
+    enableSorting: true,
+    cell: ({ row }) => renderCell(row, allowColumnLabels, 'ageDays', { className: 'font-medium' })
+  },
+  { 
+    accessorKey: 'commit.title',
+    header: 'Latest Commit',
+    cell: ({ row }) => {
+        if (row.getIsGrouped()) return null
+        const branch = row.original
+        return h('div', { class: 'flex flex-col max-w-md' }, [
+            h('span', { class: 'text-sm truncate' }, branch.commit.title),
+            h('span', { class: 'text-xs text-gray-500' }, `${branch.commit.short_id} by ${branch.commit.author_name}`)
+        ])
+    }
+  },
+  { 
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => {
+        if (row.getIsGrouped()) return null
+        const branch = row.original
         return h(UButton, {
             to: branch.web_url,
             target: '_blank',
@@ -243,10 +376,23 @@ onMounted(() => {
   loadProjects()
 })
 
+const flattenLeafRows = <TData>(rows: Row<TData>[]): TData[] => {
+  const result: TData[] = []
+  const visitRow = (row: Row<TData>): void => {
+    if (row.getIsGrouped()) {
+      row.subRows.forEach(visitRow)
+      return
+    }
+    result.push(row.original)
+  }
+  rows.forEach(visitRow)
+  return result
+}
+
 const getExportBranches = () => {
   const tableApi = table.value?.tableApi
   if (tableApi) {
-    return tableApi.getPrePaginationRowModel().rows.map((r: any) => r.original)
+    return flattenLeafRows(tableApi.getPrePaginationRowModel().rows)
   }
   return filteredBranches.value
 }
@@ -295,10 +441,10 @@ const exportToExcel = () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 max-w-7xl mx-auto w-full">
-    <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
+  <div class="flex flex-col gap-4 max-w-7xl mx-auto w-full">          
+    <div class="flex flex-col gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
       <h1 class="text-2xl font-bold">GitLab Branches</h1>
-      <div class="flex items-center gap-4">
+      <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <USelectMenu
           v-model="selectedProject"
           :items="projects"
@@ -347,6 +493,34 @@ const exportToExcel = () => {
           </UButton>
         </div>
       </div>
+      <!-- Group Panel Drop Zone -->
+      <div 
+        class="w-full min-h-10 border-2 border-dashed rounded-lg flex items-center px-4 transition-colors"
+        :class="isDragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-300 dark:border-gray-700'"
+        @dragover.prevent="isDragOver = true"
+        @dragleave="isDragOver = false"
+        @drop="handleDrop"
+      >
+        <div v-if="groupedColumns.length > 0" class="flex items-center gap-2 flex-wrap py-1">
+          <span class="text-sm text-gray-500 mr-2">Grouped by:</span>
+          <UBadge 
+            v-for="col in groupedColumns" 
+            :key="col" 
+            :label="allowColumnLabels[col] || col" 
+            variant="subtle" 
+            size="lg"
+          >
+            {{ allowColumnLabels[col] || col }}
+            <template #trailing>
+              <UIcon name="i-heroicons-x-mark" class="cursor-pointer" @click="handleRemoveGroup(col)" />
+            </template>
+          </UBadge>
+        </div>
+        <div v-else class="text-gray-400 text-sm flex items-center gap-2">
+          <UIcon name="i-heroicons-arrow-down-tray" />
+          <span>Drag a column header here to group</span>
+        </div>
+      </div>
     </div>
 
     <UTable
@@ -355,11 +529,17 @@ const exportToExcel = () => {
       :data="filteredBranches"
       :columns="columns"
       :loading="loading"
+      :ui="{ td: 'empty:p-0' }"
       class="w-full"
-      v-model:global-filter="searchText"
+      v-model:sorting="sorting"
       :column-filters="columnFilters"
       v-model:pagination="pagination"
       :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
+      v-model:grouping="groupedColumns"
+      :grouping-options="{
+        groupedColumnMode: 'remove',
+        getGroupedRowModel: getGroupedRowModel()
+      }"
     />
 
     <div class="flex justify-end mt-2">
