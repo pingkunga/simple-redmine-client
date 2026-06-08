@@ -42,7 +42,15 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/ui',
   ],
+  nitro: {
+    externals: {
+      external: ['xlsx'] 
+    }
+  },
   vite: {
+    optimizeDeps: {
+      exclude: ['xlsx'] 
+    },
     plugins: [
       tailwindcss(),
     ],
