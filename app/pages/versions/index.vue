@@ -277,7 +277,7 @@ const defaultVersion: Version = {
   description: "",
   status: "",
   due_date: "",
-  sharing: "",
+  sharing: "tree",
   wiki_page_title: "",
   created_on: "",
   updated_on: "",
