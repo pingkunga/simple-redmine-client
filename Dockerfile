@@ -7,6 +7,7 @@ WORKDIR /app
 # this will cache them and speed up future builds
 FROM base AS install
 COPY package.json bun.lock ./
+COPY vendor ./vendor
 COPY . .
 ENV npm_config_optional=true
 ENV npm_config_platform=linux

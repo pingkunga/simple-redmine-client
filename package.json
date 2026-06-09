@@ -28,7 +28,7 @@
     "tailwindcss": "^4.1.18",
     "vue": "latest",
     "vue-router": "latest",
-    "xlsx": "^0.18.5",
+    "xlsx": "./vendor/xlsx-0.20.3.tgz",
     "zod": "^4.3.4"
   },
   "devDependencies": {
