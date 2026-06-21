@@ -20,6 +20,11 @@ export default [
       to: "/devtrackers",
     },
     {
+      title: "New build request\n(NET INV PRODUCT)",
+      icon: "i-mdi-code-tags-check",
+      to: "/buildinvset",
+    },
+    {
       title: "New Build Request\n(NET COMMON)",
       icon: "i-mdi-code-tags-check",
       to: "/buildnetcommon",
