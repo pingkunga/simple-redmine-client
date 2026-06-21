@@ -127,7 +127,7 @@
         <UButton type="submit" color="primary" block class="w-32 justify-center">
           Submit
         </UButton>
-        <UButton type="button" color="neutral" variant="solid" block class="w-32 justify-center" @click="handleReset">
+        <UButton type="button" color="neutral" variant="solid" block class="w-32 justify-center" @click="handleResetClick(true)">
           Clear
         </UButton>
       </div>
@@ -139,23 +139,6 @@
 import type { NuxtError } from '#app'
 import { h } from 'vue'
 import { z } from 'zod'
-
-interface SupportTrackerOption {
-  id: number
-  name: string
-  purpose: string
-}
-
-interface SupportProjectOption {
-  id: number
-  name: string
-  purpose: string
-}
-
-interface SupportBuildPurposeOption {
-  name: string
-  purpose: string
-}
 
 const accessKey = ref<string | null>(null)
 const isUseServerToken = ref(false)
@@ -304,7 +287,7 @@ const handleSubmit = async () => {
       duration: 15000
     })
 
-    await handleReset(false)
+    await handleResetClick(false)
   } catch (error: unknown) {
     console.error('Failed to save build request:', error)
     const nuxtError = error as NuxtError
@@ -313,7 +296,8 @@ const handleSubmit = async () => {
   }
 }
 
-const handleReset = async (showToast = true) => {
+
+const handleResetClick = async (showToast = true) => {
   state.selectTracker = trackers.value[0]?.id
   state.trackerTitle = ''
   state.selectedProject = projects.value[0]
