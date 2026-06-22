@@ -43,6 +43,19 @@
               @update:model-value="handleProjectChange"
             />
           </UFormField>
+          <UFormField label="Select Assignee" required>
+            <USelectMenu
+              :model-value="formState.selectedAssignee?.id ?? undefined"
+              :items="projectMembers"
+              label-key="name"
+              value-key="id"
+              placeholder="Select assignee"
+              class="w-full"
+              :disabled="!formState.projectId"
+              virtualize
+              @update:model-value="handleAssigneeChange"
+            />
+          </UFormField>
           <UFormField label="Target version" required>
             <USelectMenu
               :model-value="formState.targetVersionId ?? undefined"
@@ -310,6 +323,7 @@
 
 <script setup lang="ts">
 import type { BuildInvSetRequest } from '~~/shared/types/BuildInvSet'
+import type { ProjectMemberShip } from '~~/shared/types/Project'
 import type { Version } from '~~/shared/types/Version'
 import useSupportConfig from '~/composables/useSupportConfig'
 
@@ -324,6 +338,7 @@ const accessKey = ref<string | null>(null)
 const trackerOptions = ref<Array<{ label: string; value: string }>>([])
 const projectOptions = ref<Array<{ label: string; value: number }>>([])
 const versionOptions = ref<Version[]>([])
+const projectMembers = ref<ProjectMemberShip[]>([])
 const selectedVersion = ref<Version | null>(null)
 const buildPurposeOptions = ref<Array<{ label: string; value: string }>>([])
 const dockerFileOptions = reactive<Record<string, Array<{ label: string; value: string }>>>({
@@ -338,6 +353,7 @@ const formState = reactive<BuildInvSetRequest>({
   targetVersionId: null,
   targetVersionName: '',
   buildPurpose: '',
+  selectedAssignee: undefined,
   startDate: '2026-06-18',
   endDate: '2026-06-22',
   buildBranch: 'release/8.9.21',
@@ -490,17 +506,26 @@ const handleVersionChange = (versionId?: number | null) => {
   syncTargetVersionSelection(selected)
 }
 
+const handleAssigneeChange = (assigneeId?: number | null) => {
+  formState.selectedAssignee = projectMembers.value.find((member) => member.id === assigneeId) ?? undefined
+}
+
 const handleProjectChange = async (projectId?: number) => {
   formState.projectId = projectId ?? null
   formState.projectName = projectOptions.value.find((item) => item.value === projectId)?.label ?? ''
+  formState.selectedAssignee = undefined
   versionOptions.value = []
+  projectMembers.value = []
   syncTargetVersionSelection(null)
 
   if (!projectId) {
     return
   }
 
-  await loadVersionOptions(projectId)
+  await Promise.all([
+    loadVersionOptions(projectId),
+    loadProjectMembers(projectId),
+  ])
 }
 
 const loadVersionOptions = async (projectId?: number) => {
@@ -532,6 +557,29 @@ const loadVersionOptions = async (projectId?: number) => {
   }
 }
 
+const loadProjectMembers = async (projectId?: number) => {
+  projectMembers.value = []
+
+  if (!projectId) {
+    return
+  }
+
+  try {
+    const redmineApi = useRedmineAPI()
+    const headers = !formState.useServerToken && accessKey.value
+      ? { [redmineApi.YourOwnRedmineAPI]: accessKey.value }
+      : undefined
+
+    const membershipRequest = formState.useServerToken
+      ? await redmineApi.getProjectMemberShip<ProjectMemberShip[]>(projectId)
+      : await redmineApi.getProjectMemberShip<ProjectMemberShip[]>(projectId, headers)
+
+    projectMembers.value = (membershipRequest.data.value ?? []) as ProjectMemberShip[]
+  } catch (error) {
+    console.error('Failed to load project members:', error)
+  }
+}
+
 const initializePage = async () => {
   const { retriveAccessKey } = useClientUtil()
   accessKey.value = retriveAccessKey() || ''
@@ -545,7 +593,10 @@ const handleTokenModeChange = async (value: boolean) => {
   formState.useServerToken = value
 
   if (formState.projectId) {
-    await handleProjectChange(formState.projectId)
+    await Promise.all([
+      loadVersionOptions(formState.projectId),
+      loadProjectMembers(formState.projectId),
+    ])
   }
 }
 
