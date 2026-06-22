@@ -6,5 +6,29 @@
     {
         "name": "System Trigger Test",
         "purpose": "CommonRelease"
+    },
+    {
+        "name": "SCM Official Build (Fast)",
+        "purpose": "BuildInvSet"
+    },
+    {
+        "name": "SCM Official Build",
+        "purpose": "BuildInvSet"
+    },
+    {
+        "name": "DEV Test (Fast)",
+        "purpose": "BuildInvSet"
+    },
+    {
+        "name": "DEV Test",
+        "purpose": "BuildInvSet"
+    },
+    {
+        "name": "QA Request",
+        "purpose": "BuildInvSet"
+    },
+    {
+        "name": "System Trigger Test",
+        "purpose": "BuildInvSet"
     }
 ]
