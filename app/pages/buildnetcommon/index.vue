@@ -139,6 +139,7 @@
 import type { NuxtError } from '#app'
 import { h } from 'vue'
 import { z } from 'zod'
+import useSupportConfig from '~/composables/useSupportConfig'
 
 const accessKey = ref<string | null>(null)
 const isUseServerToken = ref(false)
@@ -148,6 +149,11 @@ const baseUrl = config.public.redmineUrl
 
 const toast = useToast()
 const { YourOwnRedmineAPI } = useRedmineAPI()
+const {
+  loadSupportTrackerOptions,
+  loadSupportProjectOptions,
+  loadSupportBuildPurposeOptions,
+} = useSupportConfig()
 
 const trackers = ref<{ id: number; name: string }[]>([])
 const projects = ref<Project[]>([])
@@ -183,20 +189,14 @@ const createHeaders = () => ({
 
 const loadConfigOptions = async () => {
   const [trackerOptions, projectOptions, buildPurposeConfig] = await Promise.all([
-    $fetch<SupportTrackerOption[]>('/Config/SupportTracker.json'),
-    $fetch<SupportProjectOption[]>('/Config/SupportProject.json'),
-    $fetch<SupportBuildPurposeOption[]>('/Config/SupportBuildPurpose.json')
+    loadSupportTrackerOptions('Build'),
+    loadSupportProjectOptions('Library'),
+    loadSupportBuildPurposeOptions(),
   ])
 
   trackers.value = trackerOptions
-    .filter((item) => item.purpose === 'Build')
-    .map((item) => ({ id: item.id, name: item.name }))
-
   projects.value = projectOptions
-    .filter((item) => item.purpose === 'Library')
-    .map((item) => ({ id: item.id, name: item.name }))
-
-  buildPurposeOptions.value = buildPurposeConfig.map((item) => item.name)
+  buildPurposeOptions.value = buildPurposeConfig
 
   state.selectTracker = trackers.value[0]?.id
   state.selectedProject = projects.value[0]
