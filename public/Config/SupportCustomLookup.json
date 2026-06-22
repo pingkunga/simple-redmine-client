@@ -1,0 +1,12 @@
+[
+    {
+        "name": "Dockerfile.gsbappserver",
+        "category": "buildInvSetDOTNETCoreContainer",
+        "purpose": "buildInvSetDOTNETCustomContainerTSY"
+    },
+    {
+        "name": "Dockerfile.appserver",
+        "category": "buildInvSetDOTNETCoreContainer",   
+        "purpose": "buildInvSetDOTNETCoreContainer"
+    }
+]
