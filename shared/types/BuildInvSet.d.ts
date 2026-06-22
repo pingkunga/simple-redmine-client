@@ -79,6 +79,8 @@ export interface BuildInvSetVB6{
   build: boolean
 }
 
+import type { ProjectMemberShip } from './Project'
+
 export interface BuildInvSetRequest {
   tracker: string
   projectId: number | null
@@ -86,6 +88,7 @@ export interface BuildInvSetRequest {
   targetVersionId: number | null
   targetVersionName: string
   buildPurpose: string
+  selectedAssignee?: ProjectMemberShip
   startDate: string
   endDate: string
   buildBranch: string
