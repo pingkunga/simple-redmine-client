@@ -15,15 +15,26 @@ export default function useSupportConfig() {
       .map((item) => ({ id: item.id, name: item.name }))
   }
 
-  const loadSupportBuildPurposeOptions = async () => {
+  const loadSupportBuildPurposeOptions = async (purpose?: string) => {
     const buildPurposeConfig = await $fetch<SupportBuildPurposeOption[]>('/Config/SupportBuildPurpose.json')
 
-    return buildPurposeConfig.map((item) => item.name)
+    return buildPurposeConfig
+      .filter((item) => !purpose || item.purpose === purpose)
+      .map((item) => item.name)
+  }
+
+  const loadSupportCustomLookupOptions = async (category: string, purpose: string) => {
+    const lookupConfig = await $fetch<SupportCustomLookupOption[]>('/Config/SupportCustomLookup.json')
+
+    return lookupConfig
+      .filter((item) => item.category === category && item.purpose === purpose)
+      .map((item) => ({ label: item.name, value: item.name }))
   }
 
   return {
     loadSupportTrackerOptions,
     loadSupportProjectOptions,
     loadSupportBuildPurposeOptions,
+    loadSupportCustomLookupOptions,
   }
 }

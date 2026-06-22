@@ -311,8 +311,14 @@
 <script setup lang="ts">
 import type { BuildInvSetRequest } from '~~/shared/types/BuildInvSet'
 import type { Version } from '~~/shared/types/Version'
+import useSupportConfig from '~/composables/useSupportConfig'
 
-
+const {
+  loadSupportTrackerOptions,
+  loadSupportProjectOptions,
+  loadSupportBuildPurposeOptions,
+  loadSupportCustomLookupOptions,
+} = useSupportConfig()
 
 const accessKey = ref<string | null>(null)
 const trackerOptions = ref<Array<{ label: string; value: string }>>([])
@@ -405,15 +411,13 @@ const formState = reactive<BuildInvSetRequest>({
 
 const loadCustomLookupOptions = async () => {
   try {
-    const lookupConfig = await $fetch<SupportCustomLookupOption[]>('/Config/SupportCustomLookup.json')
+    const [customContainerOptions, coreContainerOptions] = await Promise.all([
+      loadSupportCustomLookupOptions('buildInvSetDOTNETCoreContainer', 'buildInvSetDOTNETCustomContainerTSY'),
+      loadSupportCustomLookupOptions('buildInvSetDOTNETCoreContainer', 'buildInvSetDOTNETCoreContainer'),
+    ])
 
-    dockerFileOptions.buildInvSetDOTNETCustomContainerTSY = lookupConfig
-      .filter((item) => item.category === 'buildInvSetDOTNETCoreContainer' && item.purpose === 'buildInvSetDOTNETCustomContainerTSY')
-      .map((item) => ({ label: item.name, value: item.name }))
-
-    dockerFileOptions.buildInvSetDOTNETCoreContainer = lookupConfig
-      .filter((item) => item.category === 'buildInvSetDOTNETCoreContainer' && item.purpose === 'buildInvSetDOTNETCoreContainer')
-      .map((item) => ({ label: item.name, value: item.name }))
+    dockerFileOptions.buildInvSetDOTNETCustomContainerTSY = customContainerOptions
+    dockerFileOptions.buildInvSetDOTNETCoreContainer = coreContainerOptions
 
     if (!formState.buildDOTNET.buildInvSetDOTNETCustomContainerTSY.dockerFileTsy && dockerFileOptions.buildInvSetDOTNETCustomContainerTSY.length) {
       formState.buildDOTNET.buildInvSetDOTNETCustomContainerTSY.dockerFileTsy = dockerFileOptions.buildInvSetDOTNETCustomContainerTSY[0]?.value ?? ''
@@ -429,11 +433,9 @@ const loadCustomLookupOptions = async () => {
 
 const loadBuildPurposeOptions = async () => {
   try {
-    const buildPurposeConfig = await $fetch<Array<{ name: string; purpose: string }>>('/Config/SupportBuildPurpose.json')
+    const buildPurposeConfig = await loadSupportBuildPurposeOptions('BuildInvSet')
 
-    buildPurposeOptions.value = buildPurposeConfig
-      .filter((item) => item.purpose === 'BuildInvSet')
-      .map((item) => ({ label: item.name, value: item.name }))
+    buildPurposeOptions.value = buildPurposeConfig.map((name) => ({ label: name, value: name }))
 
     if (!formState.buildPurpose && buildPurposeOptions.value.length) {
       formState.buildPurpose = buildPurposeOptions.value[0]?.value ?? ''
@@ -445,11 +447,9 @@ const loadBuildPurposeOptions = async () => {
 
 const loadTrackerOptions = async () => {
   try {
-    const trackerConfig = await $fetch<SupportTrackerOption[]>('/Config/SupportTracker.json')
+    const trackerConfig = await loadSupportTrackerOptions('Build')
 
-    trackerOptions.value = trackerConfig
-      .filter((item) => item.purpose === 'Build')
-      .map((item) => ({ label: item.name, value: item.name }))
+    trackerOptions.value = trackerConfig.map((item) => ({ label: item.name, value: item.name }))
 
     if (!formState.tracker && trackerOptions.value.length) {
       formState.tracker = trackerOptions.value[0]?.value ?? ''
@@ -461,12 +461,10 @@ const loadTrackerOptions = async () => {
 
 const loadProjectOptions = async () => {
   try {
-    const projectConfig = await $fetch<SupportProjectOption[]>('/Config/SupportProject.json')
-    const defaultProject = projectConfig.find((item) => item.purpose === 'INVS-Product')
+    const projectConfig = await loadSupportProjectOptions('INVS-Product')
+    const defaultProject = projectConfig[0]
 
-    projectOptions.value = projectConfig
-      .filter((item) => item.purpose === 'INVS-Product')
-      .map((item) => ({ label: item.name, value: item.id }))
+    projectOptions.value = projectConfig.map((item) => ({ label: item.name, value: item.id }))
 
     if (!formState.projectId && defaultProject) {
       formState.projectId = defaultProject.id
