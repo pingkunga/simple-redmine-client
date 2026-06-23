@@ -16,3 +16,18 @@ export const getSupportProjects = (): SupportProject[] => {
     return []
   }
 }
+
+export const readConfigJson = <T>(fileName: string): T | null => {
+  try {
+    const filePath = path.join(process.cwd(), 'public', 'Config', fileName)
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Config file not found: ${filePath}`)
+      return null
+    }
+    const fileContent = fs.readFileSync(filePath, 'utf-8')
+    return JSON.parse(fileContent) as T
+  } catch (error) {
+    console.error(`Error reading config file ${fileName}:`, error)
+    return null
+  }
+}
