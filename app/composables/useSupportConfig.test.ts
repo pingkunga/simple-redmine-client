@@ -55,4 +55,22 @@ describe('useSupportConfig', () => {
       { label: 'Dockerfile A', value: 'Dockerfile A' },
     ])
   })
+
+  it('normalizes object-based custom lookup responses', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      value: [
+        { name: 'Dockerfile A', category: 'buildInvSetDOTNETCoreContainer', purpose: 'buildInvSetDOTNETCoreContainer' },
+      ],
+    })
+
+    vi.stubGlobal('$fetch', fetchSpy)
+
+    const { loadSupportCustomLookupOptions } = useSupportConfig()
+
+    await expect(
+      loadSupportCustomLookupOptions('buildInvSetDOTNETCoreContainer', 'buildInvSetDOTNETCoreContainer'),
+    ).resolves.toEqual([
+      { label: 'Dockerfile A', value: 'Dockerfile A' },
+    ])
+  })
 })
