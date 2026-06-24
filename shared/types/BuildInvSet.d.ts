@@ -1,6 +1,7 @@
 export interface BuildInvSetDOTNET {
   enabled: boolean
-
+  project: Project
+  targetVersion: Version
   buildInvSetDOTNETCoreWindows: BuildInvSetDOTNETCoreWindowsOptions
   buildInvSetDOTNETCoreContainer: BuildInvSetDOTNETCoreContainerOptions
   buildInvSetDOTNETCustomContainerTSY: BuildInvSetDOTNETCustomContainerTSYOptions
@@ -88,8 +89,6 @@ import type { Version } from './Version'
 
 export interface BuildInvSetRequest {
   tracker: string
-  project: Project
-  targetVersion: Version
   buildPurpose: string
   selectedAssignee?: ProjectMemberShip
   startDate: string
