@@ -34,7 +34,7 @@
           </UFormField>
           <UFormField label="Project" required>
             <USelectMenu
-              :model-value="formState.projectId ?? undefined"
+                :model-value="formState.project?.id ?? undefined"
               :items="projectOptions"
               label-key="label"
               value-key="value"
@@ -51,20 +51,20 @@
               value-key="id"
               placeholder="Select assignee"
               class="w-full"
-              :disabled="!formState.projectId"
+              :disabled="!formState.project?.id"
               virtualize
               @update:model-value="handleAssigneeChange"
             />
           </UFormField>
           <UFormField label="Target version" required>
             <USelectMenu
-              :model-value="formState.targetVersionId ?? undefined"
+              :model-value="formState.targetVersion?.id ?? undefined"
               :items="versionOptions"
               label-key="name"
               value-key="id"
               placeholder="Select target version"
               class="w-full"
-              :disabled="!formState.projectId"
+              :disabled="!formState.project?.id"
               virtualize
               @update:model-value="handleVersionChange"
             />
@@ -323,7 +323,7 @@
 
 <script setup lang="ts">
 import type { BuildInvSetRequest } from '~~/shared/types/BuildInvSet'
-import type { ProjectMemberShip } from '~~/shared/types/Project'
+import type { Project, ProjectMemberShip } from '~~/shared/types/Project'
 import type { Version } from '~~/shared/types/Version'
 import useSupportConfig from '~/composables/useSupportConfig'
 
@@ -348,10 +348,8 @@ const dockerFileOptions = reactive<Record<string, Array<{ label: string; value: 
 
 const formState = reactive<BuildInvSetRequest>({
   tracker: '',
-  projectId: null,
-  projectName: '',
-  targetVersionId: null,
-  targetVersionName: '',
+  project: {} as any,
+  targetVersion: {} as any,
   buildPurpose: '',
   selectedAssignee: undefined,
   startDate: '2026-06-18',
@@ -482,13 +480,12 @@ const loadProjectOptions = async () => {
 
     projectOptions.value = projectConfig.map((item) => ({ label: item.name, value: item.id }))
 
-    if (!formState.projectId && defaultProject) {
-      formState.projectId = defaultProject.id
-      formState.projectName = defaultProject.name
+    if (!formState.project?.id && defaultProject) {
+      formState.project = defaultProject
     }
 
-    if (formState.projectId) {
-      await handleProjectChange(formState.projectId)
+    if (formState.project?.id) {
+      await handleProjectChange(formState.project.id)
     }
   } catch (error) {
     console.error('Failed to load project options:', error)
@@ -497,8 +494,7 @@ const loadProjectOptions = async () => {
 
 const syncTargetVersionSelection = (version: Version | null | undefined) => {
   selectedVersion.value = version ?? null
-  formState.targetVersionId = version?.id ?? null
-  formState.targetVersionName = version?.name ?? ''
+  formState.targetVersion = version ?? {} as Version
 }
 
 const handleVersionChange = (versionId?: number | null) => {
@@ -511,8 +507,8 @@ const handleAssigneeChange = (assigneeId?: number | null) => {
 }
 
 const handleProjectChange = async (projectId?: number) => {
-  formState.projectId = projectId ?? null
-  formState.projectName = projectOptions.value.find((item) => item.value === projectId)?.label ?? ''
+  const selectedProject = projectOptions.value.find((item) => item.value === projectId)
+  formState.project = { id: projectId ?? 0, name: selectedProject?.label ?? '' }
   formState.selectedAssignee = undefined
   versionOptions.value = []
   projectMembers.value = []
@@ -549,7 +545,7 @@ const loadVersionOptions = async (projectId?: number) => {
     const versions = (versionRequest.data.value ?? []) as Version[]
     versionOptions.value = versions.filter((version): version is Version => typeof version.id === 'number' && typeof version.name === 'string')
 
-    if (!formState.targetVersionId && versionOptions.value.length) {
+    if (!formState.targetVersion?.id && versionOptions.value.length) {
       syncTargetVersionSelection(versionOptions.value[0] ?? null)
     }
   } catch (error) {
@@ -592,10 +588,10 @@ const initializePage = async () => {
 const handleTokenModeChange = async (value: boolean) => {
   formState.useServerToken = value
 
-  if (formState.projectId) {
+  if (formState.project?.id) {
     await Promise.all([
-      loadVersionOptions(formState.projectId),
-      loadProjectMembers(formState.projectId),
+      loadVersionOptions(formState.project.id),
+      loadProjectMembers(formState.project.id),
     ])
   }
 }
