@@ -5,6 +5,16 @@
         "purpose": "INVS-Product"
     },
     {
+        "id": 296,
+        "name": "Investment VB6",
+        "purpose": "INVS-Product-VB"
+    },
+    {
+        "id": 857,
+        "name": "Investment Gateway",
+        "purpose": "INVS-Product-Gateway"
+    },
+    {
         "id": 862,
         "name": ".NET-Common-Lib",
         "purpose": "Library"
