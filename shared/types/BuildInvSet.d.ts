@@ -47,6 +47,8 @@ export interface BuildInvSetDOTNETCustomContainerTSYOptions {
 
 export interface BuildInvSetGateway {
   enabled: boolean
+  project?: Project
+  selectedAssignee?: ProjectMemberShip
   buildInvSetGatewayCore: BuildInvSetGatewayCoreOptions
   buildInvSetGatewayCustomTSY: BuildInvSetGatewayCustomTSYOptions
 }
@@ -76,6 +78,8 @@ export interface BuildInvSetGatewayCustomTSYOptions {
 
 export interface BuildInvSetVB6{
   enabled: boolean
+  project?: Project
+  selectedAssignee?: ProjectMemberShip
   build: boolean
 }
 

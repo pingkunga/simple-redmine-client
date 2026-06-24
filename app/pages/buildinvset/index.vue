@@ -236,6 +236,33 @@
           </div>
 
           <div v-if="formState.buildSpringBoot.enabled" class="space-y-3">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <UFormField label="Project" required>
+                <USelectMenu
+                  :model-value="formState.buildSpringBoot.project?.id ?? undefined"
+                  :items="gatewayProjectOptions"
+                  label-key="label"
+                  value-key="value"
+                  placeholder="Select project"
+                  class="w-full"
+                  @update:model-value="handleGatewayProjectChange"
+                />
+              </UFormField>
+              <UFormField label="Select Assignee" required>
+                <USelectMenu
+                  :model-value="formState.buildSpringBoot.selectedAssignee?.id ?? undefined"
+                  :items="gatewayMembers"
+                  label-key="name"
+                  value-key="id"
+                  placeholder="Select assignee"
+                  class="w-full"
+                  :disabled="!formState.buildSpringBoot.project?.id"
+                  virtualize
+                  @update:model-value="handleGatewayAssigneeChange"
+                />
+              </UFormField>
+            </div>
+
             <div class="rounded-lg border border-default bg-default p-3">
               <h4 class="text-sm font-semibold text-highlighted">BNZ Gateway Option</h4>
               <div class="mt-3 overflow-x-auto">
@@ -310,8 +337,37 @@
             <USwitch v-model="formState.buildVB6.enabled" />
           </div>
 
-          <div v-if="formState.buildVB6.enabled" class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <label class="rounded-lg border border-default bg-default p-3 text-sm">Build <USwitch v-model="formState.buildVB6.build" class="mt-2" /></label>
+          <div v-if="formState.buildVB6.enabled" class="space-y-3">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <UFormField label="Project" required>
+                <USelectMenu
+                  :model-value="formState.buildVB6.project?.id ?? undefined"
+                  :items="vb6ProjectOptions"
+                  label-key="label"
+                  value-key="value"
+                  placeholder="Select project"
+                  class="w-full"
+                  @update:model-value="handleVB6ProjectChange"
+                />
+              </UFormField>
+              <UFormField label="Select Assignee" required>
+                <USelectMenu
+                  :model-value="formState.buildVB6.selectedAssignee?.id ?? undefined"
+                  :items="vb6Members"
+                  label-key="name"
+                  value-key="id"
+                  placeholder="Select assignee"
+                  class="w-full"
+                  :disabled="!formState.buildVB6.project?.id"
+                  virtualize
+                  @update:model-value="handleVB6AssigneeChange"
+                />
+              </UFormField>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <label class="rounded-lg border border-default bg-default p-3 text-sm">Build <USwitch v-model="formState.buildVB6.build" class="mt-2" /></label>
+            </div>
           </div>
         </div>
       </div>
@@ -340,8 +396,12 @@ const {
 const accessKey = ref<string | null>(null)
 const trackerOptions = ref<Array<{ label: string; value: string }>>([])
 const projectOptions = ref<Array<{ label: string; value: number }>>([])
+const gatewayProjectOptions = ref<Array<{ label: string; value: number }>>([])
+const vb6ProjectOptions = ref<Array<{ label: string; value: number }>>([])
 const versionOptions = ref<Version[]>([])
 const projectMembers = ref<ProjectMemberShip[]>([])
+const gatewayMembers = ref<ProjectMemberShip[]>([])
+const vb6Members = ref<ProjectMemberShip[]>([])
 const selectedVersion = ref<Version | null>(null)
 const buildPurposeOptions = ref<Array<{ label: string; value: string }>>([])
 const dockerFileOptions = reactive<Record<string, Array<{ label: string; value: string }>>>({
@@ -399,6 +459,8 @@ const formState = reactive<BuildInvSetRequest>({
   },
   buildSpringBoot: {
     enabled: false,
+    project: {} as any,
+    selectedAssignee: undefined,
     buildInvSetGatewayCore: {
       build: true,
       buildFront: false,
@@ -422,6 +484,8 @@ const formState = reactive<BuildInvSetRequest>({
   },
   buildVB6: {
     enabled: false,
+    project: {} as any,
+    selectedAssignee: undefined,
     build: true,
   },
 })
@@ -478,17 +542,29 @@ const loadTrackerOptions = async () => {
 
 const loadProjectOptions = async () => {
   try {
-    const projectConfig = await loadSupportProjectOptions('INVS-Product')
-    const defaultProject = projectConfig[0]
+    const [netConfig, vbConfig, gatewayConfig] = await Promise.all([
+      loadSupportProjectOptions('INVS-Product'),
+      loadSupportProjectOptions('INVS-Product-VB'),
+      loadSupportProjectOptions('INVS-Product-Gateway'),
+    ])
 
-    projectOptions.value = projectConfig.map((item) => ({ label: item.name, value: item.id }))
+    projectOptions.value = netConfig.map((item) => ({ label: item.name, value: item.id }))
+    vb6ProjectOptions.value = vbConfig.map((item) => ({ label: item.name, value: item.id }))
+    gatewayProjectOptions.value = gatewayConfig.map((item) => ({ label: item.name, value: item.id }))
 
-    if (!formState.project?.id && defaultProject) {
-      formState.project = defaultProject
+    if (!formState.project?.id && netConfig[0]) {
+      formState.project = netConfig[0]
+      await handleProjectChange(formState.project.id)
     }
 
-    if (formState.project?.id) {
-      await handleProjectChange(formState.project.id)
+    if (!formState.buildVB6.project?.id && vbConfig[0]) {
+      formState.buildVB6.project = vbConfig[0]
+      await handleVB6ProjectChange(formState.buildVB6.project.id)
+    }
+
+    if (!formState.buildSpringBoot.project?.id && gatewayConfig[0]) {
+      formState.buildSpringBoot.project = gatewayConfig[0]
+      await handleGatewayProjectChange(formState.buildSpringBoot.project.id)
     }
   } catch (error) {
     console.error('Failed to load project options:', error)
@@ -509,6 +585,14 @@ const handleAssigneeChange = (assigneeId?: number | null) => {
   formState.selectedAssignee = projectMembers.value.find((member) => member.id === assigneeId) ?? undefined
 }
 
+const handleGatewayAssigneeChange = (assigneeId?: number | null) => {
+  formState.buildSpringBoot.selectedAssignee = gatewayMembers.value.find((member) => member.id === assigneeId) ?? undefined
+}
+
+const handleVB6AssigneeChange = (assigneeId?: number | null) => {
+  formState.buildVB6.selectedAssignee = vb6Members.value.find((member) => member.id === assigneeId) ?? undefined
+}
+
 const handleProjectChange = async (projectId?: number) => {
   const selectedProject = projectOptions.value.find((item) => item.value === projectId)
   formState.project = { id: projectId ?? 0, name: selectedProject?.label ?? '' }
@@ -525,6 +609,28 @@ const handleProjectChange = async (projectId?: number) => {
     loadVersionOptions(projectId),
     loadProjectMembers(projectId),
   ])
+}
+
+const handleGatewayProjectChange = async (projectId?: number) => {
+  const selectedProject = gatewayProjectOptions.value.find((item) => item.value === projectId)
+  formState.buildSpringBoot.project = { id: projectId ?? 0, name: selectedProject?.label ?? '' }
+  formState.buildSpringBoot.selectedAssignee = undefined
+  gatewayMembers.value = []
+
+  if (projectId) {
+    await loadGatewayProjectMembers(projectId)
+  }
+}
+
+const handleVB6ProjectChange = async (projectId?: number) => {
+  const selectedProject = vb6ProjectOptions.value.find((item) => item.value === projectId)
+  formState.buildVB6.project = { id: projectId ?? 0, name: selectedProject?.label ?? '' }
+  formState.buildVB6.selectedAssignee = undefined
+  vb6Members.value = []
+
+  if (projectId) {
+    await loadVB6ProjectMembers(projectId)
+  }
 }
 
 const loadVersionOptions = async (projectId?: number) => {
@@ -558,11 +664,20 @@ const loadVersionOptions = async (projectId?: number) => {
 
 const loadProjectMembers = async (projectId?: number) => {
   projectMembers.value = []
-
-  if (!projectId) {
-    return
+  if (projectId) {
+    projectMembers.value = await fetchMembers(projectId)
   }
+}
 
+const loadGatewayProjectMembers = async (projectId: number) => {
+  gatewayMembers.value = await fetchMembers(projectId)
+}
+
+const loadVB6ProjectMembers = async (projectId: number) => {
+  vb6Members.value = await fetchMembers(projectId)
+}
+
+const fetchMembers = async (projectId: number) => {
   try {
     const redmineApi = useRedmineAPI()
     const headers = !formState.useServerToken && accessKey.value
@@ -573,9 +688,10 @@ const loadProjectMembers = async (projectId?: number) => {
       ? await redmineApi.getProjectMemberShip<ProjectMemberShip[]>(projectId)
       : await redmineApi.getProjectMemberShip<ProjectMemberShip[]>(projectId, headers)
 
-    projectMembers.value = (membershipRequest.data.value ?? []) as ProjectMemberShip[]
+    return (membershipRequest.data.value ?? []) as ProjectMemberShip[]
   } catch (error) {
     console.error('Failed to load project members:', error)
+    return []
   }
 }
 
@@ -591,11 +707,19 @@ const initializePage = async () => {
 const handleTokenModeChange = async (value: boolean) => {
   formState.useServerToken = value
 
+  const promises = []
   if (formState.project?.id) {
-    await Promise.all([
-      loadVersionOptions(formState.project.id),
-      loadProjectMembers(formState.project.id),
-    ])
+    promises.push(loadVersionOptions(formState.project.id), loadProjectMembers(formState.project.id))
+  }
+  if (formState.buildSpringBoot.project?.id) {
+    promises.push(loadGatewayProjectMembers(formState.buildSpringBoot.project.id))
+  }
+  if (formState.buildVB6.project?.id) {
+    promises.push(loadVB6ProjectMembers(formState.buildVB6.project.id))
+  }
+
+  if (promises.length) {
+    await Promise.all(promises)
   }
 }
 
