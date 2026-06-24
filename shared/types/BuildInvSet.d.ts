@@ -79,14 +79,13 @@ export interface BuildInvSetVB6{
   build: boolean
 }
 
-import type { ProjectMemberShip } from './Project'
+import type { Project, ProjectMemberShip } from './Project'
+import type { Version } from './Version'
 
 export interface BuildInvSetRequest {
   tracker: string
-  projectId: number | null
-  projectName: string
-  targetVersionId: number | null
-  targetVersionName: string
+  project: Project
+  targetVersion: Version
   buildPurpose: string
   selectedAssignee?: ProjectMemberShip
   startDate: string
