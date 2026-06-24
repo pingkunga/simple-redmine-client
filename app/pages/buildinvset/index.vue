@@ -32,30 +32,6 @@
               class="w-full"
             />
           </UFormField>
-          <UFormField label="Project" required>
-            <USelectMenu
-                :model-value="formState.project?.id ?? undefined"
-              :items="projectOptions"
-              label-key="label"
-              value-key="value"
-              placeholder="Select project"
-              class="w-full"
-              @update:model-value="handleProjectChange"
-            />
-          </UFormField>
-          <UFormField label="Select Assignee" required>
-            <USelectMenu
-              :model-value="formState.selectedAssignee?.id ?? undefined"
-              :items="projectMembers"
-              label-key="name"
-              value-key="id"
-              placeholder="Select assignee"
-              class="w-full"
-              :disabled="!formState.project?.id"
-              virtualize
-              @update:model-value="handleAssigneeChange"
-            />
-          </UFormField>
           <UFormField label="Target version" required>
             <USelectMenu
               :model-value="formState.targetVersion?.id ?? undefined"
@@ -96,6 +72,33 @@
               <p class="text-xs text-toned">3 build option sets for the NET request.</p>
             </div>
             <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">3 sets</span>
+          </div>
+
+          <div class="mb-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+            <UFormField label="Project" required>
+              <USelectMenu
+                :model-value="formState.project?.id ?? undefined"
+                :items="projectOptions"
+                label-key="label"
+                value-key="value"
+                placeholder="Select project"
+                class="w-full"
+                @update:model-value="handleProjectChange"
+              />
+            </UFormField>
+            <UFormField label="Select Assignee" required>
+              <USelectMenu
+                :model-value="formState.selectedAssignee?.id ?? undefined"
+                :items="projectMembers"
+                label-key="name"
+                value-key="id"
+                placeholder="Select assignee"
+                class="w-full"
+                :disabled="!formState.project?.id"
+                virtualize
+                @update:model-value="handleAssigneeChange"
+              />
+            </UFormField>
           </div>
 
           <div class="space-y-3">
