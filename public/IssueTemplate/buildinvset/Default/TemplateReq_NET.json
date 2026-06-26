@@ -1,15 +1,15 @@
 {
     "issue":{
-      "project_id":858,
-      "tracker_id":6,
+      "project_id":"[BNZPROJECTID]",
+      "tracker_id":"[BNZTRACKERID]",
       "status_id":16,
       "priority_id":4,
-      "assigned_to_id":60,
-      "fixed_version_id": "$BNZTARGETID",
-      "subject": "[.NET] Build Request v $BNZTARGETVERSION",
-      "description": "$BNZBUILDNETDESCRIPTION",
-      "start_date":"$BNZSTARTDATE",
-      "due_date":"$BNZENDDATE",
+      "assigned_to_id":"[BNZASSIGNEDTOID]",
+      "fixed_version_id": "[BNZTARGETID]",
+      "subject": "[.NET] Build Request v [BNZTARGETVERSION]",
+      "description": "[BNZBUILDNETDESCRIPTION]",
+      "start_date":"[BNZSTARTDATE]",
+      "due_date":"[BNZENDDATE]",
       "custom_fields":
       [
         {"value":"Implementation","id":4},
