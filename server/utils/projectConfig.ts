@@ -18,16 +18,23 @@ export const getSupportProjects = (): SupportProject[] => {
 }
 
 export const readConfigJson = <T>(fileName: string): T | null => {
-  try {
-    const filePath = path.join(process.cwd(), 'public', 'Config', fileName)
-    if (!fs.existsSync(filePath)) {
-      console.warn(`Config file not found: ${filePath}`)
-      return null
+  const candidates = [
+    path.join(process.cwd(), 'public', 'Config', fileName),
+    path.join(process.cwd(), 'public', 'IssueTemplate', fileName),
+    path.join(process.cwd(), 'public', 'IssueTemplate', path.basename(fileName, '.json'), fileName),
+  ]
+
+  for (const filePath of candidates) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf-8')
+        return JSON.parse(fileContent) as T
+      }
+    } catch (error) {
+      console.error(`Error reading config file ${fileName} from ${filePath}:`, error)
     }
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-    return JSON.parse(fileContent) as T
-  } catch (error) {
-    console.error(`Error reading config file ${fileName}:`, error)
-    return null
   }
+
+  console.warn(`Config file not found: ${fileName}`)
+  return null
 }

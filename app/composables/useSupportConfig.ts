@@ -47,10 +47,22 @@ export default function useSupportConfig() {
       .map((item) => ({ label: item.name, value: item.name }))
   }
 
+  const loadSupportLayoutOptions = async () => {
+    const layoutConfig = await $fetch<Array<{ id: number; name: string; description?: string; order?: number }>>('/api/config/buildinvset.json')
+    logConfigPayload('buildinvset.json', layoutConfig)
+
+    if (!Array.isArray(layoutConfig)) return []
+
+    return [...layoutConfig]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((item) => ({ label: item.name, value: item.name }))
+  }
+
   return {
     loadSupportTrackerOptions,
     loadSupportProjectOptions,
     loadSupportBuildPurposeOptions,
     loadSupportCustomLookupOptions,
+    loadSupportLayoutOptions,
   }
 }

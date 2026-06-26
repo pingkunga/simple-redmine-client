@@ -56,4 +56,20 @@ describe('useSupportConfig', () => {
     ])
   })
 
+  it('loads layout options from the buildinvset template json', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue([
+      { id: -99, name: 'Default', description: 'Default Template', order: 99 },
+      { id: 1, name: 'Custom', description: 'Custom Template', order: 1 },
+    ])
+
+    vi.stubGlobal('$fetch', fetchSpy)
+
+    const { loadSupportLayoutOptions } = useSupportConfig()
+
+    await expect(loadSupportLayoutOptions()).resolves.toEqual([
+      { label: 'Custom', value: 'Custom' },
+      { label: 'Default', value: 'Default' },
+    ])
+  })
+
 })

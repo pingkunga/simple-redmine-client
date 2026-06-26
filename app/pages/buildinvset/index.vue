@@ -22,6 +22,9 @@
       <h2 class="text-base font-semibold text-highlighted">2. Build Information</h2>
 
         <div class="mt-2 flex flex-col gap-2">
+          <UFormField label="Layout" required>
+            <USelect v-model="formState.layout" :items="layoutOptions" placeholder="Select layout" class="w-full" />
+          </UFormField>
           <UFormField label="Tracker" required>
             <USelectMenu
               v-model="formState.tracker"
@@ -391,6 +394,7 @@ const {
   loadSupportProjectOptions,
   loadSupportBuildPurposeOptions,
   loadSupportCustomLookupOptions,
+  loadSupportLayoutOptions,
 } = useSupportConfig()
 
 const accessKey = ref<string | null>(null)
@@ -404,6 +408,7 @@ const gatewayMembers = ref<ProjectMemberShip[]>([])
 const vb6Members = ref<ProjectMemberShip[]>([])
 const selectedVersion = ref<Version | null>(null)
 const buildPurposeOptions = ref<Array<{ label: string; value: string }>>([])
+const layoutOptions = ref<Array<{ label: string; value: string }>>([])
 const dockerFileOptions = reactive<Record<string, Array<{ label: string; value: string }>>>({
   buildInvSetDOTNETCustomContainerTSY: [],
   buildInvSetDOTNETCoreContainer: [],
@@ -414,6 +419,7 @@ const formState = reactive<BuildInvSetRequest>({
   project: {} as any,
   targetVersion: {} as any,
   buildPurpose: '',
+  layout: '',
   selectedAssignee: undefined,
   startDate: '2026-06-18',
   endDate: '2026-06-22',
@@ -537,6 +543,20 @@ const loadTrackerOptions = async () => {
     }
   } catch (error) {
     console.error('Failed to load tracker options:', error)
+  }
+}
+
+const loadLayoutOptions = async () => {
+  try {
+    const layoutConfig = await loadSupportLayoutOptions()
+
+    layoutOptions.value = layoutConfig
+
+    if (!formState.layout && layoutOptions.value.length) {
+      formState.layout = layoutOptions.value[0]?.value ?? ''
+    }
+  } catch (error) {
+    console.error('Failed to load layout options:', error)
   }
 }
 
@@ -701,6 +721,7 @@ const initializePage = async () => {
   await loadCustomLookupOptions()
   await loadBuildPurposeOptions()
   await loadTrackerOptions()
+  await loadLayoutOptions()
   await loadProjectOptions()
 }
 
