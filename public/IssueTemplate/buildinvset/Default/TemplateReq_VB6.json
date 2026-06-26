@@ -1,0 +1,20 @@
+{
+    "issue":{
+      "project_id":296,
+      "tracker_id":6,
+      "status_id":16,
+      "priority_id":4,
+      "assigned_to_id":60,
+      "parent_issue_id": "$BNZPARENTID",
+      "fixed_version_id": "$BNZTARGETID",
+      "subject": "TSY-G$3 : Build Request v $BNZTARGETVERSION ",
+      "description": "$BNZBUILDVB6DESCRIPTION",
+      "start_date":"$BNZSTARTDATE",
+      "due_date":"$BNZENDDATE",
+      "custom_fields":
+      [
+        {"value":"Implementation","id":4},
+        {"value":"Production","id":34}
+      ]    
+   }
+}

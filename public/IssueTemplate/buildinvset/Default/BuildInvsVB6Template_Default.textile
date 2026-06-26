@@ -1,0 +1,32 @@
+{{toc}}
+
+h1. BUILD SERVER http://128.1.0.56:8080/
+
+|*BUILD*|*APP NAME*|*BUILD VERSION*|*BUILD PATH*|*BRANCH* |*REVISION*|*TAG BUILD NAME*|
+|=. /|INVEST|[BNZTARGETVERSION]|http://waitfor9.year.com/invest/tsy-vb6.git| [BNZBUILDBRANCHNAME] | - | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/tsy-vb6/-/tags/[BNZTARGETVERSION] |
+|=. /|MM|[BNZTARGETVERSION]|http://waitfor9.year.com/invest/tsy-mm-vb6.git| main | d60c445c6eeeea9e4f0d3c0f5145d1cc506f9cb7 |  "8.7.28.3":http://waitfor9.year.com/invest/tsy-mm-vb6/-/tags/8.7.28.3 |
+|=. /|Script|[BNZTARGETVERSION]|http://waitfor9.year.com/invest/invest-net-resource.git| master | - | - |
+|=. /|.NET APP| [BNZTARGETVERSION]|\4. ตรวจสอบจาก Task Build Request .NET ที่ผูกด้วยกัน |
+|=. /|.JAVA APP| [BNZTARGETVERSION]|\4. ตรวจสอบจาก Task Build Request Gateway ที่ผูกด้วยกัน |
+
+h2. ARTIFACT:
+
+|*No*|*SYSTEM*|*VERSION*|
+|1|OperationBFM.exe|[BNZTARGETVERSION]|
+|2|Master.exe|[BNZTARGETVERSION]|
+|3|Compliance.exe|[BNZTARGETVERSION]|
+|4|ReportWriter.exe|[BNZTARGETVERSION]|
+|5|InterfaceTSD.exe|[BNZTARGETVERSION]|
+|6|ServiceInstall.exe|[BNZTARGETVERSION]|
+|7|InterfaceServer.exe|[BNZTARGETVERSION]|
+|8|InterfaceClient.exe|[BNZTARGETVERSION]|
+|9|MM.exe|[BNZTARGETVERSION]|
+
+h2. หมายเหตุ
+
+* กรณีที่ Build Feature ทดสอบภายใน สามารถกำหนด Branch เองได้ แต่ Tag Build/ARTIFACT จะถูก Clear ทุกๆ 3 เดือน
+* กรณีที่ Build for Internal / QA ใช้ Branch ReleaseX.X.XX 
+* กรณีที่ Build for Customer ใช้ Master 
+
+*Database Script:*
+!!
