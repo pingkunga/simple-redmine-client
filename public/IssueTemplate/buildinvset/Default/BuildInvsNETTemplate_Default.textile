@@ -1,0 +1,73 @@
+3{{toc}}
+
+h1. BUILD SERVER http://128.1.0.56:8080/
+
+|*BUILD*|*APP NAME*|*BUILD VERSION*|*BUILD PATH*|*BRANCH* |*REVISION*|*TAG BUILD NAME*|
+|/2=. /|/2..NET | [BNZTARGETVERSION] | http://waitfor9.year.com/invest/invest-ui-winform.git | [BNZBUILDBRANCHNAME] |  - | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/invest-ui-winform/-/tags/[BNZTARGETVERSION] |
+|submodule|http://waitfor9.year.com/invest/invest-service.git | [BNZBUILDBRANCHNAME] | - | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/invest-service/-/tags/[BNZTARGETVERSION] |
+|=. /|Script|[BNZTARGETVERSION]|http://waitfor9.year.com/invest/invest-net-resource.git| master | - | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/invest-net-resource/-/tags/[BNZTARGETVERSION] |
+|/2=. /|/2. Office-Addin | [BNZTARGETVERSION] | http://waitfor9.year.com/invest/invest-ui-winform.git | support/NET4.7.2 | - | "[BNZTARGETVERSION]_office":http://waitfor9.year.com/invest/invest-ui-winform/-/tags/[BNZTARGETVERSION]_office |
+|submodule|http://waitfor9.year.com/invest/invest-service.git | support/NET4.7.2 | - | "[BNZTARGETVERSION]_office":http://waitfor9.year.com/invest/invest-service/-/tags/[BNZTARGETVERSION]_office |
+
+h2. .NET WIN OPTION: JOB http://128.1.0.56:8080/job/INVEST_APP_NET8/
+
+|_. BUILD |_. VERSION |_. BUILD_PURPOSE |_. MODE  |_. BUILD_FRONT |_. BUILDOFFICE ADDINS |_. BUILD AUTOUPDATE |_. GEN_SBOM |_. KEEP_PACKAGE |_. ZIP_KEEP_PACKAGE |_. SEND NOTIFY |_. CLEANUP WORKSPACE|_. SUBMODULE CHECK| 
+|={background:#00FFFF}. [BNZBUILDNETWIN] 	|[BNZTARGETVERSION]   |=. [BNZBUILDNETWIN_PURPOSE] | [BNZBUILDNETWIN_MODE] |={background:#00FFFF}. [BNZBUILDNETWIN_BUILDFRONT] 	|=. [BNZBUILDNETWIN_OFFICEADDINS] 	|=. [BNZBUILDNETWIN_AUTOUPDATE] 	|=. [BNZBUILDNETWIN_GENSBOM] 	|=. [BNZBUILDNETWIN_KEEPPACKAGE] 	 |=. [BNZBUILDNETWIN_ZIPPACKAGE]   |=. [BNZBUILDNETWIN_SENDNOTIFY] |=. [BNZBUILDNETWIN_CLEARWORKSPACE] |=. [BNZBUILDNETWIN_SUBMODULECHECK] |  
+
+* *กรณีที่ Build 3หลัก (.xxx) และ 4หลัก (.xxx) รบกวนปรับ Build Purpose เป็น Scm Offcial Build (Fast)*
+* WEBAPI ของ IIS *waitfor9Com-INVEST-SERVICE.ZIP Build พร้อม .NET (http://128.1.0.56:8080/job/INVEST_APP_NET8/)*
+* PURPOSE: SCM Official Build (Bypass Automate Test) - ไม่รันเทส แต่ระบบจะเมล์แจ้งความเสี่ยง เพราะอาจกระทบรายได้ 
+* PURPOSE: SCM Official Build (Fast) - Run Automate Test 
+* PURPOSE: SCM Official Build - Run Automate Test + Sonar Scan 
+* SONARANALYSIS : ทำเฉพาะรอบ Build หลัก
+* BUILDOFFICEADDINS : สำหรับ Build Excel/Word Add-Ins แบบ .NET4.7.2 จนกว่า Add-Ins Web ทำสำเร็จ
+* SEND NOTIFY : แจ้งเตือนเมล์ / Line 
+
+=======================================================
+
+h2. .NET CONTAINER OPTION (waitfor9Com-INVEST-SERVICE): JOB http://jenkins.waitfor9Com.local:8080/job/BNZ_INVEST_SERVICE/
+
+*BNZ INVEST_SERVICE Option: (TSY-G$3 - user invsbch)*
+|_. BUILD  |_. VERSION|_. BUILD_BACK|_. BUILD_FRONT|_. TARGET_OS |_. DEPLOY_SCM|_. DEPLOY_NEXUS|_. DOCKER_FILE|_. CLEAN_UP |_. SUBMODULECHECK |
+|={background:#00FFFF}. [BNZBUILDNET_CONTAINERTSY] 	|[BNZTARGETVERSION]|={background:#00FFFF}. [BNZBUILDNET_CONTAINERTSY_BUILDBACK]|=. [BNZBUILDNET_CONTAINERTSY_BUILDFRONT]  |=. [BNZBUILDNET_CONTAINERTSY_TARGETOS] |=. [BNZBUILDNET_CONTAINERTSY_DEPLOYSCM] |=. [BNZBUILDNET_CONTAINERTSY_DEPLOYNEXUS] |=. [BNZBUILDNET_CONTAINERTSY_DOCKERFILE] |=. [BNZBUILDNET_CONTAINERTSY_CLEANUP] |=. [BNZBUILDNET_CONTAINERTSY_SUBMODULECHECK]|
+
+*BNZ INVEST_SERVICE: (INV, BTS, ICS - user invest)*
+|_. BUILD  |_. VERSION|_. BUILD_BACK|_. BUILD_FRONT|_. TARGET_OS |_. DEPLOY_SCM|_. DEPLOY_NEXUS|_. DOCKER_FILE|_. CLEAN_UP |_. SUBMODULECHECK|
+|={background:#00FFFF}. [BNZBUILDNET_CONTAINERCORE] 	|[BNZTARGETVERSION]|={background:#00FFFF}. [BNZBUILDNET_CONTAINERCORE_BUILDBACK]|={background:#00FFFF}. [BNZBUILDNET_CONTAINERCORE_BUILDFRONT] |=. [BNZBUILDNET_CONTAINERCORE_TARGETOS] |=. [BNZBUILDNET_CONTAINERCORE_DEPLOYSCM] |=. [BNZBUILDNET_CONTAINERCORE_DEPLOYNEXUS]|=. [BNZBUILDNET_CONTAINERCORE_DOCKERFILE]  |=. [BNZBUILDNET_CONTAINERCORE_CLEANUP] |=. [BNZBUILDNET_CONTAINERCORE_SUBMODULECHECK]|
+
+
+h2. ARTIFACT CLIENT:
+
+|*No*|*SYSTEM*|*VERSION*|
+|1|AssetAlloc\AssetAlloc64\waitfor9Com.Invest.UI.Fluent.exe|[BNZTARGETVERSION]|
+|2|Check exe/dll List *ALLOC_[BNZTARGETVERSION].csv* |[BNZTARGETVERSION]|
+|3|buc\waitfor9Com.Invest.exe (32 bits)|[BNZTARGETVERSION]|
+|4|buc\waitfor9Com.Invest.Pipe.exe|[BNZTARGETVERSION]|
+|5|buc\waitfor9Com.Incubator.Configuration.UI.exe|[BNZTARGETVERSION]|
+|6|buc\waitfor9Com.Admin.exe|[BNZTARGETVERSION]|
+|7|buc\waitfor9Com.Invest.Office.Connector.exe|[BNZTARGETVERSION]|
+|8|Check exe/dll List *BUC_[BNZTARGETVERSION].csv* |[BNZTARGETVERSION]|
+|9|Office-Addins\waitfor9Com.Invest.Report.Excel.vsto|[BNZTARGETVERSION]|
+|10|Office-Addins\waitfor9Com.Invest.Report.Word.vsto|[BNZTARGETVERSION]|
+|/2. 11|Office-Addins\waitfor9Com.Invest.Office.Excel.RT-AddIn.xll|[BNZTARGETVERSION]|
+|Office-Addins\waitfor9Com.Invest.Office.Excel.RT-AddIn64.xll|[BNZTARGETVERSION]|
+|12|Office_Template|[BNZTARGETVERSION]|
+
+h2. ARTIFACT SERVER:
+
+|*No*|*SYSTEM*|*VERSION*|*Repository*|
+| 1  | For IIS waitfor9Com-INVEST-SERVICE-[[BNZTARGETVERSION]].zip |  [BNZTARGETVERSION] | NAS |
+| 2  | For Docker (G$3) waitfor9Com-INVEST-SERVICE-[[BNZTARGETVERSION]].tar.gz |  [BNZTARGETVERSION] | NAS |
+| 3  | For Docker (waitfor9Com) waitfor9Com-INVEST-SERVICE-[[BNZTARGETVERSION]].tar.gz  |  [BNZTARGETVERSION] | NAS, NEXUS | 
+
+h2. หมายเหตุ
+
+* กรณีที่ Build Feature ทดสอบภายใน สามารถกำหนด Branch เองได้ แต่ Tag Build/ARTIFACT จะถูก Clear ทุกๆ 3 เดือน
+* กรณีที่ Build for Internal / QA ใช้ Branch ReleaseX.X.XX 
+* กรณีที่ Build for Customer ใช้ Master 
+
+*Database Script:*
+!!
+
+
+
