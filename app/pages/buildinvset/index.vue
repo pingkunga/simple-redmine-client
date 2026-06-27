@@ -377,9 +377,10 @@
     </div>
 
     <div class="flex gap-2 pt-2">
-      <UButton color="primary" class="w-32 justify-center" @click="handleSubmit">Submit</UButton>
+      <UButton color="primary" class="w-32 justify-center" :loading="isSubmitting" @click="handleSubmit">Submit</UButton>
       <UButton color="neutral" variant="solid" class="w-32 justify-center">Clear</UButton>
     </div>
+    <p v-if="submitMessage" class="text-sm text-toned">{{ submitMessage }}</p>
   </div>
 </template>
 
@@ -388,6 +389,7 @@ import type { BuildInvSetRequest } from '~~/shared/types/BuildInvSet'
 import type { Project, ProjectMemberShip } from '~~/shared/types/Project'
 import type { Version } from '~~/shared/types/Version'
 import useSupportConfig from '~/composables/useSupportConfig'
+import useBuildInvSetAPI from '~/composables/useBuildInvSetAPI'
 
 const {
   loadSupportTrackerOptions,
@@ -396,9 +398,10 @@ const {
   loadSupportCustomLookupOptions,
   loadSupportLayoutOptions,
 } = useSupportConfig()
+const { submitBuildInvSet } = useBuildInvSetAPI()
 
 const accessKey = ref<string | null>(null)
-const trackerOptions = ref<Array<{ label: string; value: string }>>([])
+const trackerOptions = ref<Array<{ label: string; value: number }>>([])
 const projectOptions = ref<Array<{ label: string; value: number }>>([])
 const gatewayProjectOptions = ref<Array<{ label: string; value: number }>>([])
 const vb6ProjectOptions = ref<Array<{ label: string; value: number }>>([])
@@ -413,6 +416,8 @@ const dockerFileOptions = reactive<Record<string, Array<{ label: string; value: 
   buildInvSetDOTNETCustomContainerTSY: [],
   buildInvSetDOTNETCoreContainer: [],
 })
+const isSubmitting = ref(false)
+const submitMessage = ref('')
 
 const formState = reactive<BuildInvSetRequest>({
   tracker: '',
@@ -536,7 +541,7 @@ const loadTrackerOptions = async () => {
   try {
     const trackerConfig = await loadSupportTrackerOptions('Build')
 
-    trackerOptions.value = trackerConfig.map((item) => ({ label: item.name, value: item.name }))
+    trackerOptions.value = trackerConfig.map((item) => ({ label: item.name, value: item.id }))
 
     if (!formState.tracker && trackerOptions.value.length) {
       formState.tracker = trackerOptions.value[0]?.value ?? ''
@@ -744,8 +749,21 @@ const handleTokenModeChange = async (value: boolean) => {
   }
 }
 
-const handleSubmit = () => {
-  console.log('BuildInvSet payload', formState)
+const handleSubmit = async () => {
+  isSubmitting.value = true
+  submitMessage.value = ''
+
+  try {
+    const result = await submitBuildInvSet(formState as BuildInvSetRequest)
+    console.log('BuildInvSet payload', formState)
+    console.log('BuildInvSet submitted:', result)
+    submitMessage.value = 'Build request submitted successfully.'
+  } catch (error: any) {
+    console.error('Failed to submit BuildInvSet:', error)
+    submitMessage.value = error?.statusMessage || 'Failed to submit BuildInvSet.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 onMounted(async () => {
