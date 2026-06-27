@@ -1,12 +1,12 @@
 {
     "issue":{
-      "project_id":"[BNZPROJECTID]",
+      "project_id":[BNZPROJECTID],
       "tracker_id":"[BNZTRACKERID]",
       "status_id":16,
       "priority_id":4,
-      "assigned_to_id":"[BNZASSIGNEDTOID]",
-      "parent_issue_id": "[BNZPARENTID]",
-      "fixed_version_id": "[BNZTARGETID]",
+      "assigned_to_id":[BNZASSIGNEDTOID],
+      "parent_issue_id": [BNZPARENTID],
+      "fixed_version_id": [BNZTARGETID],
       "subject": "TSY-G$3 : Build Request v [BNZTARGETVERSION] ",
       "description": "[BNZBUILDVB6DESCRIPTION]",
       "start_date":"[BNZSTARTDATE]",
