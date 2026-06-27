@@ -88,7 +88,7 @@ import type { Project, ProjectMemberShip } from './Project'
 import type { Version } from './Version'
 
 export interface BuildInvSetRequest {
-  tracker: string
+  tracker: string | number
   project?: Project
   targetVersion?: Version
   buildPurpose: string
