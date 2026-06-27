@@ -53,7 +53,7 @@ const readTemplateText = async (fileName: string) => {
 
 const buildCommonReplacements = (request: BuildInvSetRequest, projectId?: number, assigneeId?: number) => ({
   '[BNZPROJECTID]': normalizeValue(projectId ?? request.project?.id ?? ''),
-  '[BNZTRACKERID]': normalizeValue(request.tracker ?? ''),
+  '[BNZTRACKERID]': normalizeValue(request.trackerId ?? ''),
   '[BNZASSIGNEDTOID]': normalizeValue(assigneeId ?? request.selectedAssignee?.id ?? ''),
   '[BNZTARGETID]': normalizeValue(request.targetVersion?.id ?? ''),
   '[BNZTARGETVERSION]': request.targetVersion?.name ?? '',

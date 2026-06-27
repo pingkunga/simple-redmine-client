@@ -3,7 +3,7 @@ import type { BuildInvSetRequest } from '~/shared/types/BuildInvSet'
 import { buildBuildInvSetPayloads, buildToggleMarker } from './buildInvSetTemplateMapper'
 
 const buildRequest = (): BuildInvSetRequest => ({
-  tracker: 99,
+  trackerId: 99,
   project: { id: 1, name: 'Test Project' },
   targetVersion: { id: 10, name: '8.9.21', projectid: 1, projectname: 'Test Project', versionName: '8.9.21', description: '', status: 'open', due_date: null, sharing: 'none', wiki_page_title: '', created_on: '', updated_on: '' },
   buildPurpose: 'SCM Official Build',
