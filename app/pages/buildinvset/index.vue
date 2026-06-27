@@ -27,7 +27,7 @@
           </UFormField>
           <UFormField label="Tracker" required>
             <USelectMenu
-              v-model="formState.tracker"
+              v-model="formState.trackerId"
               :items="trackerOptions"
               label-key="label"
               value-key="value"
@@ -420,7 +420,7 @@ const isSubmitting = ref(false)
 const submitMessage = ref('')
 
 const formState = reactive<BuildInvSetRequest>({
-  tracker: '',
+  trackerId: 0,
   project: {} as any,
   targetVersion: {} as any,
   buildPurpose: '',
@@ -543,8 +543,8 @@ const loadTrackerOptions = async () => {
 
     trackerOptions.value = trackerConfig.map((item) => ({ label: item.name, value: item.id }))
 
-    if (!formState.tracker && trackerOptions.value.length) {
-      formState.tracker = trackerOptions.value[0]?.value ?? ''
+    if (!formState.trackerId && trackerOptions.value.length) {
+      formState.trackerId = trackerOptions.value[0]?.value ?? 0
     }
   } catch (error) {
     console.error('Failed to load tracker options:', error)
