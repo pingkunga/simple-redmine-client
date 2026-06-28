@@ -98,6 +98,7 @@ export interface BuildInvSetRequest {
   endDate: string
   buildBranch: string
   useServerToken: boolean
+  thisweekRelease: boolean
 
   buildDOTNET: BuildInvSetDOTNET
   buildSpringBoot: BuildInvSetGateway

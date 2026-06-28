@@ -21,9 +21,15 @@
     <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
       <h2 class="text-base font-semibold text-highlighted">2. Build Information</h2>
 
-        <div class="mt-2 flex flex-col gap-2">
+        <div class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
           <UFormField label="Layout" name="layout" required>
             <USelect v-model="formState.layout" :items="layoutOptions" placeholder="Select layout" class="w-full" />
+          </UFormField>
+          <UFormField label="Auto Fill Thisweek Release" name="thisweekRelease">
+            <div class="flex h-8 items-center gap-2 rounded-md border border-default bg-default px-2.5 py-1.5 text-sm text-highlighted">
+              <UCheckbox v-model="formState.thisweekRelease" @update:model-value="handleThisWeekReleaseToggle" />
+              <span class="text-sm font-medium">Thisweek Release</span>
+            </div>
           </UFormField>
           <UFormField label="Tracker" name="trackerId" required>
             <USelectMenu
@@ -35,6 +41,7 @@
               class="w-full"
             />
           </UFormField>
+
           <UFormField label="Target version" name="targetVersion" required>
             <USelectMenu
               :model-value="formState.targetVersion?.id ?? undefined"
@@ -48,6 +55,10 @@
               @update:model-value="handleVersionChange"
             />
           </UFormField>
+          <UFormField label="Build branch" name="buildBranch" required class="md:col-span-2">
+            <UInput v-model="formState.buildBranch" placeholder="release/8.9.21" class="w-full" />
+          </UFormField>
+
           <UFormField label="Build purpose" name="buildPurpose" required>
             <USelect v-model="formState.buildPurpose" :items="buildPurposeOptions" placeholder="Select build purpose" class="w-full" />
           </UFormField>
@@ -56,9 +67,6 @@
           </UFormField>
           <UFormField label="End / due date">
             <UInput v-model="formState.endDate" type="date" class="w-full" />
-          </UFormField>
-          <UFormField label="Build branch" name="buildBranch" required class="md:col-span-2">
-            <UInput v-model="formState.buildBranch" placeholder="release/8.9.21" class="w-full" />
           </UFormField>
         </div>
       </div>
@@ -387,10 +395,11 @@
 <script setup lang="ts">
 import type { BuildInvSetRequest } from '~~/shared/types/BuildInvSet'
 import type { Project, ProjectMemberShip } from '~~/shared/types/Project'
-import type { Version } from '~~/shared/types/Version'
+import type { Version, VersionWithReleaseNotes } from '~~/shared/types/Version'
 import useSupportConfig from '~/composables/useSupportConfig'
 import useBuildInvSetAPI from '~/composables/useBuildInvSetAPI'
 import { buildInvSetFormSchema } from '~/composables/useBuildInvSetValidation'
+import { applyThisWeekReleaseSelection, clearThisWeekReleaseSelection } from '~/composables/useBuildInvSetRelease'
 
 const {
   loadSupportTrackerOptions,
@@ -431,8 +440,9 @@ const formState = reactive<BuildInvSetRequest>({
   selectedAssignee: undefined,
   startDate: '2026-06-18',
   endDate: '2026-06-22',
-  buildBranch: 'release/8.9.21',
+  buildBranch: '',
   useServerToken: false,
+  thisweekRelease: false,
   buildDOTNET: {
     enabled: true,
     buildInvSetDOTNETCoreWindows: {
@@ -684,8 +694,8 @@ const loadVersionOptions = async (projectId?: number) => {
     const versions = (versionRequest.data.value ?? []) as Version[]
     versionOptions.value = versions.filter((version): version is Version => typeof version.id === 'number' && typeof version.name === 'string')
 
-    if (!formState.targetVersion?.id && versionOptions.value.length) {
-      syncTargetVersionSelection(versionOptions.value[0] ?? null)
+    if (!formState.targetVersion?.id) {
+      syncTargetVersionSelection(null)
     }
   } catch (error) {
     console.error('Failed to load version options:', error)
@@ -751,6 +761,37 @@ const handleTokenModeChange = async (value: boolean) => {
 
   if (promises.length) {
     await Promise.all(promises)
+  }
+}
+
+const handleThisWeekReleaseToggle = async (enabled: boolean) => {
+  if (!enabled) {
+    clearThisWeekReleaseSelection(formState)
+    return
+  }
+
+  try {
+    const config = useRuntimeConfig()
+    const data = await $fetch<VersionWithReleaseNotes[]>('/api/release/thisweek-release', {
+      headers: {
+        'x-internal-key': config.public.internalApiKey as string,
+      },
+      query: {
+        projectId: formState.project?.id ?? undefined,
+      },
+    })
+
+    const matchedRelease = data[0] ?? null
+    applyThisWeekReleaseSelection(formState, matchedRelease)
+  } catch (error) {
+    console.error('Failed to load this week release data:', error)
+    clearThisWeekReleaseSelection(formState)
+    toast.add({
+      title: 'Release Lookup Error',
+      description: 'Unable to load this week release data.',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle',
+    })
   }
 }
 
