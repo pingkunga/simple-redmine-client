@@ -46,9 +46,27 @@ const replaceAllJson = (text: string, replacements: Record<string, string>) => {
   return output
 }
 
-const readTemplateText = async (fileName: string) => {
-  const filePath = path.join(process.cwd(), 'public', 'IssueTemplate', 'buildinvset', 'Default', fileName)
-  return fs.promises.readFile(filePath, 'utf-8')
+const getTemplateBasePath = () => path.join(process.cwd(), 'public', 'IssueTemplate', 'buildinvset')
+
+const readTemplateText = async (fileName: string, layoutName?: string) => {
+  const normalizedLayout = (layoutName ?? 'Default').toString().trim() || 'Default'
+  const candidateLayouts = normalizedLayout === 'Default' ? ['Default'] : [normalizedLayout, 'Default']
+  let lastError: NodeJS.ErrnoException | null = null
+
+  for (const layout of candidateLayouts) {
+    const filePath = path.join(getTemplateBasePath(), layout, fileName)
+
+    try {
+      return await fs.promises.readFile(filePath, 'utf-8')
+    } catch (error: any) {
+      if (error?.code !== 'ENOENT') {
+        throw error
+      }
+      lastError = error
+    }
+  }
+
+  throw lastError ?? new Error(`Unable to read template ${fileName}`)
 }
 
 const buildCommonReplacements = (request: BuildInvSetRequest, projectId?: number, assigneeId?: number) => ({
@@ -151,10 +169,11 @@ export const renderBuildInvSetTemplate = async (
   descriptionToken: string,
   replacements: Record<string, string>,
 ) => {
-  const descriptionTemplate = await readTemplateText(templateFileName)
+  const layout = request.layout || 'Default'
+  const descriptionTemplate = await readTemplateText(templateFileName, layout)
   const description = replaceAll(descriptionTemplate, replacements)
 
-  const jsonTemplate = await readTemplateText(jsonTemplateFileName)
+  const jsonTemplate = await readTemplateText(jsonTemplateFileName, layout)
   const payload = JSON.parse(replaceAllJson(jsonTemplate, {
     ...replacements,
     [descriptionToken]: description,

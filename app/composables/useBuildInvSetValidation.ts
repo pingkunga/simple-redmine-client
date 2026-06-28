@@ -12,6 +12,8 @@ export const buildInvSetFormSchema = z.object({
   startDate: z.string().trim().min(1, 'Start date is required'),
   endDate: z.string().trim().min(1, 'End date is required'),
   buildBranch: z.string().trim().min(1, 'Build branch is required'),
+  thisweekRelease: z.boolean().optional(),
+  saveAsTemplate: z.boolean().optional(),
   targetVersion: z.object({ id: z.number().int().positive().optional() }).optional(),
   project: z.object({ id: z.number().int().positive().optional() }).optional(),
   selectedAssignee: z.object({ id: z.number().int().positive().optional() }).optional(),
