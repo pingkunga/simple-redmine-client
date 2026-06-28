@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-3">
+  <UForm ref="formRef" :schema="schema" :state="formState" class="space-y-3" @submit="handleSubmit">
     <div>
       <h1 class="text-2xl font-semibold text-highlighted">Build Request — NET Primary</h1>
       <p class="mt-1 text-sm text-toned">Create a build-request issue with NET primary and optional VB6 / Gateway subtasks.</p>
@@ -22,10 +22,10 @@
       <h2 class="text-base font-semibold text-highlighted">2. Build Information</h2>
 
         <div class="mt-2 flex flex-col gap-2">
-          <UFormField label="Layout" required>
+          <UFormField label="Layout" name="layout" required>
             <USelect v-model="formState.layout" :items="layoutOptions" placeholder="Select layout" class="w-full" />
           </UFormField>
-          <UFormField label="Tracker" required>
+          <UFormField label="Tracker" name="trackerId" required>
             <USelectMenu
               v-model="formState.trackerId"
               :items="trackerOptions"
@@ -35,7 +35,7 @@
               class="w-full"
             />
           </UFormField>
-          <UFormField label="Target version" required>
+          <UFormField label="Target version" name="targetVersion" required>
             <USelectMenu
               :model-value="formState.targetVersion?.id ?? undefined"
               :items="versionOptions"
@@ -48,16 +48,16 @@
               @update:model-value="handleVersionChange"
             />
           </UFormField>
-          <UFormField label="Build purpose" required>
+          <UFormField label="Build purpose" name="buildPurpose" required>
             <USelect v-model="formState.buildPurpose" :items="buildPurposeOptions" placeholder="Select build purpose" class="w-full" />
           </UFormField>
-          <UFormField label="Start date" required>
+          <UFormField label="Start date" name="startDate" required>
             <UInput v-model="formState.startDate" type="date" class="w-full" />
           </UFormField>
           <UFormField label="End / due date">
             <UInput v-model="formState.endDate" type="date" class="w-full" />
           </UFormField>
-          <UFormField label="Build branch" required class="md:col-span-2">
+          <UFormField label="Build branch" name="buildBranch" required class="md:col-span-2">
             <UInput v-model="formState.buildBranch" placeholder="release/8.9.21" class="w-full" />
           </UFormField>
         </div>
@@ -78,7 +78,7 @@
           </div>
 
           <div class="mb-4 grid grid-cols-1 gap-2 md:grid-cols-2">
-            <UFormField label="Project" required>
+            <UFormField label="Project" name="project" required>
               <USelectMenu
                 :model-value="formState.project?.id ?? undefined"
                 :items="projectOptions"
@@ -89,7 +89,7 @@
                 @update:model-value="handleProjectChange"
               />
             </UFormField>
-            <UFormField label="Select Assignee" required>
+            <UFormField label="Select Assignee" name="selectedAssignee" required>
               <USelectMenu
                 :model-value="formState.selectedAssignee?.id ?? undefined"
                 :items="projectMembers"
@@ -240,7 +240,7 @@
 
           <div v-if="formState.buildSpringBoot.enabled" class="space-y-3">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <UFormField label="Project" required>
+              <UFormField label="Project" name="buildSpringBoot.project" required>
                 <USelectMenu
                   :model-value="formState.buildSpringBoot.project?.id ?? undefined"
                   :items="gatewayProjectOptions"
@@ -251,7 +251,7 @@
                   @update:model-value="handleGatewayProjectChange"
                 />
               </UFormField>
-              <UFormField label="Select Assignee" required>
+              <UFormField label="Select Assignee" name="buildSpringBoot.selectedAssignee" required>
                 <USelectMenu
                   :model-value="formState.buildSpringBoot.selectedAssignee?.id ?? undefined"
                   :items="gatewayMembers"
@@ -342,7 +342,7 @@
 
           <div v-if="formState.buildVB6.enabled" class="space-y-3">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <UFormField label="Project" required>
+              <UFormField label="Project" name="buildVB6.project" required>
                 <USelectMenu
                   :model-value="formState.buildVB6.project?.id ?? undefined"
                   :items="vb6ProjectOptions"
@@ -353,7 +353,7 @@
                   @update:model-value="handleVB6ProjectChange"
                 />
               </UFormField>
-              <UFormField label="Select Assignee" required>
+              <UFormField label="Select Assignee" name="buildVB6.selectedAssignee" required>
                 <USelectMenu
                   :model-value="formState.buildVB6.selectedAssignee?.id ?? undefined"
                   :items="vb6Members"
@@ -377,11 +377,11 @@
     </div>
 
     <div class="flex gap-2 pt-2">
-      <UButton color="primary" class="w-32 justify-center" :loading="isSubmitting" @click="handleSubmit">Submit</UButton>
+      <UButton type="submit" color="primary" class="w-32 justify-center" :loading="isSubmitting">Submit</UButton>
       <UButton color="neutral" variant="solid" class="w-32 justify-center">Clear</UButton>
     </div>
     <p v-if="submitMessage" class="text-sm text-toned">{{ submitMessage }}</p>
-  </div>
+  </UForm>
 </template>
 
 <script setup lang="ts">
@@ -390,6 +390,7 @@ import type { Project, ProjectMemberShip } from '~~/shared/types/Project'
 import type { Version } from '~~/shared/types/Version'
 import useSupportConfig from '~/composables/useSupportConfig'
 import useBuildInvSetAPI from '~/composables/useBuildInvSetAPI'
+import { buildInvSetFormSchema } from '~/composables/useBuildInvSetValidation'
 
 const {
   loadSupportTrackerOptions,
@@ -399,7 +400,9 @@ const {
   loadSupportLayoutOptions,
 } = useSupportConfig()
 const { submitBuildInvSet } = useBuildInvSetAPI()
+const toast = useToast()
 
+const formRef = ref()
 const accessKey = ref<string | null>(null)
 const trackerOptions = ref<Array<{ label: string; value: number }>>([])
 const projectOptions = ref<Array<{ label: string; value: number }>>([])
@@ -500,6 +503,8 @@ const formState = reactive<BuildInvSetRequest>({
     build: true,
   },
 })
+
+const schema = buildInvSetFormSchema
 
 const loadCustomLookupOptions = async () => {
   try {
@@ -750,6 +755,17 @@ const handleTokenModeChange = async (value: boolean) => {
 }
 
 const handleSubmit = async () => {
+  if (!accessKey.value) {
+    toast.add({
+      title: 'Validation Error',
+      description: 'Please set your access key in Client Setting',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle',
+    })
+    submitMessage.value = 'Please set your access key in Client Setting'
+    return
+  }
+
   isSubmitting.value = true
   submitMessage.value = ''
 
@@ -758,9 +774,21 @@ const handleSubmit = async () => {
     console.log('BuildInvSet payload', formState)
     console.log('BuildInvSet submitted:', result)
     submitMessage.value = 'Build request submitted successfully.'
+    toast.add({
+      title: 'Success',
+      description: 'Build request submitted successfully',
+      color: 'success',
+      icon: 'i-heroicons-check-circle',
+    })
   } catch (error: any) {
     console.error('Failed to submit BuildInvSet:', error)
     submitMessage.value = error?.statusMessage || 'Failed to submit BuildInvSet.'
+    toast.add({
+      title: 'Submission Error',
+      description: error?.statusMessage || 'Failed to submit BuildInvSet.',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle',
+    })
   } finally {
     isSubmitting.value = false
   }
