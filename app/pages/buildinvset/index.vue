@@ -384,6 +384,13 @@
       </div>
     </div>
 
+    <UFormField name="saveAsTemplate">
+      <div class="flex h-8 w-fit items-center gap-2 rounded-md border border-default bg-default px-2.5 py-1.5 text-sm text-highlighted">
+        <UCheckbox v-model="formState.saveAsTemplate" />
+        <span class="text-sm font-medium">Save Build Parameter as Template</span>
+      </div>
+    </UFormField>
+
     <div class="flex gap-2 pt-2">
       <UButton type="submit" color="primary" class="w-32 justify-center" :loading="isSubmitting">Submit</UButton>
       <UButton color="neutral" variant="solid" class="w-32 justify-center">Clear</UButton>
@@ -443,6 +450,7 @@ const formState = reactive<BuildInvSetRequest>({
   buildBranch: '',
   useServerToken: false,
   thisweekRelease: false,
+  saveAsTemplate: false,
   buildDOTNET: {
     enabled: true,
     buildInvSetDOTNETCoreWindows: {
@@ -743,7 +751,64 @@ const initializePage = async () => {
   await loadTrackerOptions()
   await loadLayoutOptions()
   await loadProjectOptions()
+
+  if (formState.layout) {
+    await loadTemplate(formState.layout)
+  }
 }
+
+const loadTemplate = async (layout: string) => {
+  if (!layout) return
+
+  try {
+    const data = await $fetch<Partial<BuildInvSetRequest>>('/api/buildinvset/template', {
+      query: { layout },
+    })
+
+    if (data) {
+      // Safe merge: keep some existing state if necessary, but overwrite with template
+      Object.assign(formState, {
+        ...data,
+        layout, // Ensure layout stays current
+        saveAsTemplate: false, // Reset checkbox
+      })
+      
+      // Sync extra state if needed
+      if (formState.targetVersion?.id) {
+        selectedVersion.value = formState.targetVersion
+      }
+
+      // Re-trigger dependent loads
+      const promises = []
+      if (formState.project?.id) {
+        promises.push(loadVersionOptions(formState.project.id), loadProjectMembers(formState.project.id))
+      }
+      if (formState.buildSpringBoot.project?.id) {
+        promises.push(loadGatewayProjectMembers(formState.buildSpringBoot.project.id))
+      }
+      if (formState.buildVB6.project?.id) {
+        promises.push(loadVB6ProjectMembers(formState.buildVB6.project.id))
+      }
+      if (promises.length) {
+        await Promise.all(promises)
+      }
+
+      toast.add({
+        title: 'Template Loaded',
+        description: `Build parameters for "${layout}" have been restored.`,
+        color: 'success',
+      })
+    }
+  } catch (error) {
+    console.error('Failed to load template:', error)
+  }
+}
+
+watch(() => formState.layout, async (newLayout) => {
+  if (newLayout) {
+    await loadTemplate(newLayout)
+  }
+})
 
 const handleTokenModeChange = async (value: boolean) => {
   formState.useServerToken = value
@@ -811,6 +876,13 @@ const handleSubmit = async () => {
   submitMessage.value = ''
 
   try {
+    if (formState.saveAsTemplate) {
+      await $fetch('/api/buildinvset/template', {
+        method: 'POST',
+        body: formState,
+      })
+    }
+
     const result = await submitBuildInvSet(formState as BuildInvSetRequest)
     console.log('BuildInvSet payload', formState)
     console.log('BuildInvSet submitted:', result)
