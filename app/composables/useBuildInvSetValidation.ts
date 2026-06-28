@@ -10,6 +10,7 @@ export const buildInvSetFormSchema = z.object({
   trackerId: z.number().int().positive('Tracker is required'),
   buildPurpose: z.string().trim().min(1, 'Build purpose is required'),
   startDate: z.string().trim().min(1, 'Start date is required'),
+  endDate: z.string().trim().min(1, 'End date is required'),
   buildBranch: z.string().trim().min(1, 'Build branch is required'),
   targetVersion: z.object({ id: z.number().int().positive().optional() }).optional(),
   project: z.object({ id: z.number().int().positive().optional() }).optional(),
@@ -46,6 +47,14 @@ export const buildInvSetFormSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ['selectedAssignee'],
       message: '.NET: Please select an Assignee',
+    })
+  }
+
+  if (value.startDate && value.endDate && value.startDate > value.endDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['endDate'],
+      message: 'Start date cannot be greater than end date',
     })
   }
 
