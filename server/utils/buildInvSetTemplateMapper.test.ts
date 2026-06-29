@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BuildInvSetRequest } from '~/shared/types/BuildInvSet'
-import { buildBuildInvSetPayloads, buildToggleMarker } from './buildInvSetTemplateMapper'
+import { buildBuildInvSetPayloads, buildToggleMarker, replaceAll } from './buildInvSetTemplateMapper'
 
 const buildRequest = (): BuildInvSetRequest => ({
   trackerId: 99,
@@ -122,5 +122,46 @@ describe('buildInvSetTemplateMapper', () => {
     expect(vb6Payload).toBeDefined()
     expect(vb6Payload.issue.project_id).toBe(3)
     expect(vb6Payload.issue.tracker_id).toBe(99)
+  })
+
+  describe('replaceAll with Textile styles', () => {
+    it('removes background style when value is empty', () => {
+      const template = '|={background:#00FFFF}. [BNZBUILDNETWIN] | [BNZTARGETVERSION] |'
+      const replacements = {
+        '[BNZBUILDNETWIN]': '',
+        '[BNZTARGETVERSION]': '1.0.0',
+      }
+      const result = replaceAll(template, replacements)
+      expect(result).toBe('| | 1.0.0 |')
+    })
+
+    it('preserves background style when value is NOT empty', () => {
+      const template = '|={background:#00FFFF}. [BNZBUILDNETWIN] | [BNZTARGETVERSION] |'
+      const replacements = {
+        '[BNZBUILDNETWIN]': '/',
+        '[BNZTARGETVERSION]': '1.0.0',
+      }
+      const result = replaceAll(template, replacements)
+      expect(result).toBe('|={background:#00FFFF}. / | 1.0.0 |')
+    })
+
+    it('works with different alignment markers', () => {
+      const template = '| <={background:#FF0000}. [TEST] | >{background:#00FF00}. [TEST2] |'
+      const replacements = {
+        '[TEST]': '',
+        '[TEST2]': '/',
+      }
+      const result = replaceAll(template, replacements)
+      expect(result).toBe('|  | >{background:#00FF00}. / |')
+    })
+
+    it('works without background style', () => {
+      const template = '| [TEST] |'
+      const replacements = {
+        '[TEST]': '',
+      }
+      const result = replaceAll(template, replacements)
+      expect(result).toBe('|  |')
+    })
   })
 })

@@ -21,10 +21,20 @@ const normalizeValue = (value: unknown) => {
   return String(value)
 }
 
-const replaceAll = (text: string, replacements: Record<string, string>) => {
+export const replaceAll = (text: string, replacements: Record<string, string>) => {
   let output = text
   Object.entries(replacements).forEach(([key, value]) => {
-    output = output.split(key).join(value ?? '')
+    const rawValue = value ?? ''
+
+    if (rawValue === '') {
+      // Find and remove Textile background color style prefix if value is empty
+      // Examples: ={background:#00FFFF}. [BNZBUILDNETWIN]
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const stylePattern = new RegExp(`[<>=^~\\\\-]*\\{[^}]+\\}\\.\\s*${escapedKey}`, 'g')
+      output = output.replace(stylePattern, '')
+    }
+
+    output = output.split(key).join(rawValue)
   })
   return output
 }
