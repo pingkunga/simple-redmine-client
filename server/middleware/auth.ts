@@ -37,10 +37,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Stage 2: External Automation (Jenkins)
-    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
+    const allowedIps = (config.automationAllowedIps || '').split(',').map((ip: string) => ip.trim()).filter((ip: string) => ip);
     const isWhitelisted = clientIp && allowedIps.includes(clientIp);
     const requestApiKey = getHeader(event, 'x-api-key');
-    const isValidKey = config.notifyReleaseMailApiKey && requestApiKey === config.notifyReleaseMailApiKey;
+    const isValidKey = config.automationApiKey && requestApiKey === config.automationApiKey;
 
     if (isWhitelisted && isValidKey) {
         return;
