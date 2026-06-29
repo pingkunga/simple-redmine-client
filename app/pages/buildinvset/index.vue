@@ -883,7 +883,12 @@ const handleSubmit = async () => {
       })
     }
 
-    const result = await submitBuildInvSet(formState as BuildInvSetRequest)
+    const redmineApi = useRedmineAPI()
+    const headers = !formState.useServerToken && accessKey.value
+      ? { [redmineApi.YourOwnRedmineAPI]: accessKey.value }
+      : undefined
+
+    const result = await submitBuildInvSet(formState as BuildInvSetRequest, headers)
     console.log('BuildInvSet payload', formState)
     console.log('BuildInvSet submitted:', result)
     submitMessage.value = 'Build request submitted successfully.'
