@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
         for (const version of versions) {
             // Determine layout: Customer if buildFor is set, otherwise Internal
             const isCustomer = !!version.buildFor;
-            const targetLayout = isCustomer ? 'Customer' : 'Internal';
+            const targetLayout = isCustomer ? 'WeeklyBuild-Customer' : 'WeeklyBuild-Internal';
 
             // Prepare the request for the buildinvset API
             const buildRequest: BuildInvSetRequest = {
