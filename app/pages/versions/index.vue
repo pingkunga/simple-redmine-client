@@ -27,30 +27,30 @@
 
     <UModal v-model:open="isModalOpen" :title="formTitle" size="md">
       <template #body>
-        <UForm :state="editedItem" @submit="save" class="space-y-4">
+        <UForm :schema="versionFormSchema" :state="editedItem" @submit="save" class="space-y-4">
           <!-- Row 1: Project Dropdown -->
           <div class="grid grid-cols-1 gap-4" v-if="editedIndex === -1">
-            <UFormField label="Project" name="projectid">
+            <UFormField label="Project" name="projectid" required>
               <USelect v-model="editedItem.projectid" :items="supportProjects" label-key="name" value-key="id" class="w-full" placeholder="Select Project" />
             </UFormField>
           </div>
 
           <!-- Row 2: Version / Sharing / Due Date -->
           <div class="grid grid-cols-3 gap-4">
-            <UFormField label="Version" name="name">
+            <UFormField label="Version" name="name" required>
               <UInput v-model="editedItem.name" class="w-full" />
             </UFormField>
-            <UFormField label="Sharing" name="sharing">
+            <UFormField label="Sharing" name="sharing" required>
               <USelect v-model="editedItem.sharing" :items="versionShares" class="w-full" />
             </UFormField>
-            <UFormField label="Due Date" name="due_date">
+            <UFormField label="Due Date" name="due_date" required>
               <UInput type="date" v-model="editedItem.due_date" class="w-full" />
             </UFormField>
           </div>
           
           <!-- Row 3: Status (1/3) / Wiki Page (2/3) -->
           <div class="grid grid-cols-3 gap-4">
-            <UFormField label="Status" name="status">
+            <UFormField label="Status" name="status" required>
               <USelect v-model="editedItem.status" :items="versionStatuses" class="w-full" />
             </UFormField>
             <div class="col-span-2">
@@ -61,7 +61,7 @@
           </div>
           
           <!-- Row 4: Description (full width) -->
-          <UFormField label="Description" name="description" class="w-full">
+          <UFormField label="Description" name="description" class="w-full" required>
             <UTextarea v-model="editedItem.description" class="w-full" />
           </UFormField>
           
@@ -77,6 +77,8 @@
 
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
+import { z } from 'zod'
+import { versionFormSchema } from '~/composables/useVersionValidation'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
