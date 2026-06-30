@@ -579,10 +579,6 @@ const loadLayoutOptions = async () => {
     const layoutConfig = await loadSupportLayoutOptions()
 
     layoutOptions.value = layoutConfig
-
-    if (!formState.layout && layoutOptions.value.length) {
-      formState.layout = layoutOptions.value[0]?.value ?? ''
-    }
   } catch (error) {
     console.error('Failed to load layout options:', error)
   }
