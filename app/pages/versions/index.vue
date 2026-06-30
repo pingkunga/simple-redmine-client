@@ -77,14 +77,10 @@
 
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import { z } from 'zod'
 import { versionFormSchema } from '~/composables/useVersionValidation'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
-import { tr } from "@nuxt/ui/runtime/locale/index.js";
-import type { AxiosError } from "axios";
-import type { un } from "vue-router/dist/router-CWoNjPRp.mjs";
 
 const table = useTemplateRef('table')
 const toast = useToast();
@@ -93,6 +89,9 @@ const toast = useToast();
 const selectedStatuses = ref<string[]>([]);
 
 const columnFilters = ref<ColumnFilter[]>([]);
+
+const config = useRuntimeConfig();
+const baseUrl = config.public.redmineUrl;
 
 const { versionStatuses, versionShares } = useRedmineAPI();
 
@@ -178,7 +177,14 @@ const columns: TableColumn<Version>[] = [
   {
     accessorKey: 'id',
     header: ({ column }) => h('div', { class: 'text-left' }, 'ID'),
-    cell: ({ row }) => h('div', { class: 'text-left font-medium' }, `#${row.getValue('id')}`),
+    cell: ({ row }) => {
+      const id = row.getValue('id')
+      return h('a', {
+        href: `${baseUrl}/versions/${id}`,
+        target: '_blank',
+        class: 'text-left font-medium text-primary hover:underline'
+      }, `#${id}`)
+    },
     size: 80
   },
   {
