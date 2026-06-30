@@ -1,11 +1,20 @@
 <template>
   <UForm ref="formRef" :schema="schema" :state="formState" class="space-y-3" @submit="handleSubmit">
-    <div>
-      <h1 class="text-2xl font-semibold text-highlighted">Build Request — NET Primary</h1>
-      <p class="mt-1 text-sm text-toned">Create a build-request issue with NET primary and optional VB6 / Gateway subtasks.</p>
+    <div id="tour-title-section" class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-highlighted">Build Request — NET Primary</h1>
+        <p class="mt-1 text-sm text-toned">Create a build-request issue with NET primary and optional VB6 / Gateway subtasks.</p>
+      </div>
+      <UButton
+        icon="i-heroicons-question-mark-circle"
+        color="neutral"
+        variant="ghost"
+        label="Help Tour"
+        @click="startTour"
+      />
     </div>
 
-    <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
+    <div id="tour-access-key" class="rounded-lg border border-default bg-default p-4 shadow-sm">
       <h2 class="text-base font-semibold text-highlighted">1. Encrypt Access Key</h2>
       <p class="mt-1 text-sm text-toned">Use the existing access key component and server-token toggle.</p>
 
@@ -18,7 +27,7 @@
       </div>
     </div>
 
-    <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
+    <div id="tour-build-info" class="rounded-lg border border-default bg-default p-4 shadow-sm">
       <h2 class="text-base font-semibold text-highlighted">2. Build Information</h2>
 
         <div class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
@@ -76,7 +85,7 @@
       <p class="mt-1 text-sm text-toned">NET contains 3 option sets, Gateway shows 2 option sets when enabled, and VB6 is a separate optional group.</p>
 
       <div class="mt-4 space-y-4">
-        <div class="rounded-xl border border-default bg-elevated/50 p-4">
+        <div id="tour-dotnet-options" class="rounded-xl border border-default bg-elevated/50 p-4">
           <div class="mb-3 flex items-center justify-between gap-3">
             <div>
               <h3 class="text-sm font-semibold text-highlighted">.NET (Primary)</h3>
@@ -237,7 +246,7 @@
           </div>
         </div>
 
-        <div class="rounded-xl border border-default bg-elevated/50 p-4">
+        <div id="tour-gateway-options" class="rounded-xl border border-default bg-elevated/50 p-4">
           <div class="mb-3 flex items-center justify-between gap-3">
             <div>
               <h3 class="text-sm font-semibold text-highlighted">Gateway (Optional)</h3>
@@ -339,7 +348,7 @@
           </div>
         </div>
 
-        <div class="rounded-xl border border-default bg-elevated/50 p-4">
+        <div id="tour-vb6-options" class="rounded-xl border border-default bg-elevated/50 p-4">
           <div class="mb-3 flex items-center justify-between gap-3">
             <div>
               <h3 class="text-sm font-semibold text-highlighted">VB6 (Optional)</h3>
@@ -384,14 +393,14 @@
       </div>
     </div>
 
-    <UFormField name="saveAsTemplate">
+    <UFormField id="tour-template-save" name="saveAsTemplate">
       <div class="flex h-8 w-fit items-center gap-2 rounded-md border border-default bg-default px-2.5 py-1.5 text-sm text-highlighted">
         <UCheckbox v-model="formState.saveAsTemplate" />
         <span class="text-sm font-medium">Save Build Parameter as Template</span>
       </div>
     </UFormField>
 
-    <div class="flex gap-2 pt-2">
+    <div id="tour-submit-actions" class="flex gap-2 pt-2">
       <UButton type="submit" color="primary" class="w-32 justify-center" :loading="isSubmitting">Submit</UButton>
       <UButton color="neutral" variant="solid" class="w-32 justify-center">Clear</UButton>
     </div>
@@ -407,6 +416,7 @@ import useSupportConfig from '~/composables/useSupportConfig'
 import useBuildInvSetAPI from '~/composables/useBuildInvSetAPI'
 import { buildInvSetFormSchema } from '~/composables/useBuildInvSetValidation'
 import { applyThisWeekReleaseSelection, clearThisWeekReleaseSelection } from '~/composables/useBuildInvSetRelease'
+import useBuildInvSetTour from '~/composables/useBuildInvSetTour'
 import { h } from 'vue'
 
 const {
@@ -417,6 +427,7 @@ const {
   loadSupportLayoutOptions,
 } = useSupportConfig()
 const { submitBuildInvSet } = useBuildInvSetAPI()
+const { startTour } = useBuildInvSetTour()
 const toast = useToast()
 const config = useRuntimeConfig()
 const baseUrl = config.public.redmineUrl
