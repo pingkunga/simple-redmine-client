@@ -407,6 +407,7 @@ import useSupportConfig from '~/composables/useSupportConfig'
 import useBuildInvSetAPI from '~/composables/useBuildInvSetAPI'
 import { buildInvSetFormSchema } from '~/composables/useBuildInvSetValidation'
 import { applyThisWeekReleaseSelection, clearThisWeekReleaseSelection } from '~/composables/useBuildInvSetRelease'
+import { h } from 'vue'
 
 const {
   loadSupportTrackerOptions,
@@ -417,6 +418,8 @@ const {
 } = useSupportConfig()
 const { submitBuildInvSet } = useBuildInvSetAPI()
 const toast = useToast()
+const config = useRuntimeConfig()
+const baseUrl = config.public.redmineUrl
 
 const formRef = ref()
 const accessKey = ref<string | null>(null)
@@ -832,7 +835,6 @@ const handleThisWeekReleaseToggle = async (enabled: boolean) => {
   }
 
   try {
-    const config = useRuntimeConfig()
     const data = await $fetch<VersionWithReleaseNotes[]>('/api/release/thisweek-release', {
       headers: {
         'x-internal-key': config.public.internalApiKey as string,
@@ -884,15 +886,20 @@ const handleSubmit = async () => {
       ? { [redmineApi.YourOwnRedmineAPI]: accessKey.value }
       : undefined
 
-    const result = await submitBuildInvSet(formState as BuildInvSetRequest, headers)
+    const result = await submitBuildInvSet(formState as BuildInvSetRequest, headers) as { results: Array<{ type: string; issueId: number }> }
     console.log('BuildInvSet payload', formState)
     console.log('BuildInvSet submitted:', result)
+
+    const results = result?.results || []
+    const issueLinks = results.map(r => `<a href="${baseUrl}/issues/${r.issueId}" target="_blank">${r.issueId}</a> (${r.type})`).join(', ')
+
     submitMessage.value = 'Build request submitted successfully.'
     toast.add({
       title: 'Success',
-      description: 'Build request submitted successfully',
+      description: h('span', { innerHTML: `Issues created: ${issueLinks}` }),
       color: 'success',
       icon: 'i-heroicons-check-circle',
+      duration: 15000
     })
   } catch (error: any) {
     console.error('Failed to submit BuildInvSet:', error)
