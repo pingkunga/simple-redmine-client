@@ -1,13 +1,22 @@
 <template>
   <div class="space-y-3">
-    <div>
-      <h1 class="text-2xl font-semibold text-highlighted">Build Configuration - NET Common</h1>
-      <p class="mt-1 text-sm text-toned">
-        Create a Build-Request issue with common version, assignee, and build options.
-      </p>
+    <div id="tour-title-section" class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-highlighted">Build Configuration - NET Common</h1>
+        <p class="mt-1 text-sm text-toned">
+          Create a Build-Request issue with common version, assignee, and build options.
+        </p>
+      </div>
+      <UButton
+        icon="i-heroicons-question-mark-circle"
+        color="neutral"
+        variant="ghost"
+        label="Help Tour"
+        @click="startTour"
+      />
     </div>
 
-    <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
+    <div id="tour-access-key" class="rounded-lg border border-default bg-default p-4 shadow-sm">
       <DevtrackersClientAccessKey
         v-model:isUseServerToken="isUseServerToken"
         :access-key="accessKey"
@@ -16,7 +25,7 @@
     </div>
 
     <UForm :schema="schema" :state="state" class="space-y-3" @submit="handleSubmit">
-      <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
+      <div id="tour-build-info" class="rounded-lg border border-default bg-default p-4 shadow-sm">
         <h2 class="text-base font-semibold text-highlighted">Build Information</h2>
 
         <div class="mt-2 flex flex-col gap-2">
@@ -81,7 +90,7 @@
         </div>
       </div>
 
-      <div class="rounded-lg border border-default bg-default p-4 shadow-sm">
+      <div id="tour-build-options" class="rounded-lg border border-default bg-default p-4 shadow-sm">
         <h2 class="text-base font-semibold text-highlighted">Build Options</h2>
 
         <div class="mt-4 overflow-x-auto">
@@ -123,7 +132,7 @@
         </div>
       </div>
 
-      <div class="flex gap-2 pt-2">
+      <div id="tour-submit-actions" class="flex gap-2 pt-2">
         <UButton type="submit" color="primary" block class="w-32 justify-center">
           Submit
         </UButton>
@@ -140,7 +149,9 @@ import type { NuxtError } from '#app'
 import { h } from 'vue'
 import { z } from 'zod'
 import useSupportConfig from '~/composables/useSupportConfig'
+import useBuildNetCommonTour from '~/composables/useBuildNetCommonTour'
 
+const { startTour } = useBuildNetCommonTour()
 const accessKey = ref<string | null>(null)
 const isUseServerToken = ref(false)
 
