@@ -192,9 +192,7 @@ const projectChange = async (project: Project) => {
     const {
       data: dataVersions,
       error: errorVersions,
-    } = isUseServerToken.value
-      ? await useRedmineAPI().getVersionByProjectId<Version[]>(project.id)
-      : await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, headers);
+    } = await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, isUseServerToken.value ? undefined : headers, 'open');
     versions.value = dataVersions.value ?? [];
   }
 };

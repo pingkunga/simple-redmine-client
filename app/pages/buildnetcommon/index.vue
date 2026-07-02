@@ -229,9 +229,7 @@ const projectChange = async (project?: Project) => {
     const membershipRequest = isUseServerToken.value
       ? await useRedmineAPI().getProjectMemberShip<ProjectMemberShip[]>(project.id)
       : await useRedmineAPI().getProjectMemberShip<ProjectMemberShip[]>(project.id, headers)
-    const versionRequest = isUseServerToken.value
-      ? await useRedmineAPI().getVersionByProjectId<Version[]>(project.id)
-      : await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, headers)
+    const versionRequest = await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, headers, 'open')
 
     projectMembers.value = membershipRequest.data.value ?? []
     versions.value = versionRequest.data.value ?? []
