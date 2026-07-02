@@ -126,9 +126,15 @@ export default () => {
         return await useFetch<Version[]>("/api/versions", options);
     };
 
-    const getVersionByProjectId = async <T>(projectId: Number, headers?: Record<string, string>) => {
-        const options = headers ? { headers } : undefined;
-        return await useFetch<Version[]>(`/api/versions/?projectId=${projectId}`, options);
+    const getVersionByProjectId = async <T>(projectId: number, headers?: Record<string, string>, status?: string) => {
+        const options = { 
+            headers,
+            query: { 
+                projectId,
+                ...(status ? { status } : {}) 
+            }
+        };
+        return await useFetch<Version[]>("/api/versions", options);
     };
 
     function mapRawVersionToVersion(rawVersion: RawVersion): Version {

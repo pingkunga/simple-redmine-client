@@ -705,9 +705,7 @@ const loadVersionOptions = async (projectId?: number) => {
       ? { [redmineApi.YourOwnRedmineAPI]: accessKey.value }
       : undefined
 
-    const versionRequest = formState.useServerToken
-      ? await redmineApi.getVersionByProjectId<Version[]>(projectId)
-      : await redmineApi.getVersionByProjectId<Version[]>(projectId, headers)
+    const versionRequest = await redmineApi.getVersionByProjectId<Version[]>(projectId, headers, 'open')
 
     const versions = (versionRequest.data.value ?? []) as Version[]
     versionOptions.value = versions.filter((version): version is Version => typeof version.id === 'number' && typeof version.name === 'string')

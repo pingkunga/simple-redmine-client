@@ -1,8 +1,12 @@
 import axios from "axios";
 import useRedmineAPI from "~/composables/useRedmineAPI";
 
+interface VersionQuery {
+    projectId?: string;
+    status?: string;
+}
 
-export default defineEventHandler<{query: { projectId: Number } }>(async (event) => {
+export default defineEventHandler(async (event) => {
   
     const versionsData: Version[] = [];
     const config = useRuntimeConfig(event);
@@ -10,7 +14,7 @@ export default defineEventHandler<{query: { projectId: Number } }>(async (event)
 
     // ================================
     // Check Query Parameter
-    const query = getQuery(event);
+    const query = getQuery<VersionQuery>(event);
 
     const projects: SupportProject[] = getSupportProjects();
     const headers = createBaseRedmineHeader(getRequestHeaders(event));
@@ -19,7 +23,12 @@ export default defineEventHandler<{query: { projectId: Number } }>(async (event)
         const url = `${config.public.redmineUrl}/projects/${query.projectId}/versions.json`;
         try {
             const response = await axios.get<VersionsResponse>(url, { headers });
-            const versions: Version[] = response.data.versions.map(mapRawVersionToVersion);
+            let versions: Version[] = response.data.versions.map(mapRawVersionToVersion);
+            
+            if (query.status) {
+                versions = versions.filter(v => v.status === query.status);
+            }
+
             versionsData.push(...versions);
         } catch (error) {
             console.error(`Error fetching versions for project ${query.projectId}:`, error);
