@@ -49,5 +49,9 @@ export default defineEventHandler(async (event) => {
         results.forEach(versions => versionsData.push(...versions));
     }
 
-    return versionsData;
+    // De-duplicate by ID
+    const uniqueMap = new Map<number, Version>();
+    versionsData.forEach(v => uniqueMap.set(v.id, v));
+    
+    return Array.from(uniqueMap.values());
 });
