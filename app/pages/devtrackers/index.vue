@@ -1,100 +1,103 @@
 <template>
-  <div>Dev Trackers (Program Spec / Defect)</div>
-  <ClientOnly>
-    <!--check if found access key in local storage-->
-    <div v-if="!accessKey" class="text-red-500 mb-4">
-      Please set your access key in Client Setting
-    </div>
-    <div v-else class="mb-8 space-y-8 pt-4">
-      <UFormGroup label="Encrypt Access Key">
-        <UInput
-          v-model="accessKey"
-          readonly
-          type="password"
-          icon="i-heroicons-lock-closed"
-        />
-      </UFormGroup>
-      <div class="flex items-center gap-6 pt-4">
-        <USwitch
-          v-model="isUseServerToken"
-          @update:model-value="projectsInit"
-        />
-        <span class="text-sm text-gray-700 dark:text-gray-200">Use Server Token</span>
+  <div class="space-y-3">
+    <div id="tour-title-section" class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-highlighted">Dev Trackers (Program Spec / Defect)</h1>
+        <p class="mt-1 text-sm text-toned">
+          Create Dev Tracker in Redmine directly from here. Please make sure you have set the access key in Client Setting before using this feature.
+        </p>
       </div>
+      <UButton
+        icon="i-heroicons-question-mark-circle"
+        color="neutral"
+        variant="ghost"
+        label="Help Tour"
+        @click="startTour"
+      />
     </div>
-  </ClientOnly>
-  <UForm :schema="schema" :state="state" class="flex flex-col gap-6" @submit="handleSubmit">
-    <UFormField label="Select Tracker" name="selectTracker" required>
-      <USelectMenu
-        v-model="state.selectTracker"
-        :items="devTrackers"
-        label-key="name"
-        value-key="id"
-        placeholder="Select Tracker"
-        class="w-full"
-      />
-    </UFormField>
 
-    <UFormField label="Tracker Title" name="trackerTitle" required help="[SITENAME][MODULE][IMPACT] Your Desire Title or [SITENAME][MODULE][NOIMPACT] Your Desire Title">
-      <UInput
-        v-model="state.trackerTitle"
-        placeholder="Tracker Title - Pattern [SITENAME][MODULE][IMPACT] Your Desire Title..."
-        class="w-full"
+    <div id="tour-access-key" class="rounded-lg border border-default bg-default p-3 shadow-sm">
+      <DevtrackersClientAccessKey
+        v-model:isUseServerToken="isUseServerToken"
+        :access-key="accessKey"
+        @update:isUseServerToken="projectsInit"
       />
-    </UFormField>
-
-    <UFormField label="Select Project" name="selectedProject" required>
-      <USelectMenu
-        v-model="state.selectedProject"
-        :items="projects"
-        label-key="name"
-        placeholder="Select Project"
-        @update:model-value="projectChange"
-        class="w-full"
-      />
-    </UFormField>
-
-    <UFormField label="Select Assignee" name="selectedAssignee" required>
-      <USelectMenu
-        v-model="state.selectedAssignee"
-        :items="projectMembers"
-        label-key="name"
-        placeholder="Select Assignee"
-        class="w-full"
-        virtualize
-      />
-    </UFormField>
-
-    <UFormField label="Select Version" name="selectedVersion" required>
-      <USelectMenu
-        v-model="state.selectedVersion"
-        :items="versions"
-        label-key="name"
-        placeholder="Select Version"
-        class="w-full"
-        virtualize
-      />
-    </UFormField>
-
-    <div class="flex gap-2 pt-4">
-      <UButton 
-        type="submit" 
-        color="primary" 
-        block 
-        class="w-32 justify-center" >
-        Submit
-      </UButton>
-      <UButton 
-        color="neutral" 
-        variant="solid" 
-        block 
-        class="w-32 justify-center" 
-        @click="handleReset">
-        Clear
-      </UButton>
     </div>
-  </UForm>
 
+    <UForm :schema="schema" :state="state" class="flex flex-col gap-6" @submit="handleSubmit">
+      <div id="tour-dev-info" class="rounded-lg border border-default bg-default p-4 shadow-sm">
+        <h2 class="text-base font-semibold text-highlighted">Spec Information</h2>
+        <UFormField label="Select Tracker" name="selectTracker" required>
+          <USelectMenu
+            v-model="state.selectTracker"
+            :items="devTrackers"
+            label-key="name"
+            value-key="id"
+            placeholder="Select Tracker"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField id="tour-tracker-title" label="Tracker Title" name="trackerTitle" required help="[SITENAME][MODULE][IMPACT] Your Desire Title (Hyphens supported in brackets)">
+          <UInput
+            v-model="state.trackerTitle"
+            placeholder="Tracker Title - Pattern [SITENAME][MODULE][IMPACT] Your Desire Title..."
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Select Project" name="selectedProject" required>
+          <USelectMenu
+            v-model="state.selectedProject"
+            :items="projects"
+            label-key="name"
+            placeholder="Select Project"
+            @update:model-value="projectChange"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Select Assignee" name="selectedAssignee" required>
+          <USelectMenu
+            v-model="state.selectedAssignee"
+            :items="projectMembers"
+            label-key="name"
+            placeholder="Select Assignee"
+            class="w-full"
+            virtualize
+          />
+        </UFormField>
+
+        <UFormField label="Select Version" name="selectedVersion" required>
+          <USelectMenu
+            v-model="state.selectedVersion"
+            :items="versions"
+            label-key="name"
+            placeholder="Select Version"
+            class="w-full"
+            virtualize
+          />
+        </UFormField>
+      </div>  
+      <div id="tour-submit-actions" class="flex gap-2 pt-4">
+        <UButton 
+          type="submit" 
+          color="primary" 
+          block 
+          class="w-32 justify-center" >
+          Submit
+        </UButton>
+        <UButton 
+          color="neutral" 
+          variant="solid" 
+          block 
+          class="w-32 justify-center" 
+          @click="handleReset">
+          Clear
+        </UButton>
+      </div>
+    </UForm>
+  </div>
   <!-- useToast is used instead of inline UToast component -->
 </template>
 
@@ -102,7 +105,9 @@
 import type { NuxtError } from "#app";
 import { z } from 'zod';
 import { h } from 'vue';
+import useDevTrackersTour from '~/composables/useDevTrackersTour'
 
+const { startTour } = useDevTrackersTour()
 const accessKey = ref<string | null>(null);
 const isUseServerToken = ref(false);
 
@@ -127,7 +132,7 @@ const state = reactive({
 
 const schema = z.object({
   selectTracker: z.number('Tracker is required'),
-  trackerTitle: z.string().regex(/^\[[A-Za-z0-9]+\]\[[A-Za-z0-9]+\]\[(IMPACT|NOIMPACT)]\s.+$/, 'Input must match the required format.'),
+  trackerTitle: z.string().regex(/^\[[A-Za-z0-9-]+\]\[[A-Za-z0-9-]+\]\[(IMPACT|NOIMPACT)]\s.+$/, 'Input must match the required format.'),
   selectedProject: z.object({ id: z.number() }, { error: 'Project is required' }),
   selectedAssignee: z.object({ id: z.number() }, { error: 'Project Member is required' }),
   selectedVersion: z.object({ id: z.number() }, { error: 'Version is required' })
@@ -187,9 +192,7 @@ const projectChange = async (project: Project) => {
     const {
       data: dataVersions,
       error: errorVersions,
-    } = isUseServerToken.value
-      ? await useRedmineAPI().getVersionByProjectId<Version[]>(project.id)
-      : await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, headers);
+    } = await useRedmineAPI().getVersionByProjectId<Version[]>(project.id, isUseServerToken.value ? undefined : headers, 'open');
     versions.value = dataVersions.value ?? [];
   }
 };

@@ -19,33 +19,40 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. For API calls, we allow session or fallback to API Key + IP Whitelist
-  // Note: We check specifically for /api/release/*
   if (url.pathname.startsWith('/api/release/')) {
-    if (user) {
-        // User logged in via UI session, allow
+    const clientIp = getRequestIP(event, { xForwardedFor: true });
+    
+    // Stage 1: Secure Internal Traffic
+    // - SSR / Server-to-Server (!clientIp)
+    const isSSR = !clientIp;
+    
+    // - UI request (x-internal-key)
+    const requestInternalKey = getHeader(event, 'x-internal-key');
+    const isValidInternalKey = config.public.internalApiKey && requestInternalKey === config.public.internalApiKey;
+
+    console.log(`[Auth Auth] Path: ${url.pathname}, IP: ${clientIp}, SSR: ${isSSR}, Key: ${!!isValidInternalKey}`);
+
+    if (user || isSSR || isValidInternalKey) {
         return;
     }
 
-    // No session, check API Key and IP
-    const clientIp = getRequestIP(event, { xForwardedFor: true });
+    // Stage 2: External Automation (Jenkins)
+    const allowedIps = (config.automationAllowedIps || '').split(',').map((ip: string) => ip.trim()).filter((ip: string) => ip);
+    const isWhitelisted = clientIp && allowedIps.includes(clientIp);
     const requestApiKey = getHeader(event, 'x-api-key');
-    const allowedIps = (config.notifyReleaseMailAllowedIps || '').split(',').map(ip => ip.trim()).filter(ip => ip);
+    const isValidKey = config.automationApiKey && requestApiKey === config.automationApiKey;
+
+    if (isWhitelisted && isValidKey) {
+        return;
+    }
+
+    // Comprehensive Error Logging & Handling
+    if (!isWhitelisted && allowedIps.length > 0) {
+        throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not in whitelist` });
+    }
     
-    // Check IP
-    if (allowedIps.length > 0 && (!clientIp || !allowedIps.includes(clientIp))) {
-        throw createError({ statusCode: 403, statusMessage: `Forbidden: IP ${clientIp} not allowed` });
-    }
-
-    // Check API Key
-    if (config.notifyReleaseMailApiKey && requestApiKey !== config.notifyReleaseMailApiKey) {
-        throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Invalid API Key' });
-    }
-
-    // If neither session nor apiKey present (if apiKey configured)
-    if (!config.notifyReleaseMailApiKey && !user && !allowedIps.length) {
-        // If nothing is configured, maybe it's wide open (as before) or we want to block?
-        // Let's allow it for now or force auth if required.
-        // But for safety, let's at least expect a session or key if we're adding auth.
+    if (!isValidKey) {
+        throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Missing or Invalid API Key' });
     }
   }
 

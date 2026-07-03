@@ -27,23 +27,30 @@
 
     <UModal v-model:open="isModalOpen" :title="formTitle" size="md">
       <template #body>
-        <UForm :state="editedItem" @submit="save" class="space-y-4">
-          <!-- Row 1: Version / Sharing / Due Date -->
+        <UForm :schema="versionFormSchema" :state="editedItem" @submit="save" class="space-y-4">
+          <!-- Row 1: Project Dropdown -->
+          <div class="grid grid-cols-1 gap-4" v-if="editedIndex === -1">
+            <UFormField label="Project" name="projectid" required>
+              <USelect v-model="editedItem.projectid" :items="supportProjects" label-key="name" value-key="id" class="w-full" placeholder="Select Project" />
+            </UFormField>
+          </div>
+
+          <!-- Row 2: Version / Sharing / Due Date -->
           <div class="grid grid-cols-3 gap-4">
-            <UFormField label="Version" name="name">
+            <UFormField label="Version" name="name" required>
               <UInput v-model="editedItem.name" class="w-full" />
             </UFormField>
-            <UFormField label="Sharing" name="sharing">
+            <UFormField label="Sharing" name="sharing" required>
               <USelect v-model="editedItem.sharing" :items="versionShares" class="w-full" />
             </UFormField>
-            <UFormField label="Due Date" name="due_date">
+            <UFormField label="Due Date" name="due_date" required>
               <UInput type="date" v-model="editedItem.due_date" class="w-full" />
             </UFormField>
           </div>
           
-          <!-- Row 2: Status (1/3) / Wiki Page (2/3) -->
+          <!-- Row 3: Status (1/3) / Wiki Page (2/3) -->
           <div class="grid grid-cols-3 gap-4">
-            <UFormField label="Status" name="status">
+            <UFormField label="Status" name="status" required>
               <USelect v-model="editedItem.status" :items="versionStatuses" class="w-full" />
             </UFormField>
             <div class="col-span-2">
@@ -53,8 +60,8 @@
             </div>
           </div>
           
-          <!-- Row 3: Description (full width) -->
-          <UFormField label="Description" name="description" class="w-full">
+          <!-- Row 4: Description (full width) -->
+          <UFormField label="Description" name="description" class="w-full" required>
             <UTextarea v-model="editedItem.description" class="w-full" />
           </UFormField>
           
@@ -70,12 +77,10 @@
 
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
+import { versionFormSchema } from '~/composables/useVersionValidation'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
-import { tr } from "@nuxt/ui/runtime/locale/index.js";
-import type { AxiosError } from "axios";
-import type { un } from "vue-router/dist/router-CWoNjPRp.mjs";
 
 const table = useTemplateRef('table')
 const toast = useToast();
@@ -85,12 +90,25 @@ const selectedStatuses = ref<string[]>([]);
 
 const columnFilters = ref<ColumnFilter[]>([]);
 
+const config = useRuntimeConfig();
+const baseUrl = config.public.redmineUrl;
+
 const { versionStatuses, versionShares } = useRedmineAPI();
 
 const dataversions = ref<Version[]>([]);
+const supportProjects = ref<any[]>([]);
 const refreshKey = ref(0);
 
 const loading = ref(false);
+
+const fetchProjects = async () => {
+  try {
+    const { data } = await useFetch<any[]>('/api/projects/support');
+    supportProjects.value = data.value || [];
+  } catch (err) {
+    console.error("Failed to fetch support projects:", err);
+  }
+};
 
 const fetchVersions = async (pIsClear?: boolean) => {
   loading.value = true;
@@ -106,6 +124,7 @@ const fetchVersions = async (pIsClear?: boolean) => {
 };
 
 onMounted(() => {
+  fetchProjects();
   fetchVersions();
 });
 
@@ -158,7 +177,14 @@ const columns: TableColumn<Version>[] = [
   {
     accessorKey: 'id',
     header: ({ column }) => h('div', { class: 'text-left' }, 'ID'),
-    cell: ({ row }) => h('div', { class: 'text-left font-medium' }, `#${row.getValue('id')}`),
+    cell: ({ row }) => {
+      const id = row.getValue('id')
+      return h('a', {
+        href: `${baseUrl}/versions/${id}`,
+        target: '_blank',
+        class: 'text-left font-medium text-primary hover:underline'
+      }, `#${id}`)
+    },
     size: 80
   },
   {
@@ -255,10 +281,11 @@ const formTitle = computed(() =>
 const defaultVersion: Version = {
   id: -1,
   name: "",
+  versionName: "",
   description: "",
   status: "",
   due_date: "",
-  sharing: "",
+  sharing: "tree",
   wiki_page_title: "",
   created_on: "",
   updated_on: "",
@@ -277,6 +304,12 @@ const editItem = (row: Version) => {
 const openNewDialog = () => {
   editedIndex.value = -1;
   editedItem.value = { ...defaultVersion };
+  
+  // Set default project to the first one in the list
+  if (supportProjects.value.length > 0) {
+    editedItem.value.projectid = supportProjects.value[0].id;
+  }
+  
   isModalOpen.value = true;
 };
 
@@ -289,7 +322,7 @@ const save = async () => {
   try {
     if (editedIndex.value === -1) {
       // Create new item
-      await useRedmineAPI().addVersion(editedItem.value);
+      await useRedmineAPI().addVersion(editedItem.value, editedItem.value.projectid);
     } else {
       // Update existing item
       await useRedmineAPI().updateVersion(editedItem.value);

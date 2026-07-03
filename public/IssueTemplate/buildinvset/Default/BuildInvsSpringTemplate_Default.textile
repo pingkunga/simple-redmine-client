@@ -1,0 +1,36 @@
+h2. BUILD SERVER http://jenkins.waitfor9Com.local:8080/
+
+
+|*APP NAME*|*BUILD VERSION*|*BUILD PATH*|*BRANCH*|*REVISION*|*TAG BUILD NAME*|
+|/2. Gateway-WS|/2.[BNZTARGETVERSION] | http://waitfor9.year.com/invest/gateway.git | [BNZBUILDBRANCHNAME] | 92dbd52539f35be701c7658b8e79e1eddb63fcf7 | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/gateway/-/tags/[BNZTARGETVERSION] |
+|http://waitfor9.year.com/invest/gateway-ui.git| master |-|-|
+|/2. waitfor9Com-APP-SERVICE|/2.[BNZTARGETVERSION] |http://waitfor9.year.com/invest/gateway.git | [BNZBUILDBRANCHNAME] | 92dbd52539f35be701c7658b8e79e1eddb63fcf7 | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/gateway/-/tags/[BNZTARGETVERSION] |
+|http://waitfor9.year.com/invest/tsy-server-script.git | master | c9c424e36457f80912b928ce36da60eae4beb66b | "[BNZTARGETVERSION]":http://waitfor9.year.com/invest/gateway/-/tags/[BNZTARGETVERSION]  |
+
+h2. GATEWAY (waitfor9Com-APP-SERVICE)
+
+*BNZ Gateway Option:*
+|_. BUILD|_. VERSION|_. BUILD_FRONT|_. UNIT_TEST|_. EXECUTE_SONAR|_. BUILD_CONTAINER|_. DEPLOY_NEXUS|_. DEPLOY_SCM |_. CLEAN_UP|
+|={background:cyan}. [BNZBUILDSPRING_CORE]| [BNZTARGETVERSION] |=. [BNZBUILDSPRING_CORE_BUILDFRONT]|=. [BNZBUILDSPRING_CORE_UNITTEST]|=. [BNZBUILDSPRING_CORE_EXECUTESONAR]|=. [BNZBUILDSPRING_CORE_BUILDCONTAINER]|=. [BNZBUILDSPRING_CORE_DEPLOYNEXUS]|=. [BNZBUILDSPRING_CORE_DEPLOYSCM]|=. [BNZBUILDSPRING_CORE_CLEANUP]|
+
+
+
+*BNZ Gateway(G$3) Option:*
+|_. BUILD|_. VERSION|_. UNIT_TEST|_. DEPLOY_NEXUS|_. DEPLOY_SCM|_. CLEAN UP|
+|={background:cyan}. [BNZBUILDSPRING_TSY] | [BNZTARGETVERSION] |=. [BNZBUILDSPRING_TSY_UNITTEST] |=. [BNZBUILDSPRING_TSY_DEPLOYNEXUS] |=. [BNZBUILDSPRING_TSY_DEPLOYSCM] |=. [BNZBUILDSPRING_TSY_CLEANUP]|
+
+
+h2. ARTIFACT:
+
+|*No*|*SYSTEM*|*VERSION*|*Repository*|
+|1|waitfor9Com-gateway-ws.war|[BNZTARGETVERSION]|NAS, Nexus (maven)|
+| 2 | waitfor9Com-APP-SERVICE | [BNZTARGETVERSION] |NAS, Nexus (docker)|
+| 3 | waitfor9Com-APP-SERVICE.tar.gz | [BNZTARGETVERSION] |NAS|
+
+h2. หมายเหตุ
+
+* กรณีที่ Build Feature ทดสอบภายใน สามารถกำหนด Branch เองได้ แต่ Tag Build/ARTIFACT จะถูก Clear ทุกๆ 3 เดือน
+* กรณีที่ Build for Internal / QA ใช้ Branch [BNZTARGETVERSION]X.YY.Z 
+* กรณีที่ Build for Customer ใช้ Master 
+* waitfor9Com-INVEST-SERVICE เป็น Docker Image ที่จะเอามา Replace WinServ
+* waitfor9Com-APP-SERVICE Build ตอนที่เป็น Customer Version หรือ มี Defect ที่้ต้องส่ง QA

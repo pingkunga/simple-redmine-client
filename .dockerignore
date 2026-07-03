@@ -1,4 +1,7 @@
 node_modules
+.output
+.nuxt
+dist
 Dockerfile*
 docker-compose*
 .dockerignore
