@@ -14,12 +14,14 @@
 - [x] List Issue from versions 
 - [x] New Dev Tracker (Program Spec / Defect / Feature)
 - [x] Set your own access Token
-- [ ] New Build Tracker (Build Request)
+- [x] New Build Common Tracker (Build Request)
 - [x] Add Unit Test (Initial)
 - [x] Add API admin/release/thisweek-release to get current week release data (Version with due date in current week) and send to Line Notify
 - [x] Add API admin/release/send-release-mail to send current week release data to specific email address
 - [x] Add Admin Page to manage Release Notii Email Template (Subject / Body) with some variable such as {{versionName}} / {{versionDueDate}} / {{versionIssues}} (List of Issues in Version with name and tracker type)
 - [x] Add Simple Auth with password (No Register / No User Management) to protect Admin Page
+- [x] Add API to List Branches from GitLab and Cache in Memory with Incremental Sync (Pull Latest 100 Events and Merge to Cache) 
+- [x] Add Admin Page to List Branches with Pagination (PER_PAGE = 5) and Search (Search by Branch Name)
 
 # Plan List
 
@@ -29,6 +31,7 @@
 - Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) / Tracker Template with some hardcode id of custom field
 - Add MCP
 - Add Chat 
+- Add Build Dotnet Set Build Tracker with some custom field such as Target Version / Git Branch / Build Status
 
 # Nuxt Minimal Starter
 
@@ -116,14 +119,14 @@ bun add axios
 ## Build & Run
 
 ```
-docker build --pull -t bun-redmine:0.3.0rc15 .
+docker build --pull -t bun-redmine:0.3.3rc9 .
 
-docker build --pull -t bun-redmine:0.3.0rc15 . --no-cache --progress=plain 
+docker build --pull -t bun-redmine:0.3.3rc9 . --no-cache --progress=plain 
 
-docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:0.3.0rc15
+docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:0.3.3rc9
 
-docker tag bun-redmine:0.3.0rc15 pingkunga/bun-redmine:0.3.0rc15
-docker push pingkunga/bun-redmine:0.3.0rc15
+docker tag bun-redmine:0.3.3rc9 pingkunga/bun-redmine:0.3.3rc9
+docker push pingkunga/bun-redmine:0.3.3rc9
 ```
 
 ## Test

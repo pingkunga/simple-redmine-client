@@ -11,9 +11,13 @@
           :key="i"
           class="mb-1"
         >
-          <NuxtLink :to="item.to" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          <NuxtLink
+            :to="item.to"
+            class="sidebar-link flex items-center rounded-lg p-2 transition-colors"
+            :class="{ 'sidebar-link-active': isActive(item.to) }"
+          >
             <UIcon :name="item.icon" class="mr-2" />
-            {{ item.title }}
+            <span class="sidebar-title">{{ item.title }}</span>
           </NuxtLink>
         </li>
         <!-- Admin Section -->
@@ -25,6 +29,10 @@
             <UIcon name="i-mdi-email-fast-outline" class="mr-2" />
             Release Mail
           </NuxtLink>
+          <NuxtLink to="/admin/branches" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium mt-1">
+            <UIcon name="i-mdi-source-branch" class="mr-2" />
+            GitLab Branches
+          </NuxtLink>
         </li>
       </ul>
     </div>
@@ -34,6 +42,15 @@
 <script setup lang="ts">
 import sidebarItems from "./sidebarItems";
 const sidebarMenu = ref(sidebarItems);
+const route = useRoute();
+
+const isActive = (path: string) => {
+  if (path === '/') {
+    return route.path === '/'
+  }
+
+  return route.path.startsWith(path)
+}
 
 const authCookie = useCookie('admin_session')
 const isLoggedInCookie = useCookie('is_logged_in')
@@ -47,6 +64,21 @@ const version = ref(config.public.appVersion || "0.2.0-DEV");
 </script>
 
 <style scoped>
+.sidebar-link {
+  color: inherit;
+}
+
+.sidebar-link:hover {
+  background: rgba(29, 158, 117, 0.08);
+}
+
+.sidebar-link-active {
+  background: linear-gradient(135deg, rgba(29, 158, 117, 0.18), rgba(29, 158, 117, 0.08));
+  color: #1d9e75;
+  border: 1px solid rgba(29, 158, 117, 0.24);
+  font-weight: 600;
+}
+
 .version-text {
   display: flex;
   justify-content: center; /* Center horizontally */
@@ -56,5 +88,9 @@ const version = ref(config.public.appVersion || "0.2.0-DEV");
   font-weight: bold; /* Optional: Make the text bold */
   text-align: center; /* Ensure text alignment */
   padding-bottom: 0px;
+}
+
+.sidebar-title {
+  white-space: pre-line; /* honor \n in strings and wrap accordingly */
 }
 </style>

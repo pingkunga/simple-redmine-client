@@ -1,0 +1,20 @@
+{
+    "issue":{
+      "project_id":[BNZPROJECTID],
+      "tracker_id":[BNZTRACKERID],
+      "status_id":16,
+      "priority_id":4,
+      "assigned_to_id":[BNZASSIGNEDTOID],
+      "parent_issue_id": [BNZPARENTID],
+      "fixed_version_id": [BNZTARGETID],
+      "subject":"[JAVA] Build Request v [BNZTARGETVERSION] (Gateway waitfor9Com-APP-SERVICE)",
+      "description": "[BNZBUILDSPRINGDESCRIPTION]",
+      "start_date":"[BNZSTARTDATE]",
+      "due_date":"[BNZENDDATE]",
+      "custom_fields":
+      [
+        {"value":"Implementation","id":4},
+        {"value":"Production","id":34}
+      ]    
+   }
+}
