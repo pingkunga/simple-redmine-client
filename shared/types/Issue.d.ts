@@ -49,4 +49,24 @@ export interface RawIssue {
     created_on: string;
     updated_on: string;
     closed_on?: string | null;
+    // Present only when fetched with include=relations,children
+    relations?: RawIssueRelation[];
+    children?: RawIssueChild[];
+}
+
+// Redmine relation shape from GET /issues/:id.json?include=relations
+export interface RawIssueRelation {
+    id: number;
+    issue_id: number;
+    issue_to_id: number;
+    relation_type: string;
+    delay?: number | null;
+}
+
+// Redmine child shape from GET /issues/:id.json?include=children
+export interface RawIssueChild {
+    id: number;
+    tracker: { id: number; name: string };
+    subject: string;
+    status?: { id: number; name: string };
 }
