@@ -15,6 +15,11 @@ export default [
       to: "/issues",
     },
     {
+      title: "Issue Graph",
+      icon: "i-mdi-graph-outline",
+      to: "/issue-graph",
+    },
+    {
       title: "New Dev Trackers",
       icon: "i-mdi-code-block-braces",
       to: "/devtrackers",
