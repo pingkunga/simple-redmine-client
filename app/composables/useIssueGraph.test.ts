@@ -65,6 +65,21 @@ describe('useIssueGraph', () => {
     expect(merged.edges.map(e => e.id)).toEqual(['relation-1'])
   })
 
+  it('pins isRoot to the given rootId regardless of what the incoming response marks as root', () => {
+    const existing = toVueFlowElements([sampleNode({ id: 100, isRoot: true })], [])
+    const incoming: IssueGraphResponse = {
+      nodes: [sampleNode({ id: 100, isRoot: false }), sampleNode({ id: 200, subject: 'Expanded', isRoot: true })],
+      edges: [sampleEdge()],
+      truncated: false,
+    }
+
+    const merged = mergeGraphResponse(existing, incoming, 100)
+
+    const byId = new Map(merged.nodes.map(n => [n.id, n]))
+    expect(byId.get('100')?.data.issue.isRoot).toBe(true)
+    expect(byId.get('200')?.data.issue.isRoot).toBe(false)
+  })
+
   it('does not duplicate edges already present when merging', () => {
     const existing = toVueFlowElements(
       [sampleNode({ id: 100 }), sampleNode({ id: 200 })],
