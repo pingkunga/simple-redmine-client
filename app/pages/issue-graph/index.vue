@@ -26,6 +26,13 @@
               <UInput v-model="timeoutSec" type="number" :min="1" :max="30" class="w-32" />
             </UFormField>
           </div>
+
+          <div class="rounded-lg border border-default bg-default p-3 shadow-sm mt-3">
+            <DevtrackersClientAccessKey
+              v-model:isUseServerToken="isUseServerToken"
+              :access-key="accessKey"
+            />
+          </div>
         </template>
       </UCollapsible>
 
@@ -58,14 +65,25 @@ import type { Node, Edge } from "@vue-flow/core";
 const toast = useToast();
 const { getIssueGraph, expandNode, mergeGraphResponse } = useIssueGraph();
 const { layout } = useDagreLayout();
+const { YourOwnRedmineAPI } = useRedmineAPI();
 
 const issueId = ref<string>("");
 const depth = ref(2);
 const maxNodes = ref(50);
-const timeoutSec = ref(5);
+const timeoutSec = ref(120);
 const showAdvanced = ref(false);
 const loading = ref(false);
 const truncatedMessage = ref("");
+const accessKey = ref<string | null>(null);
+const isUseServerToken = ref(false);
+
+const ownTokenHeaders = () =>
+  isUseServerToken.value ? undefined : { [YourOwnRedmineAPI]: accessKey.value ?? "" };
+
+onMounted(() => {
+  const { retriveAccessKey } = useClientUtil();
+  accessKey.value = retriveAccessKey() || "";
+});
 
 const elements = ref<{ nodes: Node[]; edges: Edge[] }>({ nodes: [], edges: [] });
 
@@ -94,7 +112,7 @@ const handleSearch = async () => {
       depth: depth.value,
       maxNodes: maxNodes.value,
       timeoutMs: timeoutSec.value * 1000,
-    });
+    }, ownTokenHeaders());
 
     if (error.value) {
       toast.add({ title: "Failed to load issue graph", description: error.value.statusMessage, color: "error" });
@@ -117,7 +135,7 @@ const handleSearch = async () => {
 
 const handleExpand = async (id: number) => {
   try {
-    const response = await expandNode(id);
+    const response = await expandNode(id, ownTokenHeaders());
     elements.value = mergeGraphResponse(elements.value, response);
     applyLayout();
     setTruncatedMessage(response.truncated, response.truncatedReason);

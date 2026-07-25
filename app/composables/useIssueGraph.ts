@@ -10,7 +10,7 @@ const RELATION_EDGE_STYLE: Record<IssueGraphEdgeType, { color: string; dashed: b
 };
 
 export default () => {
-    const getIssueGraph = async (id: number, options?: IssueGraphOptions) => {
+    const getIssueGraph = async (id: number, options?: IssueGraphOptions, headers?: Record<string, string>) => {
         return await useFetch<IssueGraphResponse>("/api/issues/graph", {
             query: {
                 id,
@@ -18,12 +18,14 @@ export default () => {
                 ...(options?.maxNodes ? { maxNodes: options.maxNodes } : {}),
                 ...(options?.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
             },
+            ...(headers ? { headers } : {}),
         });
     };
 
-    const expandNode = async (id: number): Promise<IssueGraphResponse> => {
+    const expandNode = async (id: number, headers?: Record<string, string>): Promise<IssueGraphResponse> => {
         const { data, error } = await useFetch<IssueGraphResponse>("/api/issues/graph", {
             query: { id, depth: 1 },
+            ...(headers ? { headers } : {}),
         });
 
         if (error.value) {
