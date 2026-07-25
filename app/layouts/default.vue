@@ -9,6 +9,14 @@
         size="lg"
         class="lg:hidden"
       />
+      <UButton
+        @click="collapsed = !collapsed"
+        :icon="collapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
+        variant="ghost"
+        size="lg"
+        class="hidden lg:inline-flex"
+        :title="collapsed ? 'Expand menu' : 'Collapse menu'"
+      />
       <div class="flex-1 text-sm font-semibold truncate px-2">Redmine Client Tools</div>
       <div class="ms-4 flex items-center gap-1">
         <ThemeToggle />
@@ -27,13 +35,16 @@
     <!-- Sidebar -->
     <div
       v-show="isDesktop || drawer"
-      class="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-shrink-0"
-      :class="{
-        'fixed inset-y-0 left-0 z-40 pt-16': !isDesktop,
-        'relative pt-16': isDesktop
-      }"
+      class="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-shrink-0 transition-all duration-200"
+      :class="[
+        isDesktop && collapsed ? 'w-16' : 'w-64',
+        {
+          'fixed inset-y-0 left-0 z-40 pt-16': !isDesktop,
+          'relative pt-16': isDesktop
+        }
+      ]"
     >
-      <Sidebar />
+      <Sidebar :collapsed="isDesktop && collapsed" />
     </div>
 
     <!-- Overlay for mobile -->
@@ -86,8 +97,16 @@ const isMdAndDown = computed(() => {
   return false; // Default to desktop for SSR
 });
 
+// For desktop sidebar collapse
+const SIDEBAR_COLLAPSED_KEY = 'sidebar_collapsed';
+const collapsed = ref(false);
+watch(collapsed, (value) => {
+  localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(value));
+});
+
 // Set the initial state of the drawer based on the screen size
 onMounted(() => {
   drawer.value = isDesktop.value;
+  collapsed.value = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
 });
 </script>
