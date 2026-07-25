@@ -2,23 +2,26 @@
   <div class="min-h-screen flex">
     <!-- Header -->
     <UHeader class="w-full fixed top-0 z-50">
-      <UButton
-        @click="drawer = !drawer"
-        icon="i-lucide-menu"
-        variant="ghost"
-        size="lg"
-        class="lg:hidden"
-      />
-      <UButton
-        @click="collapsed = !collapsed"
-        :icon="collapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
-        variant="ghost"
-        size="lg"
-        class="hidden lg:inline-flex"
-        :title="collapsed ? 'Expand menu' : 'Collapse menu'"
-      />
-      <div class="flex-1 text-sm font-semibold truncate px-2">Redmine Client Tools</div>
-      <div class="ms-4 flex items-center gap-1">
+      <template #left>
+        <UButton
+          @click="drawer = !drawer"
+          icon="i-lucide-menu"
+          variant="ghost"
+          size="lg"
+          class="lg:hidden"
+        />
+        <UButton
+          @click="collapsed = !collapsed"
+          :icon="collapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
+          variant="ghost"
+          size="lg"
+          class="hidden lg:inline-flex"
+          :title="collapsed ? 'Expand menu' : 'Collapse menu'"
+        />
+        <div class="text-sm font-semibold truncate px-2">Redmine Client Tools</div>
+      </template>
+
+      <template #right>
         <ThemeToggle />
         <UButton
           v-if="isLoggedIn"
@@ -29,7 +32,7 @@
           @click="handleLogout"
           title="Logout"
         />
-      </div>
+      </template>
     </UHeader>
 
     <!-- Sidebar -->
