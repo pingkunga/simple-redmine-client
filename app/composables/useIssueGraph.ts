@@ -66,7 +66,8 @@ export default () => {
     // Merges freshly-fetched nodes/edges into an existing Vue Flow element set, deduping by id.
     const mergeGraphResponse = (
         existing: { nodes: Node[]; edges: Edge[] },
-        incoming: IssueGraphResponse
+        incoming: IssueGraphResponse,
+        rootId?: number
     ): { nodes: Node[]; edges: Edge[] } => {
         const { nodes: newNodes, edges: newEdges } = toVueFlowElements(incoming.nodes, incoming.edges);
 
@@ -74,6 +75,14 @@ export default () => {
         for (const node of newNodes) {
             if (!nodeById.has(node.id)) nodeById.set(node.id, node);
             else nodeById.set(node.id, { ...nodeById.get(node.id), data: node.data });
+        }
+
+        // The server marks isRoot relative to whichever id was fetched, which shifts on every
+        // expand — pin it back to the issue the user originally searched for.
+        if (rootId !== undefined) {
+            for (const node of nodeById.values()) {
+                node.data.issue.isRoot = node.id === String(rootId);
+            }
         }
 
         const edgeById = new Map(existing.edges.map(e => [e.id, e]));

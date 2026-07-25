@@ -76,6 +76,7 @@ const loading = ref(false);
 const truncatedMessage = ref("");
 const accessKey = ref<string | null>(null);
 const isUseServerToken = ref(false);
+const rootIssueId = ref<number | null>(null);
 
 const ownTokenHeaders = () =>
   isUseServerToken.value ? undefined : { [YourOwnRedmineAPI]: accessKey.value ?? "" };
@@ -105,6 +106,7 @@ const handleSearch = async () => {
   const id = Number(issueId.value);
   if (!id) return;
 
+  rootIssueId.value = id;
   loading.value = true;
   truncatedMessage.value = "";
   try {
@@ -123,7 +125,7 @@ const handleSearch = async () => {
     const response = data.value;
     if (!response) return;
 
-    elements.value = mergeGraphResponse({ nodes: [], edges: [] }, response);
+    elements.value = mergeGraphResponse({ nodes: [], edges: [] }, response, rootIssueId.value ?? undefined);
     applyLayout();
     setTruncatedMessage(response.truncated, response.truncatedReason);
   } catch (err: any) {
@@ -136,7 +138,7 @@ const handleSearch = async () => {
 const handleExpand = async (id: number) => {
   try {
     const response = await expandNode(id, ownTokenHeaders());
-    elements.value = mergeGraphResponse(elements.value, response);
+    elements.value = mergeGraphResponse(elements.value, response, rootIssueId.value ?? undefined);
     applyLayout();
     setTruncatedMessage(response.truncated, response.truncatedReason);
   } catch (err: any) {

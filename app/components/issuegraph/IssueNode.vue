@@ -1,5 +1,6 @@
 <template>
-  <div class="issue-node w-55 rounded-lg border bg-default px-3 py-2 shadow-sm text-xs" :class="issue.isRoot ? 'border-primary border-2' : 'border-default'">
+  <div class="issue-node relative w-55 rounded-lg border bg-default px-3 py-2 shadow-sm text-xs" :class="issue.isRoot ? 'border-primary border-2' : 'border-default'">
+    <span v-if="issue.isRoot" class="absolute -top-3 -left-3 text-lg leading-none" title="Root issue">📍</span>
     <Handle type="target" :position="Position.Top" />
 
     <div class="flex items-center justify-between gap-2">
