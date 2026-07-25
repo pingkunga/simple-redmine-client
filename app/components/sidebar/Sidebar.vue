@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="scrollnavbar">
-      <div class="version-text">version: {{ version }}</div>
+      <div v-if="!collapsed" class="version-text">version: {{ version }}</div>
       <ul class="pt-0 pr-4 pb-4 pl-4">
         <!-- ---------------------------------------------- -->
         <!---Menu Loop -->
@@ -13,25 +13,26 @@
         >
           <NuxtLink
             :to="item.to"
+            :title="item.title"
             class="sidebar-link flex items-center rounded-lg p-2 transition-colors"
-            :class="{ 'sidebar-link-active': isActive(item.to) }"
+            :class="[{ 'sidebar-link-active': isActive(item.to) }, collapsed ? 'justify-center' : '']"
           >
-            <UIcon :name="item.icon" class="mr-2" />
-            <span class="sidebar-title">{{ item.title }}</span>
+            <UIcon :name="item.icon" :class="collapsed ? '' : 'mr-2'" />
+            <span v-if="!collapsed" class="sidebar-title">{{ item.title }}</span>
           </NuxtLink>
         </li>
         <!-- Admin Section -->
         <li v-if="isLoggedIn" class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-          <div class="px-2 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <div v-if="!collapsed" class="px-2 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
             Admin
           </div>
-          <NuxtLink to="/admin/release-mail" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium">
-            <UIcon name="i-mdi-email-fast-outline" class="mr-2" />
-            Release Mail
+          <NuxtLink to="/admin/release-mail" title="Release Mail" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium" :class="collapsed ? 'justify-center' : ''">
+            <UIcon name="i-mdi-email-fast-outline" :class="collapsed ? '' : 'mr-2'" />
+            <span v-if="!collapsed">Release Mail</span>
           </NuxtLink>
-          <NuxtLink to="/admin/branches" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium mt-1">
-            <UIcon name="i-mdi-source-branch" class="mr-2" />
-            GitLab Branches
+          <NuxtLink to="/admin/branches" title="GitLab Branches" class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-primary font-medium mt-1" :class="collapsed ? 'justify-center' : ''">
+            <UIcon name="i-mdi-source-branch" :class="collapsed ? '' : 'mr-2'" />
+            <span v-if="!collapsed">GitLab Branches</span>
           </NuxtLink>
         </li>
       </ul>
@@ -41,6 +42,9 @@
 
 <script setup lang="ts">
 import sidebarItems from "./sidebarItems";
+
+defineProps<{ collapsed?: boolean }>();
+
 const sidebarMenu = ref(sidebarItems);
 const route = useRoute();
 
