@@ -139,7 +139,7 @@ export default defineEventHandler(async (event) => {
     }
     
     const readTemplate = async (pFileName: String): Promise<string> => {
-        const filePath = path.join(process.cwd(), 'public', `IssueTemplate/${pFileName}`)
+        const filePath = path.join(process.cwd(), 'public', `IssueTemplate/DevTracker/${pFileName}`)
         const data = await fs.promises.readFile(filePath, 'utf-8')
         return data
     }

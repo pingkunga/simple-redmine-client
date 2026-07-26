@@ -4,7 +4,7 @@ import path from 'path'
 const NUMERIC_KEYS = ['[BNZPROJECTID]', '[BNZTRACKERID]', '[BNZASSIGNEDTOID]', '[BNZFIXEDVERSIONID]']
 
 const readDevTrackerTemplate = async (fileName: string): Promise<string> => {
-    const filePath = path.join(process.cwd(), 'public', 'IssueTemplate', fileName)
+    const filePath = path.join(process.cwd(), 'public', 'IssueTemplate', 'DevTracker', fileName)
     return await fs.promises.readFile(filePath, 'utf-8')
 }
 
