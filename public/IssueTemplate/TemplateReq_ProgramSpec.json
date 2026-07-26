@@ -1,0 +1,28 @@
+{
+    "issue": {
+        "project_id": [BNZPROJECTID],
+        "tracker_id": [BNZTRACKERID],
+        "status_id": 16,
+        "priority_id": 4,
+        "assigned_to_id": [BNZASSIGNEDTOID],
+        "fixed_version_id": [BNZFIXEDVERSIONID],
+        "subject": "[BNZSUBJECT]",
+        "description": "[BNZDESCRIPTION]",
+        "start_date": "[BNZSTARTDATE]",
+        "due_date": "[BNZDUEDATE]",
+        "custom_fields": [
+            {
+                "id": 4,
+                "value": "Implementation"
+            },
+            {
+                "id": 34,
+                "value": "Production"
+            },
+            {
+                "id": 44,
+                "value": "[BNZIMPACTNOTE]"
+            }
+        ]
+    }
+}
