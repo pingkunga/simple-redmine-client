@@ -8,13 +8,19 @@
 
 ![Architecture Diagram](./redmineClientArch.svg "Architecture Diagram")
 
+See [CLAUDE.md](./CLAUDE.md) for a written breakdown of the layers, Redmine integration pattern, auth model, and other conventions (kept up to date for AI-assisted development).
+
 # Feature
 
 - [x] List Versions (On Specific Project Id)
 - [x] List Issue from versions 
-- [x] New Dev Tracker (Program Spec / Defect / Feature)
+- [x] New Dev Tracker (Program Spec / Defect)
 - [x] Set your own access Token
 - [x] New Build Common Tracker (Build Request)
+- [x] Build Invest Product Set (buildinvset) release-request builder — DOTNET / Spring / VB6 build requests, with saved per-layout templates
+- [x] Issue Relationship Graph — visualize related/child issues (Vue Flow + Dagre layout), expandable nodes, root-issue highlighting, and a per-user personal/server Redmine token toggle
+- [x] DevTracker Redmine request payload externalized into JSON + textile templates (`public/IssueTemplate/DevTracker/`)
+- [x] Collapsible sidebar (desktop) to reclaim screen width
 - [x] Add Unit Test (Initial)
 - [x] Add API admin/release/thisweek-release to get current week release data (Version with due date in current week) and send to Line Notify
 - [x] Add API admin/release/send-release-mail to send current week release data to specific email address
@@ -28,10 +34,9 @@
 - Add Coverage Report
 - Add Component Test
 - Add API Test
-- Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) / Tracker Template with some hardcode id of custom field
+- Refactor Code eq. remove hardcode to config such as List Versions (On Specific Project Id) — DevTracker's Redmine payload shape is now template-driven (`public/IssueTemplate/DevTracker/`), but custom_fields IDs are still constants baked into those JSON templates, so still open
 - Add MCP
-- Add Chat 
-- Add Build Dotnet Set Build Tracker with some custom field such as Target Version / Git Branch / Build Status
+- Add Chat
 
 # Nuxt Minimal Starter
 
@@ -112,8 +117,9 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 ## Use Lib
 
 ```
-bun add vuetify vite-plugin-vuetify sass
 bun add axios
+bun add driver.js
+bun add @dagrejs/dagre @vue-flow/core @vue-flow/background @vue-flow/controls
 ```
 
 ## Build & Run
