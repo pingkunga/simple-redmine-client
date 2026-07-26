@@ -2,6 +2,7 @@ import axios from "axios"
 import path from "path"
 import fs from "fs"
 import useRedmineAPI from "~/composables/useRedmineAPI"
+import { renderDevTrackerPayload } from "~~/server/utils/devTrackerTemplateMapper"
 
 export default defineEventHandler(async (event) => {
     //$URI = "{{baseUrl}}/issues.json"
@@ -42,36 +43,20 @@ export default defineEventHandler(async (event) => {
             validateVersionBelongToProject(pDevTrackerRequest);
 
             const description = await readTemplate('ProgramSpecTemplate.textile');
-            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
+            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name);
 
-            const body = {
-                issue: {
-                    project_id: pDevTrackerRequest.project.id,
-                    tracker_id: pDevTrackerRequest.tracker_id,
-                    status_id: 16,
-                    priority_id: 4,
-                    assigned_to_id: pDevTrackerRequest.assignTo.id,
-                    fixed_version_id: pDevTrackerRequest.targetVerion.id,
-                    subject: pDevTrackerRequest.subject,
-                    description: updatedDescription,
-                    start_date: new Date().toISOString().split('T')[0],
-                    due_date: new Date().toISOString().split('T')[0],
-                    custom_fields: [
-                        {
-                            id: 4,
-                            value: "Implementation"
-                        },
-                        {
-                            id: 34,
-                            value: "Production"
-                        },
-                        {
-                            id: 44,
-                            value: "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name
-                        }
-                    ]
-                }
-            }
+            const today = new Date().toISOString().split('T')[0]
+            const body = await renderDevTrackerPayload('TemplateReq_ProgramSpec.json', {
+                '[BNZPROJECTID]': String(pDevTrackerRequest.project.id),
+                '[BNZTRACKERID]': String(pDevTrackerRequest.tracker_id),
+                '[BNZASSIGNEDTOID]': String(pDevTrackerRequest.assignTo.id),
+                '[BNZFIXEDVERSIONID]': String(pDevTrackerRequest.targetVerion.id),
+                '[BNZSUBJECT]': pDevTrackerRequest.subject,
+                '[BNZDESCRIPTION]': updatedDescription,
+                '[BNZSTARTDATE]': today,
+                '[BNZDUEDATE]': today,
+                '[BNZIMPACTNOTE]': "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name,
+            })
 
             console.log("Request body:", body);
 
@@ -97,44 +82,24 @@ export default defineEventHandler(async (event) => {
             validateVersionBelongToProject(pDevTrackerRequest);
 
             const description = await readTemplate('DefectTemplate.textile');
-            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name); 
+            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name);
 
-            const body = {
-                issue: {
-                    project_id: pDevTrackerRequest.project.id,
-                    tracker_id: pDevTrackerRequest.tracker_id,
-                    status_id: 1,
-                    priority_id: 3,
-                    assigned_to_id: pDevTrackerRequest.assignTo.id,
-                    fixed_version_id: pDevTrackerRequest.targetVerion.id,
-                    subject: pDevTrackerRequest.subject,
-                    description: updatedDescription,
-                    start_date: new Date().toISOString().split('T')[0],
-                    due_date: new Date().toISOString().split('T')[0],
-                    //18 = Severity
-                    //14 = Found Phase
-                    //13 = Original Phase
-                    //44 = Developer's Comment
-                    custom_fields: [
-                        {
-                            id: 18,
-                            value: "Major"
-                        },
-                        {
-                            id: 14,
-                            value: "Development"
-                        },
-                        {
-                            id: 13,
-                            value: "Testing"
-                        },
-                        {
-                            id: 44,
-                            value: "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name
-                        }
-                    ]
-                }
-            }
+            //18 = Severity
+            //14 = Found Phase
+            //13 = Original Phase
+            //44 = Developer's Comment
+            const today = new Date().toISOString().split('T')[0]
+            const body = await renderDevTrackerPayload('TemplateReq_Defect.json', {
+                '[BNZPROJECTID]': String(pDevTrackerRequest.project.id),
+                '[BNZTRACKERID]': String(pDevTrackerRequest.tracker_id),
+                '[BNZASSIGNEDTOID]': String(pDevTrackerRequest.assignTo.id),
+                '[BNZFIXEDVERSIONID]': String(pDevTrackerRequest.targetVerion.id),
+                '[BNZSUBJECT]': pDevTrackerRequest.subject,
+                '[BNZDESCRIPTION]': updatedDescription,
+                '[BNZSTARTDATE]': today,
+                '[BNZDUEDATE]': today,
+                '[BNZIMPACTNOTE]': "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name,
+            })
 
             console.log("Request body:", body);
 
