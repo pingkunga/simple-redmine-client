@@ -102,11 +102,12 @@ const getAgeDays = (dateString: string | undefined) => {
   return Math.floor(diffInMilliseconds / dayInMilliseconds);
 };
 
-const { groupedColumns, isDragOver, handleDragStart, handleDrop, handleRemoveGroup } = useTableGrouping(['creator_name', 'ageDays']) 
+const { groupedColumns, isDragOver, handleDragStart, handleDrop, handleRemoveGroup } = useTableGrouping(['creator_name', 'ageDays', 'inactiveDays'])
 
 const allowColumnLabels: Record<string, string> = {
   creator_name: 'Creator',
-  ageDays: 'Age (Days)'
+  ageDays: 'Age (Days)',
+  inactiveDays: 'Inactive Days'
 }
 
 const columns: TableColumn<GitLabBranch>[] = [
@@ -183,7 +184,18 @@ const columns: TableColumn<GitLabBranch>[] = [
         ])
     }
   },
-  { 
+  {
+    id: 'inactiveDays',
+    accessorFn: (branch) => getAgeDays(branch.commit?.committed_date),
+    header: ({ column }) => renderSortableHeader('Inactive Days', column, {
+      draggable: true,
+      columnId: 'inactiveDays',
+      onDragStart: handleDragStart
+    }),
+    enableSorting: true,
+    cell: ({ row }) => renderCell(row, allowColumnLabels, 'inactiveDays', { className: 'font-medium' })
+  },
+  {
     id: 'actions',
     header: 'Actions',
     cell: ({ row }) => {
@@ -313,6 +325,7 @@ const exportToExcel = () => {
     CommitTitle: b.commit?.title || '',
     CommitShortId: b.commit?.short_id || '',
     CommitAuthor: b.commit?.author_name || '',
+    InactiveDays: getAgeDays(b.commit?.committed_date),
     Merged: b.merged ? 'Yes' : 'No',
     Protected: b.protected ? 'Yes' : 'No',
     WebUrl: b.web_url || ''
@@ -328,6 +341,7 @@ const exportToExcel = () => {
     { wch: 50 }, // CommitTitle
     { wch: 12 }, // CommitShortId
     { wch: 20 }, // CommitAuthor
+    { wch: 10 }, // InactiveDays
     { wch: 8 },
     { wch: 10 },
     { wch: 40 }
