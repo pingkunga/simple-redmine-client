@@ -19,6 +19,10 @@ export default defineEventHandler(async (event) => {
     }
 
     const validateVersionBelongToProject = (pDevTrackerRequest: DevTrackerRequest) => {
+        if (!pDevTrackerRequest.targetVerion) {
+            return true;
+        }
+
         const {versionShareType } = useRedmineAPI()
         if ((pDevTrackerRequest.targetVerion.sharing === versionShareType.DESCENDANTS)
          || (pDevTrackerRequest.targetVerion.sharing === versionShareType.HIERARCHY)
@@ -36,21 +40,35 @@ export default defineEventHandler(async (event) => {
         }
     }
 
+    const validateVersionRequired = (pDevTrackerRequest: DevTrackerRequest): Version => {
+        const targetVersion = pDevTrackerRequest.targetVerion
+        if (!targetVersion?.id) {
+            throw createError({
+                statusCode: 400,
+                message: 'Version is required',
+                statusMessage: 'Version is required',
+            })
+        }
+
+        return targetVersion
+    }
+
     const createProgramSpec = async (pDevTrackerRequest: DevTrackerRequest) => {
         try {
             //validate project id
             validateAssigneeBelongToProject(pDevTrackerRequest);
+            const targetVersion = validateVersionRequired(pDevTrackerRequest);
             validateVersionBelongToProject(pDevTrackerRequest);
 
             const description = await readTemplate('ProgramSpecTemplate.textile');
-            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name);
+            const updatedDescription = description.split("[BNZSELECTVERSION]").join(targetVersion.name);
 
-            const today = new Date().toISOString().split('T')[0]
+            const today = new Date().toISOString().split('T')[0] ?? ''
             const body = await renderDevTrackerPayload('TemplateReq_ProgramSpec.json', {
                 '[BNZPROJECTID]': String(pDevTrackerRequest.project.id),
                 '[BNZTRACKERID]': String(pDevTrackerRequest.tracker_id),
                 '[BNZASSIGNEDTOID]': String(pDevTrackerRequest.assignTo.id),
-                '[BNZFIXEDVERSIONID]': String(pDevTrackerRequest.targetVerion.id),
+                '[BNZFIXEDVERSIONID]': String(targetVersion.id),
                 '[BNZSUBJECT]': pDevTrackerRequest.subject,
                 '[BNZDESCRIPTION]': updatedDescription,
                 '[BNZSTARTDATE]': today,
@@ -79,21 +97,64 @@ export default defineEventHandler(async (event) => {
         try {
             //validate project id
             validateAssigneeBelongToProject(pDevTrackerRequest);
+            const targetVersion = validateVersionRequired(pDevTrackerRequest);
             validateVersionBelongToProject(pDevTrackerRequest);
 
             const description = await readTemplate('DefectTemplate.textile');
-            const updatedDescription = description.split("[BNZSELECTVERSION]").join(pDevTrackerRequest.targetVerion.name);
+            const updatedDescription = description.split("[BNZSELECTVERSION]").join(targetVersion.name);
 
             //18 = Severity
             //14 = Found Phase
             //13 = Original Phase
             //44 = Developer's Comment
-            const today = new Date().toISOString().split('T')[0]
+            const today = new Date().toISOString().split('T')[0] ?? ''
             const body = await renderDevTrackerPayload('TemplateReq_Defect.json', {
                 '[BNZPROJECTID]': String(pDevTrackerRequest.project.id),
                 '[BNZTRACKERID]': String(pDevTrackerRequest.tracker_id),
                 '[BNZASSIGNEDTOID]': String(pDevTrackerRequest.assignTo.id),
-                '[BNZFIXEDVERSIONID]': String(pDevTrackerRequest.targetVerion.id),
+                '[BNZFIXEDVERSIONID]': String(targetVersion.id),
+                '[BNZSUBJECT]': pDevTrackerRequest.subject,
+                '[BNZDESCRIPTION]': updatedDescription,
+                '[BNZSTARTDATE]': today,
+                '[BNZDUEDATE]': today,
+                '[BNZIMPACTNOTE]': "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name,
+            })
+
+            console.log("Request body:", body);
+
+            const response = await axios.post(url, body, { headers })
+            const issueId = response.data.issue.id
+            console.log("Issue created with ID:", issueId);
+
+            const updatedDescriptionWithId = await UpdateDescRedmineId(response.data.issue.description, issueId)
+            console.log("Updated description with Redmine ID:", updatedDescriptionWithId);
+
+            return issueId
+
+        } catch (error) {
+            console.error('Error adding issue:', error)
+            throw error
+        }
+    }
+
+    const createChangeRequest = async (pDevTrackerRequest: DevTrackerRequest) => {
+        try {
+            validateAssigneeBelongToProject(pDevTrackerRequest);
+            if (pDevTrackerRequest.targetVerion?.id) {
+                validateVersionBelongToProject(pDevTrackerRequest);
+            }
+
+            const description = await readTemplate('ChangeRequestTemplate.textile');
+            const updatedDescription = description
+                .split("[BNZSELECTVERSION]")
+                .join(pDevTrackerRequest.targetVerion?.name ?? "-");
+
+            const today = new Date().toISOString().split('T')[0] ?? ''
+            const body = await renderDevTrackerPayload('TemplateReq_ChangeRequest.json', {
+                '[BNZPROJECTID]': String(pDevTrackerRequest.project.id),
+                '[BNZTRACKERID]': String(pDevTrackerRequest.tracker_id),
+                '[BNZASSIGNEDTOID]': String(pDevTrackerRequest.assignTo.id),
+                '[BNZFIXEDVERSIONID]': String(pDevTrackerRequest.targetVerion?.id ?? ''),
                 '[BNZSUBJECT]': pDevTrackerRequest.subject,
                 '[BNZDESCRIPTION]': updatedDescription,
                 '[BNZSTARTDATE]': today,
@@ -164,6 +225,9 @@ export default defineEventHandler(async (event) => {
     }
     else if (devTrackerRequest.tracker_id === TRACKER.DEFECT) {
         return await createDefectSpec(devTrackerRequest)
+    }
+    else if (devTrackerRequest.tracker_id === TRACKER.CHANGE_REQUEST) {
+        return await createChangeRequest(devTrackerRequest)
     }
     else {
         throw createError({
