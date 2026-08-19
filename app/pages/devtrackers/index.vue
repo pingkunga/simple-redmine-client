@@ -68,7 +68,7 @@
           />
         </UFormField>
 
-        <UFormField label="Select Version" name="selectedVersion" required>
+        <UFormField label="Select Version" name="selectedVersion" :required="isVersionRequired">
           <USelectMenu
             v-model="state.selectedVersion"
             :items="versions"
@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import type { NuxtError } from "#app";
 import { z } from 'zod';
-import { h } from 'vue';
+import { computed, h } from 'vue';
 import useDevTrackersTour from '~/composables/useDevTrackersTour'
 
 const { startTour } = useDevTrackersTour()
@@ -114,7 +114,7 @@ const isUseServerToken = ref(false);
 const config = useRuntimeConfig();
 const baseUrl = config.public.redmineUrl;
 
-const { devTrackers, YourOwnRedmineAPI } = useRedmineAPI();
+const { devTrackers, YourOwnRedmineAPI, TRACKER } = useRedmineAPI();
 const { isItemInListByType } = useCommonUtil();
 const toast = useToast();
 
@@ -130,16 +130,23 @@ const state = reactive({
   selectedVersion: undefined as Version | undefined
 })
 
+const isVersionRequired = computed(() => state.selectTracker !== TRACKER.CHANGE_REQUEST)
+
 const schema = z.object({
   selectTracker: z.number('Tracker is required'),
   trackerTitle: z.string().regex(/^\[[A-Za-z0-9-]+\]\[[A-Za-z0-9-]+\]\[(IMPACT|NOIMPACT)]\s.+$/, 'Input must match the required format.'),
   selectedProject: z.object({ id: z.number() }, { error: 'Project is required' }),
   selectedAssignee: z.object({ id: z.number() }, { error: 'Project Member is required' }),
-  selectedVersion: z.object({ id: z.number() }, { error: 'Version is required' })
+  selectedVersion: z.object({ id: z.number() }).optional()
+}).superRefine((value, ctx) => {
+  if (value.selectTracker !== TRACKER.CHANGE_REQUEST && !value.selectedVersion) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['selectedVersion'],
+      message: 'Version is required'
+    })
+  }
 })
-
-const { data: dataProjects, error } = await useRedmineAPI().getProject<Project[]>();
-projects.value = dataProjects.value ?? [];
 
 // ===============================
 // LIFECYCLE HOOKS
@@ -148,11 +155,19 @@ onMounted(() => {
   const { retriveAccessKey } = useClientUtil();
   accessKey.value = retriveAccessKey() || "";
 
+  // Default mode: use client key when available, otherwise use server token.
+  isUseServerToken.value = !accessKey.value;
+
   projectsInit();
 });
 
 const projectsInit = async () => {
   try {
+    if (!isUseServerToken.value && !accessKey.value) {
+      projects.value = [];
+      return;
+    }
+
     const headers: Record<string, string> = {
       [YourOwnRedmineAPI]: accessKey.value ?? "",
     };
@@ -177,6 +192,13 @@ const projectChange = async (project: Project) => {
   console.log("Selected project:", project);
 
   if (project) {
+    if (!isUseServerToken.value && !accessKey.value) {
+      projectMembers.value = [];
+      versions.value = [];
+      toast.add({ title: 'Error', description: 'Please set your access key in Client Setting', color: 'error', icon: 'i-heroicons-exclamation-circle' });
+      return;
+    }
+
     const headers: Record<string, string> = {
       [YourOwnRedmineAPI]: accessKey.value ?? "",
     };
@@ -205,7 +227,7 @@ const projectChange = async (project: Project) => {
 
 const handleSubmit = async () => {
   try {
-    if (!accessKey.value) {
+    if (!isUseServerToken.value && !accessKey.value) {
       toast.add({ title: 'Error', description: 'Please set your access key in Client Setting', color: 'error', icon: 'i-heroicons-exclamation-circle' });
       return;
     }

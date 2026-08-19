@@ -4,7 +4,7 @@ export interface DevTrackerRequest {
   project: Project;
   assignTo: ProjectMemberShip;
   
-  targetVerion: Version;
+  targetVerion?: Version;
 
   subject: string;
 }
