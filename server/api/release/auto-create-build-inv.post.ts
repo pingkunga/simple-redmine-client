@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
             // Determine layout: Customer if buildFor is set, otherwise Internal
             const isCustomer = !!version.buildFor;
             const targetLayout = isCustomer ? 'WeeklyBuild-Customer' : 'WeeklyBuild-Internal';
+            console.log(`Processing version ${version.name} with layout ${targetLayout}`);
             
             // read template from target layout if exists, otherwise use the default template
             const layoutTemplateName = `buildinvset/${targetLayout}/build_parameters.json`;
