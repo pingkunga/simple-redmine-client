@@ -16,12 +16,13 @@ export default defineEventHandler(async (event) => {
         const versions = await getThisWeekVersions(event, filterProjectId);
         
         // 2. Read the base template from buildinvset/Default/build_parameters.json
-        const template = readConfigJson<BuildInvSetRequest>('buildinvset/Default/build_parameters.json');
+        const templateName = String(query.templateName || 'buildinvset/Default/build_parameters.json')
+        const template = readConfigJson<BuildInvSetRequest>(templateName);
         
         if (!template) {
             throw createError({
                 statusCode: 500,
-                statusMessage: 'Build parameter template not found in /public/IssueTemplate/buildinvset/Default/build_parameters.json',
+                statusMessage: `Build parameter template not found in /public/IssueTemplate/${templateName}`,
             });
         }
 
