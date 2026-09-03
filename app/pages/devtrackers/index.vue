@@ -79,6 +79,16 @@
           />
         </UFormField>
       </div>  
+      <div class="rounded-lg border border-default bg-default px-3 py-2 shadow-sm">
+        <div class="flex items-center gap-3">
+          <USwitch v-model="preservePreviousValues" />
+          <div>
+            <p class="text-sm font-medium text-highlighted">Keep previous values after save</p>
+            <p class="text-xs text-toned">When enabled, the form keeps the last values after a successful submit.</p>
+          </div>
+        </div>
+      </div>
+
       <div id="tour-submit-actions" class="flex gap-2 pt-4">
         <UButton 
           type="submit" 
@@ -110,6 +120,7 @@ import useDevTrackersTour from '~/composables/useDevTrackersTour'
 const { startTour } = useDevTrackersTour()
 const accessKey = ref<string | null>(null);
 const isUseServerToken = ref(false);
+const preservePreviousValues = ref(false);
 
 const config = useRuntimeConfig();
 const baseUrl = config.public.redmineUrl;
@@ -263,7 +274,9 @@ const handleSubmit = async () => {
       duration: 15000
     });
 
-    handleReset();
+    if (!preservePreviousValues.value) {
+      handleReset();
+    }
   } catch (error : unknown) {
     console.error("Failed to save issue:", error);
     const nError = error as NuxtError;
