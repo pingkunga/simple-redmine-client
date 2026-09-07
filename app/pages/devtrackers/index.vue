@@ -145,7 +145,7 @@ const isVersionRequired = computed(() => state.selectTracker !== TRACKER.CHANGE_
 
 const schema = z.object({
   selectTracker: z.number('Tracker is required'),
-  trackerTitle: z.string().regex(/^\[[A-Za-z0-9-]+\]\[[A-Za-z0-9-]+\]\[(IMPACT|NOIMPACT)]\s.+$/, 'Input must match the required format.'),
+  trackerTitle: z.string().regex(/^\[[A-Za-z0-9()\-]+\]\[[A-Za-z0-9()\-]+\]\[(IMPACT|NOIMPACT)]\s.+$/, 'Input must match the required format.'),
   selectedProject: z.object({ id: z.number() }, { error: 'Project is required' }),
   selectedAssignee: z.object({ id: z.number() }, { error: 'Project Member is required' }),
   selectedVersion: z.object({ id: z.number() }).optional()
