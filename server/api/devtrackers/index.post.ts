@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
         return targetVersion
     }
 
+
     const createProgramSpec = async (pDevTrackerRequest: DevTrackerRequest) => {
         try {
             //validate project id
@@ -89,6 +90,46 @@ export default defineEventHandler(async (event) => {
 
         } catch (error) {
             console.error('Error adding issue:', error)
+            throw error
+        }
+    }
+
+    const createFeature = async (pDevTrackerRequest: DevTrackerRequest) => {
+        try {
+            validateAssigneeBelongToProject(pDevTrackerRequest);
+            const targetVersion = validateVersionRequired(pDevTrackerRequest);
+            validateVersionBelongToProject(pDevTrackerRequest);
+
+            const description = await readTemplate('FeatureTemplate.textile');
+            const updatedDescription = description
+                .split("[BNZSELECTVERSION]").join(targetVersion.name)
+                .split("[BNZIMPACTNOTE]").join("Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name);
+
+            const today = new Date().toISOString().split('T')[0] ?? ''
+            const body = await renderDevTrackerPayload('TemplateReq_Feature.json', {
+                '[BNZPROJECTID]': String(pDevTrackerRequest.project.id),
+                '[BNZTRACKERID]': String(pDevTrackerRequest.tracker_id),
+                '[BNZASSIGNEDTOID]': String(pDevTrackerRequest.assignTo.id),
+                '[BNZFIXEDVERSIONID]': String(targetVersion.id),
+                '[BNZSUBJECT]': pDevTrackerRequest.subject,
+                '[BNZDESCRIPTION]': updatedDescription,
+                '[BNZSTARTDATE]': today,
+                '[BNZDUEDATE]': today,
+                '[BNZIMPACTNOTE]': "Impact Note\n- รบกวนสอบถาม " + pDevTrackerRequest.assignTo.name,
+            })
+
+            console.log("Request body:", body);
+
+            const response = await axios.post(url, body, { headers })
+            const issueId = response.data.issue.id
+            console.log("Issue created with ID:", issueId);
+
+            const updatedDescriptionWithId = await UpdateDescRedmineId(response.data.issue.description, issueId)
+            console.log("Updated description with Redmine ID:", updatedDescriptionWithId);
+
+            return issueId
+        } catch (error) {
+            console.error('Error adding feature issue:', error)
             throw error
         }
     }
@@ -222,6 +263,9 @@ export default defineEventHandler(async (event) => {
 
     if (devTrackerRequest.tracker_id === TRACKER.PROGRAM_SPEC) {
         return await createProgramSpec(devTrackerRequest)
+    }
+    else if (devTrackerRequest.tracker_id === TRACKER.FEATURE) {
+        return await createFeature(devTrackerRequest)
     }
     else if (devTrackerRequest.tracker_id === TRACKER.DEFECT) {
         return await createDefectSpec(devTrackerRequest)

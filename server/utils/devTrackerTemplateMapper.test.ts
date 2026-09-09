@@ -59,6 +59,35 @@ describe('devTrackerTemplateMapper', () => {
         ])
     })
 
+    it('renders TemplateReq_Feature.json into a valid Redmine issue payload', async () => {
+        const payload = await renderDevTrackerPayload('TemplateReq_Feature.json', {
+            ...baseReplacements,
+            '[BNZTRACKERID]': '14',
+        })
+
+        expect(payload.issue.project_id).toBe(1)
+        expect(payload.issue.tracker_id).toBe(14)
+        expect(payload.issue.status_id).toBe(1)
+        expect(payload.issue.priority_id).toBe(3)
+        expect(payload.issue.assigned_to_id).toBe(99)
+        expect(payload.issue.fixed_version_id).toBe(10)
+        expect(payload.issue.custom_fields).toEqual([
+            { id: 39, value: 'Work' },
+            { id: 41, value: '' },
+            { id: 51, value: '' },
+            { id: 26, value: '' },
+            { id: 18, value: '' },
+            { id: 97, value: '' },
+            { id: 44, value: 'Impact Note\n- รบกวนสอบถาม Tester' },
+            { id: 5, value: '' },
+            { id: 115, value: '' },
+            { id: 116, value: '' },
+            { id: 112, value: '' },
+            { id: 113, value: '' },
+            { id: 114, value: '' },
+        ])
+    })
+
     it('escapes quotes and newlines in string replacements so the JSON stays valid', () => {
         const output = replaceAllJson('{"description": "[BNZDESCRIPTION]"}', {
             '[BNZDESCRIPTION]': 'has "quotes"\nand newlines',
