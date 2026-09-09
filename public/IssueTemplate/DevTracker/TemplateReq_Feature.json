@@ -1,0 +1,68 @@
+{
+    "issue": {
+        "project_id": [BNZPROJECTID],
+        "tracker_id": [BNZTRACKERID],
+        "status_id": 1,
+        "priority_id": 3,
+        "assigned_to_id": [BNZASSIGNEDTOID],
+        "fixed_version_id": [BNZFIXEDVERSIONID],
+        "subject": "[BNZSUBJECT]",
+        "description": "[BNZDESCRIPTION]",
+        "start_date": "[BNZSTARTDATE]",
+        "due_date": "[BNZDUEDATE]",
+        "custom_fields": [
+            {
+                "id": 39,
+                "value": "Work"
+            },
+            {
+                "id": 41,
+                "value": ""
+            },
+            {
+                "id": 51,
+                "value": ""
+            },
+            {
+                "id": 26,
+                "value": ""
+            },
+            {
+                "id": 18,
+                "value": ""
+            },
+            {
+                "id": 97,
+                "value": ""
+            },
+            {
+                "id": 44,
+                "value": "[BNZIMPACTNOTE]"
+            },
+            {
+                "id": 5,
+                "value": ""
+            },
+            {
+                "id": 115,
+                "value": ""
+            },
+            {
+                "id": 116,
+                "value": ""
+            },
+            {
+                "id": 112,
+                "value": ""
+            },
+            {
+                "id": 113,
+                "value": ""
+            },
+            {
+                "id": 114,
+                "value": ""
+            }
+        ]
+    }
+}
