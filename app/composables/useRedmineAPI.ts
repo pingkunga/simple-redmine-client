@@ -10,13 +10,15 @@ export default () => {
         FEATURE = 14,
         DEFECT = 8,
         BUILD_REQUEST = 6,
+        CHANGE_REQUEST = 4,
     }
     
     const devTrackerMap = new Map<number, string>(
         [
             [TRACKER.PROGRAM_SPEC, "Program Spec"],
             [TRACKER.FEATURE, "Feature"],
-            [TRACKER.DEFECT, "Defect"]
+            [TRACKER.DEFECT, "Defect"],
+            [TRACKER.CHANGE_REQUEST, "Change Request"]
         ]
     );
 
@@ -222,7 +224,7 @@ export default () => {
     const createDevTrackerRequest = <T>(trackerId: number
                                       , project: Project
                                       , assignTo: ProjectMemberShip
-                                      , targetVerion: Version
+                                      , targetVerion: Version | undefined
                                       , subject: string): DevTrackerRequest => {
         
         const request = {

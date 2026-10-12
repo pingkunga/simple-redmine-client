@@ -801,6 +801,10 @@ const loadTemplate = async (layout: string) => {
         await Promise.all(promises)
       }
 
+      if (formState.thisweekRelease) {
+        await handleThisWeekReleaseToggle(true)
+      }
+      
       toast.add({
         title: 'Template Loaded',
         description: `Build parameters for "${layout}" have been restored.`,
