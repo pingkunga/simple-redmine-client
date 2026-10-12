@@ -1,18 +1,20 @@
 <template>
   <ClientOnly>
-    <!--check if found access key in local storage-->
-    <div v-if="!accessKey" class="text-red-500 mb-4">
-      Please set your access key in Client Setting
-    </div>
-    <div v-else class="mb-2 space-y-2 pt-2">
+    <div class="mb-2 space-y-2 pt-2">
+      <!-- Keep server-token switch available even when no client key exists. -->
+      <div v-if="!accessKey" class="text-red-500 mb-2">
+        Please set your access key in Client Setting (or use Server Token)
+      </div>
+
       <UFormField label="Encrypt Access Key">
         <UInput
-          :model-value="accessKey"
+          :model-value="accessKey || ''"
           readonly
           type="password"
           icon="i-heroicons-lock-closed"
         />
       </UFormField>
+
       <div class="flex items-center gap-6">
         <USwitch
           :model-value="isUseServerToken"
