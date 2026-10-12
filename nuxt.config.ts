@@ -10,6 +10,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     redmineToken: "no_token",
+    jenkinsUrl: process.env.JENKINS_URL || "",
+    jenkinsJob: process.env.JENKINS_JOB || "ADHOCVERSIONGEN",
+    jenkinsUser: process.env.JENKINS_USER || "",
+    jenkinsToken: process.env.JENKINS_TOKEN || "",
+    jenkinsCacheDir: process.env.JENKINS_CACHE_DIR || "./data/jenkins-cache",
     smtpHost: "smtp.example.com",
     smtpPort: 587,
     smtpSecure: false,
@@ -57,4 +62,3 @@ export default defineNuxtConfig({
     client: true,
   },
 })
-

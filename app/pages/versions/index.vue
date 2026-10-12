@@ -35,6 +35,15 @@
             </UFormField>
           </div>
 
+          <div v-if="editedIndex === -1" class="rounded-md border border-default p-3 space-y-3">
+            <UCheckbox v-model="createJenkinsFolder" label="Create Version Folder via Jenkins" />
+            <UCheckbox
+              v-if="createJenkinsFolder"
+              v-model="jenkinsCleanup"
+              label="Cleanup existing Version Folder before creating"
+            />
+          </div>
+
           <!-- Row 2: Version / Sharing / Due Date -->
           <div class="grid grid-cols-3 gap-4">
             <UFormField label="Version" name="name" required>
@@ -64,9 +73,36 @@
           <UFormField label="Description" name="description" class="w-full" required>
             <UTextarea v-model="editedItem.description" class="w-full" />
           </UFormField>
+
+          <div v-if="jenkinsStatus" class="rounded-md border border-default p-3 text-sm">
+            <div class="font-medium">Jenkins Version Folder: {{ jenkinsStatus }}</div>
+            <div v-if="jenkinsBuildNumber">Build #{{ jenkinsBuildNumber }}</div>
+            <a
+              v-if="jenkinsUrl"
+              :href="jenkinsUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary hover:underline"
+            >
+              Open Jenkins Build
+            </a>
+            <div v-if="jenkinsError" class="text-error mt-1">{{ jenkinsError }}</div>
+          </div>
           
           <div class="flex gap-2 mt-6">
-            <UButton type="submit">Save</UButton>
+            <UButton type="submit" :loading="saving" :disabled="saving || jenkinsStatus === 'success'">
+              {{ saving ? 'Saving...' : 'Save' }}
+            </UButton>
+            <UButton
+              v-if="jenkinsCanRetry"
+              type="button"
+              variant="outline"
+              :loading="retryingJenkins"
+              :disabled="saving || retryingJenkins"
+              @click="retryJenkins"
+            >
+              Retry Jenkins
+            </UButton>
             <UButton variant="outline" @click="close">Cancel</UButton>
           </div>
         </UForm>
@@ -81,6 +117,7 @@ import { versionFormSchema } from '~/composables/useVersionValidation'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { ColumnFilter } from '@tanstack/vue-table'
 import { UBadge, UButton } from '#components'
+import type { JenkinsVersionFolderStatus } from '~~/shared/types/Jenkins'
 
 const table = useTemplateRef('table')
 const toast = useToast();
@@ -100,6 +137,16 @@ const supportProjects = ref<any[]>([]);
 const refreshKey = ref(0);
 
 const loading = ref(false);
+const saving = ref(false);
+const retryingJenkins = ref(false);
+const createJenkinsFolder = ref(false);
+const jenkinsCleanup = ref(true);
+const jenkinsJobId = ref<string | null>(null);
+const jenkinsStatus = ref<JenkinsVersionFolderStatus | null>(null);
+const jenkinsBuildNumber = ref<number | undefined>();
+const jenkinsUrl = ref<string | undefined>();
+const jenkinsError = ref<string | undefined>();
+const { trigger: triggerJenkins, getStatus: getJenkinsStatus, retry: retryJenkinsJob } = useJenkinsVersionFolder();
 
 const fetchProjects = async () => {
   try {
@@ -296,6 +343,7 @@ const defaultVersion: Version = {
 const editedItem = ref<Version>({ ...defaultVersion });
 
 const editItem = (row: Version) => {
+  resetJenkinsState();
   editedIndex.value = dataversions.value?.indexOf(row) ?? -1;
   editedItem.value = { ...row };
   isModalOpen.value = true;
@@ -304,6 +352,7 @@ const editItem = (row: Version) => {
 const openNewDialog = () => {
   editedIndex.value = -1;
   editedItem.value = { ...defaultVersion };
+  resetJenkinsState();
   
   // Set default project to the first one in the list
   if (supportProjects.value.length > 0) {
@@ -315,25 +364,130 @@ const openNewDialog = () => {
 
 const close = () => {
   editedItem.value = { ...defaultVersion };
+  resetJenkinsState();
   isModalOpen.value = false;
 };
 
+const resetJenkinsState = () => {
+  createJenkinsFolder.value = false;
+  jenkinsCleanup.value = true;
+  jenkinsJobId.value = null;
+  jenkinsStatus.value = null;
+  jenkinsBuildNumber.value = undefined;
+  jenkinsUrl.value = undefined;
+  jenkinsError.value = undefined;
+};
+
+const jenkinsCanRetry = computed(() =>
+  Boolean(jenkinsJobId.value && ['failed', 'timeout'].includes(jenkinsStatus.value || ''))
+);
+
+const wait = (milliseconds: number) => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+const updateJenkinsState = (job: {
+  status: JenkinsVersionFolderStatus
+  buildNumber?: number
+  jenkinsUrl?: string
+  error?: string
+}) => {
+  jenkinsStatus.value = job.status;
+  jenkinsBuildNumber.value = job.buildNumber;
+  jenkinsUrl.value = job.jenkinsUrl;
+  jenkinsError.value = job.error;
+};
+
+const pollJenkins = async (jobId: string) => {
+  const timeoutAt = Date.now() + 3 * 60 * 1000;
+
+  while (Date.now() < timeoutAt) {
+    const job = await getJenkinsStatus(jobId);
+    updateJenkinsState(job);
+
+    if (job.status === 'success') {
+      return;
+    }
+
+    if (job.status === 'failed') {
+      throw new Error(job.error || 'Jenkins job failed');
+    }
+
+    await wait(3000);
+  }
+
+  jenkinsStatus.value = 'timeout';
+  jenkinsError.value = 'Jenkins job timed out after 3 minutes';
+  throw new Error(jenkinsError.value);
+};
+
+const retryJenkins = async () => {
+  if (!jenkinsJobId.value) return;
+
+  retryingJenkins.value = true;
+  jenkinsError.value = undefined;
+
+  try {
+    const job = await retryJenkinsJob(jenkinsJobId.value);
+    updateJenkinsState(job);
+    await pollJenkins(job.jobId);
+    toast.add({ title: 'Success', description: 'Jenkins Version Folder created successfully.', color: 'success', icon: 'i-heroicons-check-circle' });
+  } catch (error: unknown) {
+    jenkinsError.value = error instanceof Error ? error.message : 'Jenkins retry failed';
+    toast.add({ title: 'Jenkins Error', description: jenkinsError.value, color: 'error', icon: 'i-heroicons-exclamation-circle' });
+  } finally {
+    retryingJenkins.value = false;
+  }
+};
+
 const save = async () => {
+  saving.value = true;
+  let redmineSaved = false;
+
   try {
     if (editedIndex.value === -1) {
       // Create new item
       await useRedmineAPI().addVersion(editedItem.value, editedItem.value.projectid);
+      redmineSaved = true;
+
+      if (createJenkinsFolder.value) {
+        const job = await triggerJenkins(
+          editedItem.value.name,
+          editedItem.value.projectid,
+          jenkinsCleanup.value
+        );
+        jenkinsJobId.value = job.jobId;
+        jenkinsStatus.value = job.status;
+        await pollJenkins(job.jobId);
+      }
     } else {
       // Update existing item
       await useRedmineAPI().updateVersion(editedItem.value);
     }
     //refresh data
     await fetchVersions(true);
-    toast.add({ title: 'Success', description: 'Version saved successfully.', color: 'success', icon: 'i-heroicons-check-circle' });
+    toast.add({
+      title: 'Success',
+      description: createJenkinsFolder.value
+        ? 'Version and Jenkins Version Folder created successfully.'
+        : 'Version saved successfully.',
+      color: 'success',
+      icon: 'i-heroicons-check-circle'
+    });
     close();
   } catch (error : unknown) {
     console.error("Failed to save version:", error);
-    toast.add({ title: 'Error', description: 'Failed to save version. ' + (error instanceof Error ? error.message : '') + ' Please try again.', color: 'error', icon: 'i-heroicons-exclamation-circle' });
+    if (redmineSaved && createJenkinsFolder.value) {
+      await fetchVersions(true);
+      toast.add({
+        title: 'Version saved, Jenkins failed',
+        description: 'The Version was saved in Redmine, but Jenkins could not create the Version Folder. You can retry Jenkins.',
+        color: 'warning',
+        icon: 'i-heroicons-exclamation-circle'
+      });
+    } else {
+      toast.add({ title: 'Error', description: 'Failed to save version. ' + (error instanceof Error ? error.message : '') + ' Please try again.', color: 'error', icon: 'i-heroicons-exclamation-circle' });
+    }
+  } finally {
+    saving.value = false;
   }
 };
 
