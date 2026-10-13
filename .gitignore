@@ -26,3 +26,5 @@ logs
 vitest-report.json
 test-results.xml
 ReleaseMail.html
+
+opencode.json

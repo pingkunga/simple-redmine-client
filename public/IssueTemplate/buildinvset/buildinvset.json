@@ -3,6 +3,15 @@
         "id": -99,
         "name": "Default",
         "description": "Default Template for Build Request (buildinvset)",
-        "order": 99
+        "order": 99,
+        "roles": ["all"]
+
+    },
+    {
+        "id": -98,
+        "name": "DefaultAdmin",
+        "description": "Default Template for Build Request (buildinvset)",
+        "order": 98,
+        "roles": ["admin", "scm"]
     }
 ]
