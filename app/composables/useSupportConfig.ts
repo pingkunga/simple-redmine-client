@@ -48,12 +48,24 @@ export default function useSupportConfig() {
   }
 
   const loadSupportLayoutOptions = async () => {
-    const layoutConfig = await $fetch<Array<{ id: number; name: string; description?: string; order?: number }>>('/api/config/buildinvset.json')
+    // 
+    const userRolesCookie = useCookie<string[]>('user_roles')
+    const userRoles = userRolesCookie.value || []
+
+    const layoutConfig = await $fetch<Array<{ id: number; name: string; description?: string; order?: number, roles?: string[] }>>('/api/config/buildinvset.json')
     logConfigPayload('buildinvset.json', layoutConfig)
 
     if (!Array.isArray(layoutConfig)) return []
 
     return [...layoutConfig]
+      .filter((item) => {
+        if (!item.roles || item.roles.length === 0 || item.roles.includes('all')) {
+           return true
+        }
+        
+        return item.roles.some((role) => userRoles.includes(role))
+      })
+
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       .map((item) => ({ label: item.name, value: item.name }))
   }
