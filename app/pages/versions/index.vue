@@ -36,13 +36,13 @@
           </div>
 
           <div v-if="editedIndex === -1" class="rounded-md border border-default p-3 space-y-3">
-            <UCheckbox v-model="createJenkinsFolder" label="Create Version Folder via Jenkins" />
-            <UCheckbox
+            <UCheckbox v-model="createJenkinsFolder" label="Create Version Folder (Repo: invest-net-resource) via Jenkins" />
+            <!-- <UCheckbox
               v-if="createJenkinsFolder"
               v-model="jenkinsCleanup"
               :disabled="true"
               label="Cleanup existing Version Folder before creating"
-            />
+            /> -->
           </div>
 
           <!-- Row 2: Version / Sharing / Due Date -->
@@ -370,8 +370,8 @@ const close = () => {
 };
 
 const resetJenkinsState = () => {
-  createJenkinsFolder.value = false;
-  jenkinsCleanup.value = true;
+  createJenkinsFolder.value = true;
+  jenkinsCleanup.value = false;
   jenkinsJobId.value = null;
   jenkinsStatus.value = null;
   jenkinsBuildNumber.value = undefined;
