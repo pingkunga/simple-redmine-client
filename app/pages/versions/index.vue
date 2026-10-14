@@ -40,6 +40,7 @@
             <UCheckbox
               v-if="createJenkinsFolder"
               v-model="jenkinsCleanup"
+              :disabled="true"
               label="Cleanup existing Version Folder before creating"
             />
           </div>
@@ -139,7 +140,7 @@ const refreshKey = ref(0);
 const loading = ref(false);
 const saving = ref(false);
 const retryingJenkins = ref(false);
-const createJenkinsFolder = ref(false);
+const createJenkinsFolder = ref(true);
 const jenkinsCleanup = ref(true);
 const jenkinsJobId = ref<string | null>(null);
 const jenkinsStatus = ref<JenkinsVersionFolderStatus | null>(null);
