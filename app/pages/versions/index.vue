@@ -310,9 +310,10 @@ const columns: TableColumn<Version>[] = [
     header: ({ column }) => h('div', { class: 'text-left' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'flex gap-2' }, [
       h(UButton, { size: 'xs', variant: 'outline', onClick: () => editItem(row.original) }, 'Edit'),
+      h(UButton, { size: 'xs', variant: 'outline', color: 'neutral', onClick: () => copyItem(row.original) }, 'Copy'),
       h(UButton, { size: 'xs', variant: 'outline', color: 'error', onClick: () => deleteItem(row.original) }, 'Delete')
     ]),
-    size: 150
+    size: 210
   }
 ]
 
@@ -347,6 +348,30 @@ const editItem = (row: Version) => {
   resetJenkinsState();
   editedIndex.value = dataversions.value?.indexOf(row) ?? -1;
   editedItem.value = { ...row };
+  isModalOpen.value = true;
+};
+
+const getNextMonday = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + ((8 - date.getDay()) % 7 || 7));
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
+const copyItem = (row: Version) => {
+  resetJenkinsState();
+  editedIndex.value = -1;
+  editedItem.value = {
+    ...row,
+    id: -1,
+    name: "",
+    versionName: "",
+    status: "open",
+    due_date: getNextMonday(),
+    created_on: "",
+    updated_on: ""
+  };
   isModalOpen.value = true;
 };
 
