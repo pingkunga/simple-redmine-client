@@ -151,8 +151,7 @@ const { trigger: triggerJenkins, getStatus: getJenkinsStatus, retry: retryJenkin
 
 const fetchProjects = async () => {
   try {
-    const { data } = await useFetch<any[]>('/api/projects/support');
-    supportProjects.value = data.value || [];
+    supportProjects.value = await $fetch<any[]>('/api/projects/support');
   } catch (err) {
     console.error("Failed to fetch support projects:", err);
   }
@@ -310,6 +309,7 @@ const columns: TableColumn<Version>[] = [
     header: ({ column }) => h('div', { class: 'text-left' }, 'Actions'),
     cell: ({ row }) => h('div', { class: 'flex gap-2' }, [
       h(UButton, { size: 'xs', variant: 'outline', onClick: () => editItem(row.original) }, 'Edit'),
+      h(UButton, { size: 'xs', variant: 'outline', onClick: () => copyItem(row.original) }, 'Copy'),
       h(UButton, { size: 'xs', variant: 'outline', color: 'error', onClick: () => deleteItem(row.original) }, 'Delete')
     ]),
     size: 150
@@ -347,6 +347,26 @@ const editItem = (row: Version) => {
   resetJenkinsState();
   editedIndex.value = dataversions.value?.indexOf(row) ?? -1;
   editedItem.value = { ...row };
+  isModalOpen.value = true;
+};
+
+// If today is Monday, returns the Monday of next week.
+const getNextMonday = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + (((8 - d.getDay()) % 7) || 7));
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+};
+
+const copyItem = (row: Version) => {
+  resetJenkinsState();
+  editedIndex.value = -1;
+  editedItem.value = { ...row, id: -1, name: '', versionName: '', status: 'open', due_date: getNextMonday() };
+  // Shared versions can belong to a project outside the dropdown list, which USelect would show as a raw id.
+  if (!supportProjects.value.some(p => p.id === row.projectid) && supportProjects.value.length > 0) {
+    editedItem.value.projectid = supportProjects.value[0].id;
+  }
   isModalOpen.value = true;
 };
 
