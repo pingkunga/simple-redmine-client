@@ -141,7 +141,7 @@ const loading = ref(false);
 const saving = ref(false);
 const retryingJenkins = ref(false);
 const createJenkinsFolder = ref(true);
-const jenkinsCleanup = ref(false);
+const jenkinsCleanup = ref(true);
 const jenkinsJobId = ref<string | null>(null);
 const jenkinsStatus = ref<JenkinsVersionFolderStatus | null>(null);
 const jenkinsBuildNumber = ref<number | undefined>();
@@ -371,7 +371,7 @@ const close = () => {
 
 const resetJenkinsState = () => {
   createJenkinsFolder.value = true;
-  jenkinsCleanup.value = false;
+  jenkinsCleanup.value = true;
   jenkinsJobId.value = null;
   jenkinsStatus.value = null;
   jenkinsBuildNumber.value = undefined;
