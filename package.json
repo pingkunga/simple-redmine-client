@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@nuxt/ui": "4.4.0",
     "@tiptap/extension-highlight": "^3.19.0",
     "@tiptap/extension-link": "^3.19.0",
