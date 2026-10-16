@@ -24,6 +24,15 @@ export default defineNuxtConfig({
     automationApiKey: "",
     automationAllowedIps: "",
     mcpApiKey: "", // NUXT_MCP_API_KEY; empty = /api/mcp stays closed
+    // LLM for /api/chat (NUXT_LLM_PROVIDER, NUXT_LLM_MODEL, NUXT_LLM_API_KEY, NUXT_LLM_ENDPOINT).
+    // llmProvider: anthropic | google | openai | azure | ollama | lmstudio; empty = chat disabled.
+    // llmEndpoint: required for azure (e.g. https://<res>.openai.azure.com/openai/v1, or
+    // https://<res>.openai.azure.com/openai?api-version=2024-10-21); optional override for
+    // anthropic/google/openai; defaults to localhost for ollama/lmstudio.
+    llmProvider: "",
+    llmModel: "", // model id (azure: the deployment name)
+    llmApiKey: "", // not needed for ollama/lmstudio
+    llmEndpoint: "",
     adminUser: "admin",
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",
