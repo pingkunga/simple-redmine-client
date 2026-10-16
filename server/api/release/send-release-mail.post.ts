@@ -1,6 +1,6 @@
 import { sendMail } from '~~/server/utils/mailer';
 import { loadAndStandardize, standardizePlaceholders, convertMarkToSpan } from '~~/server/utils/releaseMailTemplate';
-import { getThisWeekVersions } from '~~/server/utils/releaseService';
+import { getThisWeekVersionsForEvent } from '~~/server/utils/releaseServiceEvent';
 import type { VersionWithReleaseNotes } from '~~/shared/types/Version';
 
 export default defineEventHandler(async (event) => {
@@ -19,10 +19,10 @@ export default defineEventHandler(async (event) => {
 
     if (versionId) {
       // Find specific version if versionId provided (useful for Test)
-      const allVersions = await getThisWeekVersions(event, projectId || 0);
+      const allVersions = await getThisWeekVersionsForEvent(event, projectId || 0);
       version = allVersions.find(v => v.id === versionId);
     } else {
-      const versions = await getThisWeekVersions(event, projectId);
+      const versions = await getThisWeekVersionsForEvent(event, projectId);
       if (versions.length > 0) {
         version = versions[0];
       }

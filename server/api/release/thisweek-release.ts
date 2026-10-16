@@ -1,4 +1,4 @@
-import { getThisWeekVersions } from "../../utils/releaseService";
+import { getThisWeekVersionsForEvent } from "../../utils/releaseServiceEvent";
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-        return await getThisWeekVersions(event, filterProjectId);
+        return await getThisWeekVersionsForEvent(event, filterProjectId);
     } catch (error) {
         console.error('Error in thisweek-release API:', error);
         throw error;

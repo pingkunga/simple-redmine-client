@@ -1,10 +1,18 @@
 import axios from "axios";
-import useRedmineAPI from "~/composables/useRedmineAPI";
+import useRedmineAPI from "../../app/composables/useRedmineAPI";
 import { VersionWithReleaseNotes } from "~~/shared/types/Version";
 
-export async function getThisWeekVersions(event: any, projectId: number): Promise<VersionWithReleaseNotes[]> {
-  const config = useRuntimeConfig();
-  const { createBaseRedmineHeader, mapRawVersionToVersion } = useRedmineAPI();
+export interface GetThisWeekVersionsParams {
+  redmineUrl: string;
+  headers: Record<string, string>;
+  projectId: number;
+  /** Injected clock so tests are deterministic. */
+  now?: Date;
+}
+
+export async function getThisWeekVersions(params: GetThisWeekVersionsParams): Promise<VersionWithReleaseNotes[]> {
+  const { redmineUrl, headers, projectId, now = new Date() } = params;
+  const { mapRawVersionToVersion } = useRedmineAPI();
 
   const dueDateWorkingDayText = (version: Version): string => {
     if (!version.due_date) 
@@ -25,7 +33,6 @@ export async function getThisWeekVersions(event: any, projectId: number): Promis
   }
 
   const filterThisWeekVersion = (versions: Version[], versionMode: "PREVIOUS" | "NEXT") => {
-    const now = new Date();
     if (versionMode === "PREVIOUS") {
       const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
       const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -101,9 +108,7 @@ export async function getThisWeekVersions(event: any, projectId: number): Promis
     return result;
   }
 
-  const url = `${config.public.redmineUrl}/projects/${projectId}/versions.json`;
-  const req = getRequestHeaders(event);
-  const headers = createBaseRedmineHeader(req);
+  const url = `${redmineUrl}/projects/${projectId}/versions.json`;
 
   try {
     const response = await axios.get<VersionsResponse>(url, { headers });

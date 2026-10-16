@@ -1,4 +1,4 @@
-import { getThisWeekVersions } from "../../utils/releaseService";
+import { getThisWeekVersionsForEvent } from "../../utils/releaseServiceEvent";
 import { readConfigJson } from "../../utils/projectConfig";
 import type { BuildInvSetRequest } from "~~/shared/types/BuildInvSet";
 
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     try {
         // Get weekly versions
-        const versions = await getThisWeekVersions(event, filterProjectId);
+        const versions = await getThisWeekVersionsForEvent(event, filterProjectId);
         
         const results = [];
         const currentHeaders = getRequestHeaders(event);
