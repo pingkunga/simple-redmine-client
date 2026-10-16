@@ -1,4 +1,5 @@
 import { getSessionUser } from '../utils/session';
+import { assertChatAccess, assertMcpAccess, isChatPath, isMcpPath } from '../utils/authGate';
 
 export default defineEventHandler(async (event) => {
   const url = getRequestURL(event);
@@ -54,6 +55,26 @@ export default defineEventHandler(async (event) => {
     if (!isValidKey) {
         throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Missing or Invalid API Key' });
     }
+  }
+
+  // 4. AI routes: /api/chat is open to anonymous users but must be same-origin for writes
+  //    (abuse limits live in the route); /api/mcp is key-only for external MCP clients.
+  //    Neither uses internalApiKey or client IP.
+  if (isChatPath(url.pathname)) {
+    assertChatAccess({
+      method: getMethod(event),
+      origin: getHeader(event, 'origin'),
+      secFetchSite: getHeader(event, 'sec-fetch-site'),
+      host: getRequestHost(event, { xForwardedHost: true }),
+    });
+  }
+
+  if (isMcpPath(url.pathname)) {
+    assertMcpAccess({
+      authorization: getHeader(event, 'authorization'),
+      xApiKey: getHeader(event, 'x-api-key'),
+      expectedKey: config.mcpApiKey as string,
+    });
   }
 
   // Store user in context for downstream handlers if needed

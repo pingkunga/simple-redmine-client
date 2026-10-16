@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     smtpFrom: "noreply@example.com",
     automationApiKey: "",
     automationAllowedIps: "",
+    mcpApiKey: "", // NUXT_MCP_API_KEY; empty = /api/mcp stays closed
     adminUser: "admin",
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",

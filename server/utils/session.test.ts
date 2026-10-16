@@ -70,10 +70,19 @@ describe('assertSessionSecret (fail-closed)', () => {
     expect(() => assertSessionSecret(undefined)).toThrow(/not configured/)
   })
 
-  it('throws on the placeholder in production only', () => {
+  it('rejects the placeholder unless NODE_ENV is development or test', () => {
     vi.stubEnv('NODE_ENV', 'production')
     expect(() => assertSessionSecret(PLACEHOLDER_SESSION_SECRET)).toThrow(/placeholder/)
+    vi.stubEnv('NODE_ENV', '')   // runtime image: effectively unset
+    expect(() => assertSessionSecret(PLACEHOLDER_SESSION_SECRET)).toThrow(/placeholder/)
+    vi.stubEnv('NODE_ENV', 'staging')
+    expect(() => assertSessionSecret(PLACEHOLDER_SESSION_SECRET)).toThrow(/placeholder/)
+  })
+
+  it('allows the placeholder in development and test', () => {
     vi.stubEnv('NODE_ENV', 'development')
+    expect(assertSessionSecret(PLACEHOLDER_SESSION_SECRET)).toBe(PLACEHOLDER_SESSION_SECRET)
+    vi.stubEnv('NODE_ENV', 'test')
     expect(assertSessionSecret(PLACEHOLDER_SESSION_SECRET)).toBe(PLACEHOLDER_SESSION_SECRET)
   })
 
