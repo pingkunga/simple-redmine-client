@@ -51,8 +51,9 @@ Users can override the server's default Redmine token with their own personal ac
 ### Auth model
 
 `server/middleware/auth.ts` runs on every request:
-- `/admin/*` UI routes require a session cookie (`server/utils/session.ts`, base64 JSON cookie with expiry — not cryptographically signed, treat as low-security by design).
+- `/admin/*` UI routes require a session cookie (`server/utils/session.ts`, HMAC-signed cookie with expiry, see below).
 - `/api/release/*` routes accept three ways in: an existing session, SSR/server-to-server calls (no client IP), a matching `x-internal-key` header for same-origin UI calls, or (for external automation like Jenkins) an IP-whitelisted (`automationAllowedIps`) request with a matching `x-api-key` header (`automationApiKey`). This is the path used by the release-notification/build-automation APIs documented in the README's `Invoke-RestMethod` examples.
+- The `admin_session` cookie is HMAC-signed with `adminSessionSecret` (set via `NUXT_ADMIN_SESSION_SECRET`; required in deployment, the placeholder is rejected unless `NODE_ENV` is `development`/`test`). `/api/chat` is open to anonymous visitors but POST must be same-origin (`Origin`/`Sec-Fetch-Site`); abuse is limited by rate/size limits in the route, not by login. `/api/mcp` is key-only (`Authorization: Bearer` or `x-api-key` vs `mcpApiKey`, set via `NUXT_MCP_API_KEY`; empty = closed). Neither route uses `x-internal-key` or client IP. Decision logic lives in `server/utils/authGate.ts`.
 - All other routes are open (protected only by network placement / Redmine token possession).
 
 ### GitLab branch cache

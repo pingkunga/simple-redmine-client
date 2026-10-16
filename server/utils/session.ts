@@ -15,12 +15,17 @@ export interface SessionData {
   expiry: number;
 }
 
-/** Fail-closed: an empty secret (or the placeholder in production) must never sign or verify anything. */
+/**
+ * Fail-closed: an empty secret, or the repo-public placeholder outside development/test, must
+ * never sign or verify anything. (The runtime Docker image does not set NODE_ENV, so "unset"
+ * must count as deployed, not as dev.)
+ */
 export const assertSessionSecret = (secret: unknown): string => {
   if (typeof secret !== 'string' || secret.length === 0) {
     throw new Error('adminSessionSecret is not configured; set NUXT_ADMIN_SESSION_SECRET');
   }
-  if (secret === PLACEHOLDER_SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  if (secret === PLACEHOLDER_SESSION_SECRET && !isDevOrTest) {
     throw new Error('adminSessionSecret is still the placeholder value; set NUXT_ADMIN_SESSION_SECRET');
   }
   return secret;
