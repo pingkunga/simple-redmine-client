@@ -72,7 +72,7 @@ export const listVersionsTool: McpToolDef = {
   name: 'list_versions',
   description:
     'List Redmine versions (releases). Filter by projectId, status and/or name substring. ' +
-    'Use this FIRST to turn a version name like "8.9.15.4" into its numeric id before calling get_issues_by_version. ' +
+    'To list the issues of a version, call get_issues_by_version (it accepts a version name or id). ' +
     'If "partial" is true, some projects could not be read (see failedScopes) and the list is incomplete.',
   inputSchema,
   handler: listVersions,
