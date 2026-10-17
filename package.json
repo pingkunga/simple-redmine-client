@@ -14,6 +14,7 @@
     "@ai-sdk/anthropic": "3.0.132",
     "@ai-sdk/azure": "3.0.140",
     "@ai-sdk/google": "3.0.134",
+    "@ai-sdk/mcp": "1.0.96",
     "@ai-sdk/openai": "3.0.129",
     "@ai-sdk/openai-compatible": "2.0.84",
     "@dagrejs/dagre": "^3.0.0",

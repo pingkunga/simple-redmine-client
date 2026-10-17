@@ -33,6 +33,10 @@ export default defineNuxtConfig({
     llmModel: "", // model id (azure: the deployment name)
     llmApiKey: "", // not needed for ollama/lmstudio
     llmEndpoint: "",
+    // /api/chat abuse limits (in-memory, per process): per client per minute / per client per day / whole system per day
+    chatRatePerMinute: 10,
+    chatDailyLimitPerIp: 20,
+    chatDailyLimit: 100,
     adminUser: "admin",
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",
