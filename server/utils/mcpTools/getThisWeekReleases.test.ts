@@ -2,7 +2,10 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { getThisWeekReleases, getThisWeekReleasesTool } from './getThisWeekReleases'
 import { getThisWeekVersions } from '../releaseService'
 
-vi.mock('../releaseService', () => ({ getThisWeekVersions: vi.fn() }))
+vi.mock('../releaseService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../releaseService')>()),
+  getThisWeekVersions: vi.fn(),
+}))
 
 const ctx = { redmineUrl: 'http://r', headers: { k: 'v' } }
 const release = (over: Record<string, unknown> = {}) => ({
@@ -57,9 +60,23 @@ describe('get_thisweek_releases', () => {
     }
   })
 
-  it('requires a numeric projectId', async () => {
-    await expect(getThisWeekReleases({}, ctx)).rejects.toThrow()
+  it('defaults to project 858 when no projectId is given', async () => {
+    vi.mocked(getThisWeekVersions).mockResolvedValue([])
+    const result = await getThisWeekReleases({}, ctx) as any
+    expect(getThisWeekVersions).toHaveBeenCalledWith({ redmineUrl: 'http://r', headers: { k: 'v' }, projectId: 858 })
+    expect(result.projectId).toBe(858)
+  })
+
+  it('uses the projectId when one is given', async () => {
+    vi.mocked(getThisWeekVersions).mockResolvedValue([])
+    await getThisWeekReleases({ projectId: 296 }, ctx)
+    expect(getThisWeekVersions).toHaveBeenCalledWith({ redmineUrl: 'http://r', headers: { k: 'v' }, projectId: 296 })
+  })
+
+  it('rejects an invalid projectId without calling the service', async () => {
     await expect(getThisWeekReleases({ projectId: 'Invest' }, ctx)).rejects.toThrow()
+    await expect(getThisWeekReleases({ projectId: 0 }, ctx)).rejects.toThrow()
+    await expect(getThisWeekReleases({ projectId: -5 }, ctx)).rejects.toThrow()
     expect(getThisWeekVersions).not.toHaveBeenCalled()
   })
 

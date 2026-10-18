@@ -1,10 +1,22 @@
 import axios from 'axios';
 import { z } from 'zod';
 import { listVersions } from './listVersions';
+import { toPlainText } from './plainText';
 import { MAX_RESULTS, TOOL_TIMEOUT_MS, type McpToolDef, type ToolContext } from './types';
 
 const PAGE_SIZE = 100;
 const MAX_CANDIDATES = 10;
+// Same custom field the /issues page shows as "Impact Note" (see useRedmineAPI.ts).
+const IMPACT_NOTE_FIELD = "Developer's Comment";
+const MAX_IMPACT_NOTE_CHARS = 400;
+
+const impactNoteOf = (issue: RawIssue) => {
+  const value = issue.custom_fields?.find(f => f.name === IMPACT_NOTE_FIELD)?.value;
+  const raw = Array.isArray(value) ? value.join('\n') : value;
+  if (!raw) return {};
+  const { text, truncated } = toPlainText(raw, MAX_IMPACT_NOTE_CHARS);
+  return text ? { impactNote: text, ...(truncated && { impactNoteTruncated: true }) } : {};
+};
 
 const inputSchema = {
   versionId: z.number().int().positive().optional()
@@ -79,8 +91,8 @@ export const getIssuesByVersion = async (rawArgs: unknown, ctx: ToolContext) => 
     if (issues.length >= total || response.data.issues.length === 0) break;
   }
 
-  // Free-text fields (description) are deliberately not returned: they inflate the payload
-  // and are an untrusted-text channel into the model.
+  // The description is deliberately not returned: it inflates the payload and is an untrusted-text
+  // channel into the model. The one free-text field exposed is the Impact Note, as plain text, capped.
   return {
     resolved: true,
     versionId,
@@ -101,6 +113,7 @@ export const getIssuesByVersion = async (rawArgs: unknown, ctx: ToolContext) => 
       assignedTo: i.assigned_to?.name,
       dueDate: i.due_date,
       doneRatio: i.done_ratio,
+      ...impactNoteOf(i),
     })),
   };
 };
@@ -108,7 +121,9 @@ export const getIssuesByVersion = async (rawArgs: unknown, ctx: ToolContext) => 
 export const getIssuesByVersionTool: McpToolDef = {
   name: 'get_issues_by_version',
   description:
-    'List the issues assigned to a Redmine version (subject, tracker, status, assignee, due date). ' +
+    'List the issues assigned to a Redmine version (subject, tracker, status, assignee, due date, and the ' +
+    "developer's Impact Note as impactNote when one was written). Takes ONE version per call; for several " +
+    'versions call it once per version in the same step. ' +
     'If the user gave a numeric id (e.g. "id=6532") pass it as versionId. Otherwise pass versionName exactly as ' +
     'written (e.g. "8.9.15.3"); the tool looks the version up itself. If the result has resolved=false, ' +
     'show the candidates to the user and ask which one they mean, then call again with versionId.',

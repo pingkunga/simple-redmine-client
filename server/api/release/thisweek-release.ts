@@ -1,10 +1,11 @@
+import { DEFAULT_RELEASE_PROJECT_ID } from "../../utils/releaseService";
 import { getThisWeekVersionsForEvent } from "../../utils/releaseServiceEvent";
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);
     
     // Default project ID if none provided
-    let filterProjectId: number = 858;
+    let filterProjectId: number = DEFAULT_RELEASE_PROJECT_ID;
     if (query.projectId) {
         filterProjectId = Number(query.projectId);
     }

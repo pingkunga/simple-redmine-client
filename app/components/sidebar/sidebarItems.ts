@@ -35,6 +35,11 @@ export default [
       to: "/buildnetcommon",
     },
     {
+      title: "AI Chat",
+      icon: "i-mdi-chat-processing-outline",
+      to: "/chat",
+    },
+    {
       title: "Client Setting",
       icon: "i-mdi-window-shutter-cog",
       to: "/clientsetting",

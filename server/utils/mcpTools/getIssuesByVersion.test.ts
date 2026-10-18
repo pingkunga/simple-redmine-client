@@ -162,6 +162,42 @@ describe('get_issues_by_version (by name)', () => {
   })
 })
 
+describe('get_issues_by_version (impact note)', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const withNote = (value: unknown) => ({
+    ...issue(1), custom_fields: [{ id: 1, name: 'Other' , value: 'x' }, { id: 9, name: "Developer's Comment", value }],
+  })
+
+  it('returns the Impact Note (Developer\'s Comment) as plain text', async () => {
+    vi.mocked(axios.get).mockResolvedValue(page([withNote('<p>Run <b>migration</b><br>then restart</p>')], 1))
+    const result = await getIssuesByVersion({ versionId: 1 }, ctx) as any
+    expect(result.issues[0].impactNote).toBe('Run migration\nthen restart')
+    expect(result.issues[0].impactNoteTruncated).toBeUndefined()
+  })
+
+  it('truncates long notes and flags it', async () => {
+    vi.mocked(axios.get).mockResolvedValue(page([withNote('y'.repeat(900))], 1))
+    const result = await getIssuesByVersion({ versionId: 1 }, ctx) as any
+    expect(result.issues[0].impactNote.length).toBeLessThanOrEqual(401)
+    expect(result.issues[0].impactNoteTruncated).toBe(true)
+  })
+
+  it('omits the fields when the note is missing or empty', async () => {
+    vi.mocked(axios.get).mockResolvedValue(page([withNote(''), issue(2)], 2))
+    const result = await getIssuesByVersion({ versionId: 1 }, ctx) as any
+    for (const i of result.issues) {
+      expect('impactNote' in i).toBe(false)
+      expect('impactNoteTruncated' in i).toBe(false)
+    }
+  })
+
+  it('still never returns the description', async () => {
+    vi.mocked(axios.get).mockResolvedValue(page([withNote('note')], 1))
+    expect(JSON.stringify(await getIssuesByVersion({ versionId: 1 }, ctx))).not.toContain('PRIVATE BODY')
+  })
+})
+
 describe('get_issues_by_version tool definition', () => {
   it('tells the model to pass a user-typed id, else the name as written', () => {
     expect(getIssuesByVersionTool.name).toBe('get_issues_by_version')

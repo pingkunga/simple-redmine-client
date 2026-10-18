@@ -2,6 +2,9 @@ import axios from "axios";
 import useRedmineAPI from "../../app/composables/useRedmineAPI";
 import { VersionWithReleaseNotes } from "~~/shared/types/Version";
 
+/** Project used when a caller gives none: Investment .NET (first entry of SupportProject.json). */
+export const DEFAULT_RELEASE_PROJECT_ID = 858;
+
 export interface GetThisWeekVersionsParams {
   redmineUrl: string;
   headers: Record<string, string>;
