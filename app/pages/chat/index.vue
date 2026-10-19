@@ -33,7 +33,24 @@
           </template>
         </template>
       </template>
+      <!-- The default indicator is 3 tiny, near-invisible dots; show a spinner with a label instead. -->
+      <template #indicator>
+        <div class="flex items-center gap-2 py-2 text-sm text-gray-700 dark:text-gray-200">
+          <UIcon name="i-mdi-loading" class="size-5 animate-spin text-primary" />
+          <span>Thinking...</span>
+        </div>
+      </template>
     </UChatMessages>
+
+    <!-- 'submitted' is covered by the indicator slot; this covers the tool-calling phase before any text arrives. -->
+    <div
+      v-if="busyLabel"
+      class="mb-2 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"
+      role="status"
+    >
+      <UIcon name="i-mdi-loading" class="size-5 animate-spin text-primary" />
+      <span>{{ busyLabel }}</span>
+    </div>
 
     <UAlert
       v-if="errorText"
@@ -78,6 +95,22 @@ const ask = (text: string) => {
   input.value = text;
   submit();
 };
+
+// While streaming but before any answer text arrives, say what the assistant is doing.
+const busyLabel = computed(() => {
+  if (chat.status !== 'streaming') return '';
+  const last = chat.messages[chat.messages.length - 1];
+  if (!last || last.role !== 'assistant') return '';
+  if (last.parts.some(p => p.type === 'text' && p.text.trim())) return '';
+
+  const running = last.parts.find(
+    (p): p is typeof p & { state: string } =>
+      (p.type.startsWith('tool-') || p.type === 'dynamic-tool') && 'state' in p && p.state !== 'output-available',
+  );
+  if (!running) return 'Writing the answer...';
+  const name = running.type === 'dynamic-tool' ? (running as { toolName?: string }).toolName : running.type.slice(5);
+  return name ? `Looking up data (${name})...` : 'Looking up data...';
+});
 
 // The route replies with JSON { error } for 4xx/5xx; the SDK puts that body in error.message.
 const errorText = computed(() => {
