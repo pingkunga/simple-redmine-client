@@ -4,6 +4,7 @@ import { MockLanguageModelV3, simulateReadableStream } from 'ai/test'
 import { createChatLimiter } from './chatLimits'
 import { handleChat, MAX_STEPS, type ChatDeps } from './chatService'
 import { connectChatTools } from './chatTools'
+import type { ChatTranscript } from './chatTranscript'
 import type { McpToolDef } from './mcpTools/types'
 
 const usage = {
@@ -184,5 +185,28 @@ describe('handleChat', () => {
     await vi.waitFor(() => expect(closes).toHaveLength(1))
     const all = logs.join('\n')
     expect(all).not.toContain('PRIVATE')
+  })
+
+  it('records question, answer and tool input/output to the transcript sink only', async () => {
+    const model = scripted([toolCallStep('list_projects', { nameContains: 'gate' }), textStep('Found it.')])
+    const records: ChatTranscript[] = []
+    const { deps, closes } = setup(model, { transcript: r => records.push(r) })
+    await (await run(deps, body('which projects?'), { modelId: 'm-1' })).text()
+    await vi.waitFor(() => expect(closes).toHaveLength(1))
+
+    expect(records).toHaveLength(1)
+    expect(records[0]).toMatchObject({
+      outcome: 'ok', ip: '1.2.3.4', model: 'm-1', question: 'which projects?', historyCount: 1, answer: 'Found it.',
+    })
+    expect(records[0]!.steps[0]!.toolCalls[0]).toMatchObject({ name: 'list_projects', input: { nameContains: 'gate' } })
+    expect(JSON.stringify(records[0]!.steps[0]!.toolResults)).toContain('got')
+  })
+
+  it('does not record requests rejected before the model is called', async () => {
+    const records: ChatTranscript[] = []
+    const { deps } = setup(scripted([textStep('x')]), { transcript: r => records.push(r) })
+    expect((await run(deps, 'not json')).status).toBe(400)
+    expect((await run(deps, body(), { providerConfigured: false })).status).toBe(503)
+    expect(records).toHaveLength(0)
   })
 })

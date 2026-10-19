@@ -28,3 +28,5 @@ test-results.xml
 ReleaseMail.html
 
 opencode.json
+# Chat transcripts (questions, answers, tool payloads)
+/data/chat-logs/

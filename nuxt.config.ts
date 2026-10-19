@@ -37,6 +37,11 @@ export default defineNuxtConfig({
     chatRatePerMinute: 10,
     chatDailyLimitPerIp: 20,
     chatDailyLimit: 100,
+    // Chat transcripts (question, answer, tool inputs/outputs, IP) for improving prompts/tools:
+    // NUXT_CHAT_LOG_ENABLED=false turns it off; files older than chatLogRetentionDays are deleted.
+    chatLogEnabled: true,
+    chatLogDir: "./data/chat-logs",
+    chatLogRetentionDays: 30,
     adminUser: "admin",
     adminPass: "password",
     adminSessionSecret: "a-very-secret-key-12345",

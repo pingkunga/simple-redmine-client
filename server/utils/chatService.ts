@@ -4,6 +4,7 @@ import type { ChatLimiter } from './chatLimits';
 import { connectChatTools, type ChatToolSession } from './chatTools';
 import { getLanguageModel } from './llmProvider';
 import { createToolContext } from './mcpTools/context';
+import type { ChatTranscript, ChatTranscriptStep, TranscriptWriter } from './chatTranscript';
 
 export const MAX_STEPS = 6;
 export const MAX_OUTPUT_TOKENS = 1500;
@@ -15,11 +16,18 @@ export interface ChatDeps {
   limiter: ChatLimiter;
   /** Audit sink; receives one JSON line per request. */
   log: (line: string) => void;
+  /**
+   * Improvement sink; receives prompts, answers and tool payloads (unlike `log`). Absent = not recorded.
+   * Must not throw; the default writer swallows its own I/O errors.
+   */
+  transcript?: (record: ChatTranscript) => void;
   now: () => number;
 }
 
 export interface ChatInput {
   providerConfigured: boolean;
+  /** Model id, recorded in transcripts only. */
+  modelId?: string;
   rawBody: string;
   /** Socket address (never a client-supplied header). */
   ip: string;
@@ -27,11 +35,12 @@ export interface ChatInput {
   signal?: AbortSignal;
 }
 
-export const defaultChatDeps = (limiter: ChatLimiter): ChatDeps => ({
+export const defaultChatDeps = (limiter: ChatLimiter, transcript?: TranscriptWriter): ChatDeps => ({
   getModel: getLanguageModel,
   connectTools: () => connectChatTools(createToolContext()),
   limiter,
   log: line => console.info(line),
+  transcript: transcript && (record => void transcript.write(record)),
   now: Date.now,
 });
 
@@ -110,6 +119,21 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
   if (input.signal) signals.push(input.signal);
   const counts = { messages: parsed.messages.length, chars: parsed.chars };
 
+  const steps: ChatTranscriptStep[] = [];
+  const question = parsed.messages[parsed.messages.length - 1]!.parts.map(p => p.text).join('\n');
+  const record = (outcome: ChatTranscript['outcome'], extra: Partial<ChatTranscript> = {}) =>
+    deps.transcript?.({
+      ts: new Date(started).toISOString(),
+      ip: input.ip,
+      ms: deps.now() - started,
+      outcome,
+      model: input.modelId,
+      question,
+      historyCount: parsed.messages.length,
+      steps,
+      ...extra,
+    });
+
   try {
     const result = streamText({
       model,
@@ -121,17 +145,24 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
       abortSignal: AbortSignal.any(signals),
       onStepFinish: step => {
         for (const call of step.toolCalls) toolNames.push(call.toolName);
+        steps.push({
+          toolCalls: step.toolCalls.map(c => ({ name: c.toolName, input: c.input })),
+          toolResults: step.toolResults.map(r => ({ name: r.toolName, output: r.output })),
+        });
       },
       onFinish: async event => {
         audit({ outcome: 'ok', ...counts, steps: event.steps.length, finish: event.finishReason, tools: toolNames });
+        record('ok', { answer: event.text, finish: event.finishReason, usage: event.totalUsage });
         await close();
       },
       onError: async ({ error }) => {
         audit({ outcome: 'error', ...counts, tools: toolNames, detail: reason(error) });
+        record('error', { detail: reason(error) });
         await close();
       },
       onAbort: async () => {
         audit({ outcome: 'aborted', ...counts, tools: toolNames });
+        record('aborted');
         await close();
       },
     });
@@ -140,6 +171,7 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
   } catch (e) {
     await close();
     audit({ outcome: 'error', ...counts, detail: reason(e) });
+    record('error', { detail: reason(e) });
     return json(500, 'Chat failed');
   }
 };

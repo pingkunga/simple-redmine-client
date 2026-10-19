@@ -1,10 +1,14 @@
+import path from 'node:path';
 import { assertChatAccess } from '../utils/authGate';
 import { createChatLimiter, type ChatLimiter } from '../utils/chatLimits';
 import { MAX_BODY_BYTES } from '../utils/chatRequest';
 import { defaultChatDeps, handleChat } from '../utils/chatService';
+import { createTranscriptWriter, type TranscriptWriter } from '../utils/chatTranscript';
 
 // One limiter per process, built lazily so config is read at request time.
 let limiter: ChatLimiter | undefined;
+// Same for the transcript writer; stays undefined when chatLogEnabled is "false".
+let transcripts: TranscriptWriter | undefined;
 
 export default defineEventHandler(async (event) => {
   // The middleware already checked this; repeated so the route stays same-origin-only on its own.
@@ -36,13 +40,21 @@ export default defineEventHandler(async (event) => {
     if (!event.node.res.writableFinished) abort.abort();
   });
 
+  if (!transcripts && String(config.chatLogEnabled) !== 'false') {
+    transcripts = createTranscriptWriter({
+      dir: path.resolve(process.cwd(), String(config.chatLogDir)),
+      retentionDays: Number(config.chatLogRetentionDays) || 30,
+    });
+  }
+
   return handleChat(
     {
       providerConfigured: Boolean((config.llmProvider as string)?.trim()),
+      modelId: (config.llmModel as string) || undefined,
       rawBody: (await readRawBody(event, 'utf8')) ?? '',
       ip,
       signal: abort.signal,
     },
-    defaultChatDeps(limiter),
+    defaultChatDeps(limiter, transcripts),
   );
 });
