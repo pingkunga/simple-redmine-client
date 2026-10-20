@@ -1,3 +1,5 @@
+import type { RelateCode } from './RelateCode';
+
 export interface Issue {
     id: number;
     projectId: number;
@@ -23,6 +25,8 @@ export interface Issue {
     created_on: string;
     updated_on: string;
     closed_on?: string | null;
+    // Computed (get_issue MCP tool), not part of Redmine's JSON
+    relateCode?: RelateCode[];
 }
 
 //จาก redmine json
@@ -52,6 +56,27 @@ export interface RawIssue {
     // Present only when fetched with include=relations,children
     relations?: RawIssueRelation[];
     children?: RawIssueChild[];
+    // Present only when fetched with include=journals / include=changesets
+    journals?: RawJournal[];
+    changesets?: RawChangeset[];
+}
+
+// Redmine journal shape from GET /issues/:id.json?include=journals
+export interface RawJournal {
+    id: number;
+    user?: { id: number; name: string };
+    notes?: string | null;
+    created_on: string;
+    private_notes?: boolean;
+    details?: { property: string; name: string; old_value?: string | null; new_value?: string | null }[];
+}
+
+// Redmine changeset shape from GET /issues/:id.json?include=changesets (element shape unverified: empty in samples)
+export interface RawChangeset {
+    revision?: string;
+    user?: { id: number; name: string };
+    comments?: string | null;
+    committed_on?: string;
 }
 
 // Redmine relation shape from GET /issues/:id.json?include=relations

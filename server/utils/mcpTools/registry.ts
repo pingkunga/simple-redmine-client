@@ -1,4 +1,7 @@
 import { getIssueGraphTool } from './getIssueGraph';
+import { getGitlabCommitTool } from './getGitlabCommit';
+import { getGitlabMergeRequestTool } from './getGitlabMergeRequest';
+import { getIssueTool } from './getIssue';
 import { getIssuesByVersionTool } from './getIssuesByVersion';
 import { getThisWeekReleasesTool } from './getThisWeekReleases';
 import { listGitlabBranchesTool } from './listGitlabBranches';
@@ -15,7 +18,10 @@ export const mcpTools: McpToolDef[] = [
   listProjectsTool,
   listVersionsTool,
   getIssuesByVersionTool,
+  getIssueTool,
   getIssueGraphTool,
   listGitlabBranchesTool,
+  getGitlabMergeRequestTool,
+  getGitlabCommitTool,
   getThisWeekReleasesTool,
 ];

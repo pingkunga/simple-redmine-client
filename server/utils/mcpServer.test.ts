@@ -28,7 +28,7 @@ describe('MCP wire behaviour (stateless Streamable HTTP)', () => {
     expect(json.result.serverInfo.name).toBe('redmine-client')
   })
 
-  it('lists exactly the six registry tools with their schemas', async () => {
+  it('lists exactly the registry tools with their schemas', async () => {
     const { json } = await rpc('tools/list')
     const names = json.result.tools.map((t: any) => t.name).sort()
     expect(names).toEqual(mcpTools.map(t => t.name).sort())

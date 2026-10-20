@@ -8,10 +8,11 @@ const sources = import.meta.glob(['./*.ts', '!./*.test.ts'], { query: '?raw', im
 const EXPECTED = [
   'list_projects', 'list_versions', 'get_issues_by_version',
   'get_issue_graph', 'list_gitlab_branches', 'get_thisweek_releases',
+  'get_issue', 'get_gitlab_merge_request', 'get_gitlab_commit',
 ]
 
 describe('MCP tool registry', () => {
-  it('registers exactly the six Phase 1 tools with unique names', () => {
+  it('registers exactly the nine read-only tools with unique names', () => {
     const names = mcpTools.map(t => t.name)
     expect(new Set(names).size).toBe(names.length)
     expect([...names].sort()).toEqual([...EXPECTED].sort())
@@ -33,6 +34,9 @@ describe('MCP tool registry', () => {
       get_issue_graph: { issueId: 123, depth: 2 },
       list_gitlab_branches: { nameContains: 'feature' },
       get_thisweek_releases: { projectId: 858 },
+      get_issue: { issueId: 380442, includeJournals: true },
+      get_gitlab_merge_request: { projectPath: 'invest/invest-net-resource', iid: 619, includeDiff: true },
+      get_gitlab_commit: { projectPath: 'invest/invest-net-resource', sha: 'ab12cd3' },
     }
     for (const tool of mcpTools) {
       expect(z.object(tool.inputSchema).safeParse(samples[tool.name]).success, tool.name).toBe(true)
