@@ -1,4 +1,6 @@
 import path from 'node:path';
+import useClientUtil from '~/composables/useClientUtil';
+import useRedmineAPI from '~/composables/useRedmineAPI';
 import { assertChatAccess } from '../utils/authGate';
 import { createChatLimiter, type ChatLimiter } from '../utils/chatLimits';
 import { MAX_BODY_BYTES } from '../utils/chatRequest';
@@ -20,6 +22,18 @@ export default defineEventHandler(async (event) => {
   });
 
   const config = useRuntimeConfig(event);
+
+  // Optional personal Redmine key (same header the DevTracker page sends). Reject junk up front:
+  // it is decoded with atob(), which would otherwise throw a 500 for an anonymous caller.
+  const { YourOwnRedmineAPI } = useRedmineAPI();
+  const ownKey = getHeader(event, YourOwnRedmineAPI);
+  if (ownKey) {
+    try {
+      if (!useClientUtil().decryptedAccessKey(ownKey)) throw new Error('empty');
+    } catch {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid access key' });
+    }
+  }
 
   // Require a declared length so the size cap cannot be dodged with chunked uploads.
   const declared = Number(getHeader(event, 'content-length'));
@@ -55,6 +69,6 @@ export default defineEventHandler(async (event) => {
       ip,
       signal: abort.signal,
     },
-    defaultChatDeps(limiter, transcripts),
+    defaultChatDeps(limiter, transcripts, ownKey ? { [YourOwnRedmineAPI]: ownKey } : undefined),
   );
 });
