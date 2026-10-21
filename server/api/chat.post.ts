@@ -4,7 +4,7 @@ import useRedmineAPI from '~/composables/useRedmineAPI';
 import { assertChatAccess } from '../utils/authGate';
 import { createChatLimiter, type ChatLimiter } from '../utils/chatLimits';
 import { MAX_BODY_BYTES } from '../utils/chatRequest';
-import { defaultChatDeps, handleChat } from '../utils/chatService';
+import { defaultChatDeps, handleChat, resolveChatLimits } from '../utils/chatService';
 import { createTranscriptWriter, type TranscriptWriter } from '../utils/chatTranscript';
 
 // One limiter per process, built lazily so config is read at request time.
@@ -68,6 +68,11 @@ export default defineEventHandler(async (event) => {
       rawBody: (await readRawBody(event, 'utf8')) ?? '',
       ip,
       signal: abort.signal,
+      limits: resolveChatLimits({
+        maxSteps: config.chatMaxSteps,
+        maxOutputTokens: config.chatMaxOutputTokens,
+        requestTimeoutMs: config.chatRequestTimeoutMs,
+      }),
     },
     defaultChatDeps(limiter, transcripts, ownKey ? { [YourOwnRedmineAPI]: ownKey } : undefined),
   );

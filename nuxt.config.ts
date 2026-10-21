@@ -37,6 +37,11 @@ export default defineNuxtConfig({
     chatRatePerMinute: 10,
     chatDailyLimitPerIp: 20,
     chatDailyLimit: 100,
+    // /api/chat caps per request (NUXT_CHAT_MAX_STEPS, NUXT_CHAT_MAX_OUTPUT_TOKENS, NUXT_CHAT_REQUEST_TIMEOUT_MS):
+    // max model/tool steps, max answer tokens per step, and the hard time limit in ms. Invalid values fall back to these.
+    chatMaxSteps: 6,
+    chatMaxOutputTokens: 1500,
+    chatRequestTimeoutMs: 150000,
     // Chat transcripts (question, answer, tool inputs/outputs, IP) for improving prompts/tools:
     // NUXT_CHAT_LOG_ENABLED=false turns it off; files older than chatLogRetentionDays are deleted.
     chatLogEnabled: true,

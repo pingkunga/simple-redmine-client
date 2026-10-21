@@ -6,9 +6,37 @@ import { getLanguageModel } from './llmProvider';
 import { createToolContext } from './mcpTools/context';
 import type { ChatTranscript, ChatTranscriptStep, TranscriptWriter } from './chatTranscript';
 
-export const MAX_STEPS = 6;
-export const MAX_OUTPUT_TOKENS = 1500;
-export const REQUEST_TIMEOUT_MS = 60_000;
+export const DEFAULT_MAX_STEPS = 6;
+export const DEFAULT_MAX_OUTPUT_TOKENS = 1500;
+export const DEFAULT_REQUEST_TIMEOUT_MS = 150_000;
+/** Time kept free after the soft deadline for one in-flight step plus the final answer. */
+const SOFT_DEADLINE_MARGIN_MS = 50_000;
+
+export interface ChatLimits {
+  maxSteps: number;
+  maxOutputTokens: number;
+  /** Hard ceiling: the whole request is aborted after this. */
+  requestTimeoutMs: number;
+  /** After this the model may no longer call tools and must answer from what it has. */
+  softDeadlineMs: number;
+}
+
+// Missing, empty, non-numeric or <= 0 falls back to the default; anything else is clamped, so a typo
+// in an env var can neither disable a cap nor make it unbounded.
+const limit = (raw: unknown, fallback: number, min: number, max: number) => {
+  const n = Math.floor(Number(raw));
+  return Number.isFinite(n) && n > 0 ? Math.min(max, Math.max(min, n)) : fallback;
+};
+
+export const resolveChatLimits = (raw: { maxSteps?: unknown; maxOutputTokens?: unknown; requestTimeoutMs?: unknown } = {}): ChatLimits => {
+  const requestTimeoutMs = limit(raw.requestTimeoutMs, DEFAULT_REQUEST_TIMEOUT_MS, 10_000, 600_000);
+  return {
+    maxSteps: limit(raw.maxSteps, DEFAULT_MAX_STEPS, 1, 20),
+    maxOutputTokens: limit(raw.maxOutputTokens, DEFAULT_MAX_OUTPUT_TOKENS, 100, 8000),
+    requestTimeoutMs,
+    softDeadlineMs: Math.max(requestTimeoutMs / 2, requestTimeoutMs - SOFT_DEADLINE_MARGIN_MS),
+  };
+};
 
 export interface ChatDeps {
   getModel: () => LanguageModel;
@@ -33,6 +61,8 @@ export interface ChatInput {
   ip: string;
   /** Aborted when the client goes away. */
   signal?: AbortSignal;
+  /** Step/token/time caps; absent = the defaults. */
+  limits?: ChatLimits;
 }
 
 export const defaultChatDeps = (
@@ -58,6 +88,10 @@ Today is ${new Date(now).toDateString()}.
 - If a tool result says it is partial or truncated, tell the user so.
 - When asked about the issues of one or more versions (e.g. a range like 8.9.25.0 to 8.9.25.4), call get_issues_by_version once per version, all in the same step. Group the answer by version.
 - Pay attention to each issue's impactNote (the developer's Impact Note): list issues that have one first and state the impact in a short line (what changes, and any config, database or deployment action needed). List issues without one briefly as "no impact note". Never invent an impact when impactNote is absent.`;
+
+/** Appended to the system prompt once the soft deadline has passed (tools are switched off then). */
+const PARTIAL_NOTE = `
+- Time is almost up. Do not call any tool. Answer now from the data already retrieved, say clearly that this is a partial summary, and list what could not be checked.`;
 
 const json = (status: number, error: string, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify({ error }), { status, headers: { 'content-type': 'application/json', ...headers } });
@@ -120,7 +154,9 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
   };
 
   const toolNames: string[] = [];
-  const signals = [AbortSignal.timeout(REQUEST_TIMEOUT_MS)];
+  const limits = input.limits ?? resolveChatLimits();
+  const timeoutSignal = AbortSignal.timeout(limits.requestTimeoutMs);
+  const signals = [timeoutSignal];
   if (input.signal) signals.push(input.signal);
   const counts = { messages: parsed.messages.length, chars: parsed.chars };
 
@@ -145,9 +181,14 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
       system: systemPrompt(started),
       messages: await convertToModelMessages(parsed.messages),
       tools: session.tools as ToolSet,
-      stopWhen: stepCountIs(MAX_STEPS),
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      stopWhen: stepCountIs(limits.maxSteps),
+      maxOutputTokens: limits.maxOutputTokens,
       abortSignal: AbortSignal.any(signals),
+      // Past the soft deadline, no more tools: the next step has to write a (partial) answer.
+      prepareStep: () =>
+        deps.now() - started >= limits.softDeadlineMs
+          ? { toolChoice: 'none' as const, system: systemPrompt(started) + PARTIAL_NOTE }
+          : undefined,
       onStepFinish: step => {
         for (const call of step.toolCalls) toolNames.push(call.toolName);
         steps.push({
@@ -166,13 +207,17 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
         await close();
       },
       onAbort: async () => {
-        audit({ outcome: 'aborted', ...counts, tools: toolNames });
+        audit({ outcome: timeoutSignal.aborted ? 'timeout' : 'aborted', ...counts, tools: toolNames });
         record('aborted');
         await close();
       },
     });
 
-    return result.toUIMessageStreamResponse({ onError: () => 'The assistant hit an error. Please try again.' });
+    return result.toUIMessageStreamResponse({
+      onError: () => timeoutSignal.aborted
+        ? 'The request timed out; any answer above is only partial. Try a narrower question.'
+        : 'The assistant hit an error. Please try again.',
+    });
   } catch (e) {
     await close();
     audit({ outcome: 'error', ...counts, detail: reason(e) });
