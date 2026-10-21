@@ -28,7 +28,7 @@
         <template v-for="(part, i) in message.parts" :key="`${message.id}-${i}`">
           <template v-if="part.type === 'text'">
             <!-- Assistant text is untrusted: sanitized by renderMarkdown. User text stays plain. -->
-            <div v-if="message.role === 'assistant'" class="chat-md" v-html="renderMarkdown(part.text)" />
+            <div v-if="message.role === 'assistant'" class="chat-md" v-html="renderMarkdown(part.text, { issueUrlBase: redmineUrl })" />
             <p v-else class="whitespace-pre-wrap">{{ part.text }}</p>
           </template>
         </template>
@@ -84,6 +84,7 @@ const examples = [
 ];
 
 const input = ref('');
+const redmineUrl = useRuntimeConfig().public.redmineUrl as string;
 
 // Same choice as the DevTracker page: own key from Client Setting, else the server token.
 const { YourOwnRedmineAPI } = useRedmineAPI();
