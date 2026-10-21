@@ -135,6 +135,22 @@ docker tag bun-redmine:0.3.3rc9 pingkunga/bun-redmine:0.3.3rc9
 docker push pingkunga/bun-redmine:0.3.3rc9
 ```
 
+### AI chat transcripts
+
+`/api/chat` records each model call (question, answer, tool inputs/outputs, client IP) to
+`data/chat-logs/YYYY-MM-DD.jsonl` so prompts and tools can be improved later. Files older than
+`NUXT_CHAT_LOG_RETENTION_DAYS` (default 30) are deleted automatically; `NUXT_CHAT_LOG_ENABLED=false` turns it off;
+`NUXT_CHAT_LOG_DIR` changes the folder.
+
+The folder lives inside the container, so mount a volume or the logs vanish with it (it must be writable by user `bun`):
+
+```
+docker run -d -p 3000:3000 --env-file .\.env -v D:\chat-logs:/app/data/chat-logs --name bun-redmine bun-redmine:0.3.3rc9
+```
+
+Read them with PowerShell: `Get-Content .\2026-10-19.jsonl | ConvertFrom-Json | Select-Object ts, outcome, question, answer`.
+The files contain Redmine/GitLab content, so restrict who can read the folder.
+
 ## Test
 
 ```

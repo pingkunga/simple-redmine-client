@@ -1,5 +1,5 @@
-@baseUrl = https://www.sampleredmine.co.th/redmine
-@apiKey = YOUR_API_KEY
+@baseUrl = https://www.REDACTED/redmine/
+@apiKey = 87b00fdd9b35f20d8f82ff4379b084c163e4fb88
 @projectId = 858
 @versionId = 5164
 
@@ -44,7 +44,13 @@ X-Redmine-API-Key: {{apiKey}}
 DELETE {{baseUrl}}/versions/5331.json HTTP/1.1
 
 ###GET ISSUE BY ISSUE ID {{baseUrl}}/issues/[id].[format]
-GET {{baseUrl}}/issues/350550.json
+GET {{baseUrl}}/issues/399602.json
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
+
+###GET ISSUE BY ISSUE ID Template Build Request Common Library
+
+GET {{baseUrl}}/issues/396744.json
 Content-Type: application/json
 X-Redmine-API-Key: {{apiKey}}
 
@@ -59,6 +65,14 @@ X-Redmine-API-Key: {{apiKey}}
 GET {{baseUrl}}/issues/381733.json
 Content-Type: application/json
 X-Redmine-API-Key: {{apiKey}}
+
+
+###GET ISSUE BY ISSUE ID Template Program Spec Defect including journals and reactions
+ 
+GET {{baseUrl}}/issues/380442.json?include=journals,reactions,changesets,relations
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
+
 
 ###PUT ISSUE BY ISSUE ID Template Program Spec Defect 
 
@@ -79,8 +93,13 @@ Content-Type: application/json
 X-Redmine-API-Key: {{apiKey}}
 
 ## Project
-### GET LIST PROJECT
-GET {{baseUrl}}/projects.json?limit=2 HTTP/1.1
+### GET LIST PROJECT 
+GET {{baseUrl}}/projects.json HTTP/1.1
+X-Redmine-API-Key: {{apiKey}}
+
+
+### GET LIST PROJECT WITH LIMIT 2
+GET {{baseUrl}}/projects.json?limit=100&offset=100 HTTP/1.1
 X-Redmine-API-Key: {{apiKey}}
 
 ### GET PROJECT MEMBER 858
@@ -90,4 +109,10 @@ X-Redmine-API-Key: {{apiKey}}
 
 ### GET TRACKER
 GET {{baseUrl}}/trackers.json HTTP/1.1
+X-Redmine-API-Key: {{apiKey}}
+
+
+
+### GET PROJECT
+GET {{baseUrl}}/projects.json HTTP/1.1
 X-Redmine-API-Key: {{apiKey}}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { extractRelateCode } from './relateCode'
 
-const MR = 'http://dev.REDACTED.local/invest/invest-net-resource/-/merge_requests/619'
+const MR = 'http://dev.ds.local/invest/invest-net-resource/-/merge_requests/619'
 
 describe('extractRelateCode', () => {
   it('finds a merge request link inside textile text', () => {
@@ -12,7 +12,7 @@ describe('extractRelateCode', () => {
   })
 
   it('finds a commit link and lowercases the sha', () => {
-    const url = 'http://dev.REDACTED.local/invest/invest-net-resource/-/commit/AB12CD3'
+    const url = 'http://dev.ds.local/invest/invest-net-resource/-/commit/AB12CD3'
     expect(extractRelateCode(`see ${url}.`, 'journal:1')).toEqual([
       { type: 'commit', url, projectPath: 'invest/invest-net-resource', sha: 'ab12cd3', foundIn: 'journal:1' },
     ])

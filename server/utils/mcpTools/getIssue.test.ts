@@ -8,7 +8,7 @@ vi.mock('axios', async (importOriginal) => {
 })
 
 const ctx = { redmineUrl: 'http://r', headers: { k: 'v' } }
-const MR = 'http://dev.REDACTED.local/invest/invest-net-resource/-/merge_requests/619'
+const MR = 'http://dev.ds.local/invest/invest-net-resource/-/merge_requests/619'
 
 // Modelled on issue 380442 (a Defect with journals, a description edit, a cf change and an attachment).
 const issue = (over: Record<string, unknown> = {}) => ({
@@ -41,7 +41,7 @@ const journals = [
     { property: 'attachment', name: '70586', old_value: null, new_value: 'dbeaver.png' },
     { property: 'attr', name: 'status_id', old_value: '16', new_value: '26' },
   ] },
-  { id: 3, user: { id: 227, name: 'B' }, notes: 'see http://dev.REDACTED.local/g/p/-/commit/abcdef1', created_on: 't3', details: [] },
+  { id: 3, user: { id: 227, name: 'B' }, notes: 'see http://dev.ds.local/g/p/-/commit/abcdef1', created_on: 't3', details: [] },
 ]
 
 const mockIssue = (over: Record<string, unknown> = {}) =>
@@ -105,7 +105,7 @@ describe('get_issue', () => {
 
     expect(result.relateCode).toEqual([
       { type: 'merge_request', url: MR, projectPath: 'invest/invest-net-resource', iid: 619, foundIn: 'description' },
-      { type: 'commit', url: 'http://dev.REDACTED.local/g/p/-/commit/abcdef1', projectPath: 'g/p', sha: 'abcdef1', foundIn: 'journal:3' },
+      { type: 'commit', url: 'http://dev.ds.local/g/p/-/commit/abcdef1', projectPath: 'g/p', sha: 'abcdef1', foundIn: 'journal:3' },
       { type: 'commit', sha: '9f8e7d6a', foundIn: 'changeset' },
     ])
     expect(result.changesets).toEqual([{ revision: '9f8e7d6a', user: undefined, comments: 'fix #1', committedOn: 'x' }])
