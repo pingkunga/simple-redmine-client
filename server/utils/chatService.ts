@@ -35,9 +35,14 @@ export interface ChatInput {
   signal?: AbortSignal;
 }
 
-export const defaultChatDeps = (limiter: ChatLimiter, transcript?: TranscriptWriter): ChatDeps => ({
+export const defaultChatDeps = (
+  limiter: ChatLimiter,
+  transcript?: TranscriptWriter,
+  /** The caller's own Redmine key header; absent = shared server token. */
+  redmineHeader?: Record<string, string>,
+): ChatDeps => ({
   getModel: getLanguageModel,
-  connectTools: () => connectChatTools(createToolContext()),
+  connectTools: () => connectChatTools(createToolContext(redmineHeader)),
   limiter,
   log: line => console.info(line),
   transcript: transcript && (record => void transcript.write(record)),
