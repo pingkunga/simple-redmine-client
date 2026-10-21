@@ -62,7 +62,12 @@
     />
 
     <UChatPrompt v-model="input" :maxrows="6" placeholder="พิมพ์คำถามที่นี่..." @submit="submit">
-      <UChatPromptSubmit :status="chat.status" @stop="chat.stop()" @reload="chat.regenerate()" />
+      <template #footer>
+        <div class="flex w-full items-center justify-between">
+          <ChatSettings v-model:is-use-server-token="isUseServerToken" :access-key="accessKey" />
+          <UChatPromptSubmit :status="chat.status" @stop="chat.stop()" @reload="chat.regenerate()" />
+        </div>
+      </template>
     </UChatPrompt>
   </div>
 </template>
@@ -80,8 +85,23 @@ const examples = [
 
 const input = ref('');
 
+// Same choice as the DevTracker page: own key from Client Setting, else the server token.
+const { YourOwnRedmineAPI } = useRedmineAPI();
+const accessKey = ref<string | null>(null);
+const isUseServerToken = ref(true);
+
+onMounted(() => {
+  accessKey.value = useClientUtil().retriveAccessKey() || '';
+  isUseServerToken.value = !accessKey.value;
+});
+
 const chat = new Chat({
-  transport: new DefaultChatTransport({ api: '/api/chat' }),
+  transport: new DefaultChatTransport({
+    api: '/api/chat',
+    // Evaluated per request, so flipping the switch needs no chat reset.
+    headers: (): Record<string, string> =>
+      !isUseServerToken.value && accessKey.value ? { [YourOwnRedmineAPI]: accessKey.value } : {},
+  }),
 });
 
 const submit = () => {
