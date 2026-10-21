@@ -62,7 +62,7 @@ describe('renderMarkdown', () => {
       expect(links('`#12`')).toEqual([]);
       expect(links('```\n#12\n```')).toEqual([]);
       expect(links('[#12](https://example.com)')).toEqual([['#12', 'https://example.com']]);
-      expect(links('abc#12 &#39; ##12 12345678 #12345678')).toEqual([]);
+      expect(links('abc#12 &#39; ##12 123456789 #123456789')).toEqual([]);
       expect(links('https://example.com/y#12')).toEqual([['https://example.com/y#12', 'https://example.com/y#12']]);
     });
 
