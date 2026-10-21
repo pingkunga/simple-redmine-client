@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { MockLanguageModelV3, simulateReadableStream } from 'ai/test'
 import { createChatLimiter } from './chatLimits'
-import { handleChat, MAX_STEPS, type ChatDeps } from './chatService'
+import {
+  DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_STEPS, DEFAULT_REQUEST_TIMEOUT_MS,
+  handleChat, resolveChatLimits, type ChatDeps,
+} from './chatService'
 import { connectChatTools } from './chatTools'
 import type { ChatTranscript } from './chatTranscript'
 import type { McpToolDef } from './mcpTools/types'
@@ -96,12 +99,80 @@ describe('handleChat', () => {
     expect(call.maxOutputTokens).toBeGreaterThan(0)
   })
 
-  it('stops a model that keeps calling tools after MAX_STEPS', async () => {
+  it('stops a model that keeps calling tools after the default max steps', async () => {
     const model = scripted([toolCallStep('list_projects', {})])
     const { deps, tool } = setup(model)
     await (await run(deps)).text()
-    expect(model.doStreamCalls).toHaveLength(MAX_STEPS)
-    expect(tool.handler).toHaveBeenCalledTimes(MAX_STEPS)
+    expect(model.doStreamCalls).toHaveLength(DEFAULT_MAX_STEPS)
+    expect(tool.handler).toHaveBeenCalledTimes(DEFAULT_MAX_STEPS)
+  })
+
+  it('honours configured limits: step cap and output-token cap', async () => {
+    const model = scripted([toolCallStep('list_projects', {})])
+    const { deps, tool } = setup(model)
+    await (await run(deps, body(), { limits: resolveChatLimits({ maxSteps: 2, maxOutputTokens: 321 }) })).text()
+    expect(model.doStreamCalls).toHaveLength(2)
+    expect(tool.handler).toHaveBeenCalledTimes(2)
+    expect(model.doStreamCalls[0]!.maxOutputTokens).toBe(321)
+  })
+
+  it('after the soft deadline the next step has no tool choice and is told to give a partial answer', async () => {
+    const model = scripted([toolCallStep('list_projects', {}), textStep('Partial summary.')])
+    let t = 1_000_000
+    // The clock jumps past the soft deadline once the first step's tool has run.
+    const tool = echoTool(vi.fn(async () => { t += 200_000; return { ok: true } }))
+    const { deps } = setup(model, { now: () => t }, tool)
+    const text = await (await run(deps)).text()
+
+    expect(text).toContain('Partial summary.')
+    expect(model.doStreamCalls[0]!.toolChoice).not.toEqual({ type: 'none' })
+    expect(model.doStreamCalls[1]!.toolChoice).toEqual({ type: 'none' })
+    const system = (model.doStreamCalls[1]!.prompt as { role: string; content: unknown }[]).find(m => m.role === 'system')!
+    expect(String(system.content)).toMatch(/partial summary/)
+  })
+
+  it('aborts at the hard timeout, closes the session and audits it as a timeout', async () => {
+    const model = new MockLanguageModelV3({
+      doStream: async ({ abortSignal }) => ({
+        stream: new ReadableStream({
+          start(c) { abortSignal?.addEventListener('abort', () => c.error(new DOMException('aborted', 'AbortError'))) },
+        }),
+      }),
+    })
+    // resolveChatLimits clamps to >= 10s, so build the limits by hand for a fast test
+    const limits = { ...resolveChatLimits(), requestTimeoutMs: 50, softDeadlineMs: 25 }
+    const { deps, closes, logs } = setup(model)
+    const res = await run(deps, body(), { limits })
+    void res.text().catch(() => {})
+    await vi.waitFor(() => expect(closes.length).toBeGreaterThan(0))
+    await vi.waitFor(() => expect(logs.join('\n')).toMatch(/"outcome":"timeout"/))
+  })
+
+  describe('resolveChatLimits', () => {
+    it('uses the defaults when nothing (or junk) is configured', () => {
+      const d = { maxSteps: DEFAULT_MAX_STEPS, maxOutputTokens: DEFAULT_MAX_OUTPUT_TOKENS, requestTimeoutMs: DEFAULT_REQUEST_TIMEOUT_MS }
+      expect(resolveChatLimits()).toMatchObject(d)
+      expect(resolveChatLimits({ maxSteps: '', maxOutputTokens: 'abc', requestTimeoutMs: undefined })).toMatchObject(d)
+      expect(resolveChatLimits({ maxSteps: 0, maxOutputTokens: -5, requestTimeoutMs: NaN })).toMatchObject(d)
+    })
+
+    it('accepts numbers and numeric strings (env vars arrive as strings)', () => {
+      expect(resolveChatLimits({ maxSteps: '10', maxOutputTokens: '2500', requestTimeoutMs: '120000' }))
+        .toMatchObject({ maxSteps: 10, maxOutputTokens: 2500, requestTimeoutMs: 120_000 })
+    })
+
+    it('clamps absurd values', () => {
+      expect(resolveChatLimits({ maxSteps: 999, maxOutputTokens: 1_000_000, requestTimeoutMs: 99_999_999 }))
+        .toMatchObject({ maxSteps: 20, maxOutputTokens: 8000, requestTimeoutMs: 600_000 })
+      expect(resolveChatLimits({ maxSteps: 1, maxOutputTokens: 1, requestTimeoutMs: 1 }))
+        .toMatchObject({ maxSteps: 1, maxOutputTokens: 100, requestTimeoutMs: 10_000 })
+    })
+
+    it('derives the soft deadline: 50s before the ceiling, never below half of it', () => {
+      expect(resolveChatLimits().softDeadlineMs).toBe(100_000)
+      expect(resolveChatLimits({ requestTimeoutMs: 120_000 }).softDeadlineMs).toBe(70_000)
+      expect(resolveChatLimits({ requestTimeoutMs: 60_000 }).softDeadlineMs).toBe(30_000)
+    })
   })
 
   it('survives a failing tool: the error goes back to the model, the stream completes', async () => {
