@@ -135,6 +135,19 @@ docker tag bun-redmine:0.3.3rc9 pingkunga/bun-redmine:0.3.3rc9
 docker push pingkunga/bun-redmine:0.3.3rc9
 ```
 
+### AI chat limits
+
+Per-request caps for `/api/chat`, all optional (unset, empty or invalid values use the default):
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `NUXT_CHAT_MAX_STEPS` | 6 (1-20) | Max model/tool rounds per question |
+| `NUXT_CHAT_MAX_OUTPUT_TOKENS` | 1500 (100-8000) | Max answer tokens per model call |
+| `NUXT_CHAT_REQUEST_TIMEOUT_MS` | 150000 (10000-600000) | Hard time limit in ms |
+
+Fifty seconds before the time limit (never earlier than half of it) the assistant stops calling tools and
+answers from the data it already has, saying the summary is partial.
+
 ### AI chat transcripts
 
 `/api/chat` records each model call (question, answer, tool inputs/outputs, client IP) to
