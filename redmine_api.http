@@ -1,4 +1,4 @@
-@baseUrl = https://www.REDACTED/redmine/
+@baseUrl = https://www.sample.com/redmine/
 @apiKey = 87b00fdd9b35f20d8f82ff4379b084c163e4fb88
 @projectId = 858
 @versionId = 5164
