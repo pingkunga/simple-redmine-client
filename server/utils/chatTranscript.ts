@@ -18,6 +18,8 @@ export interface ChatTranscript {
   historyCount: number;
   answer?: string;
   finish?: string;
+  /** True when the model finished without any answer text (the page would show an empty bubble). */
+  emptyAnswer?: boolean;
   usage?: unknown;
   steps: ChatTranscriptStep[];
   detail?: string;

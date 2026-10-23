@@ -61,6 +61,17 @@
       :title="errorText"
     />
 
+    <!-- The model can finish after its tool calls without writing any text; otherwise the page just stays blank. -->
+    <UAlert
+      v-else-if="emptyReply"
+      class="mb-3"
+      color="warning"
+      variant="soft"
+      icon="i-heroicons-exclamation-triangle"
+      title="No response from the model"
+      :actions="[{ label: 'ลองใหม่', color: 'neutral', variant: 'outline', onClick: () => chat.regenerate() }]"
+    />
+
     <UChatPrompt v-model="input" :maxrows="6" placeholder="พิมพ์คำถามที่นี่..." @submit="submit">
       <template #footer>
         <div class="flex w-full items-center justify-between">
@@ -103,6 +114,8 @@ const chat = new Chat({
     headers: (): Record<string, string> =>
       !isUseServerToken.value && accessKey.value ? { [YourOwnRedmineAPI]: accessKey.value } : {},
   }),
+  // Keep the real cause for debugging; the page only shows a friendly message.
+  onError: (err) => console.error('[chat] request failed', err),
 });
 
 const submit = () => {
@@ -133,6 +146,16 @@ const busyLabel = computed(() => {
   return name ? `Looking up data (${name})...` : 'Looking up data...';
 });
 
+// Done streaming, but the last assistant message has no visible text.
+const emptyReply = computed(() => {
+  if (chat.status !== 'ready' || chat.error) return false;
+  const last = chat.messages[chat.messages.length - 1];
+  if (!last || last.role !== 'assistant') return false;
+  return !last.parts.some(p => p.type === 'text' && p.text.trim());
+});
+
+const GENERIC_ERROR = 'Something went wrong. Please try again.';
+
 // The route replies with JSON { error } for 4xx/5xx; the SDK puts that body in error.message.
 const errorText = computed(() => {
   const err = chat.error;
@@ -141,10 +164,12 @@ const errorText = computed(() => {
   try {
     const parsed = JSON.parse(msg);
     if (parsed?.error) msg = String(parsed.error);
+    // A bare JSON value such as `true` or `null` is not a message a person can act on.
+    else if (typeof parsed !== 'object' || parsed === null) msg = '';
   } catch {
     /* not JSON: keep the raw message */
   }
-  return msg || 'Something went wrong. Please try again.';
+  return msg.trim() || GENERIC_ERROR;
 });
 </script>
 

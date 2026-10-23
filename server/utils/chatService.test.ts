@@ -273,6 +273,25 @@ describe('handleChat', () => {
     expect(JSON.stringify(records[0]!.steps[0]!.toolResults)).toContain('got')
   })
 
+  it('flags a turn that ends without any answer text', async () => {
+    const model = scripted([toolCallStep('list_projects', {}), [{ type: 'stream-start' as const, warnings: [] }, finish('stop')]])
+    const records: ChatTranscript[] = []
+    const { deps, closes, logs } = setup(model, { transcript: r => records.push(r) })
+    await (await run(deps)).text()
+    await vi.waitFor(() => expect(closes).toHaveLength(1))
+
+    expect(records[0]).toMatchObject({ outcome: 'ok', answer: '', emptyAnswer: true })
+    expect(logs.join('\n')).toContain('"emptyAnswer":true')
+  })
+
+  it('does not flag a normal answer as empty', async () => {
+    const records: ChatTranscript[] = []
+    const { deps, closes } = setup(scripted([textStep('Hi')]), { transcript: r => records.push(r) })
+    await (await run(deps)).text()
+    await vi.waitFor(() => expect(closes).toHaveLength(1))
+    expect(records[0]!.emptyAnswer).toBeUndefined()
+  })
+
   it('does not record requests rejected before the model is called', async () => {
     const records: ChatTranscript[] = []
     const { deps } = setup(scripted([textStep('x')]), { transcript: r => records.push(r) })
