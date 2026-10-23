@@ -5,8 +5,10 @@ import { getIssueTool } from './getIssue';
 import { getIssuesByVersionTool } from './getIssuesByVersion';
 import { getThisWeekReleasesTool } from './getThisWeekReleases';
 import { listGitlabBranchesTool } from './listGitlabBranches';
+import { getWikiPageTool } from './getWikiPage';
 import { listProjectsTool } from './listProjects';
 import { listVersionsTool } from './listVersions';
+import { listWikiPagesTool } from './listWikiPages';
 import { searchRedmineTool } from './searchRedmine';
 import type { McpToolDef } from './types';
 
@@ -26,4 +28,6 @@ export const mcpTools: McpToolDef[] = [
   getGitlabCommitTool,
   getThisWeekReleasesTool,
   searchRedmineTool,
+  listWikiPagesTool,
+  getWikiPageTool,
 ];

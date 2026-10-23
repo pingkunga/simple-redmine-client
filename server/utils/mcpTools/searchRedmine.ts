@@ -86,7 +86,8 @@ export const searchRedmineTool: McpToolDef = {
   description: 'Search Redmine issues and wiki pages by keyword or version number across all projects ' +
     '(e.g. find the Build-Request issue for version 7.5.44.1). Matches titles only by default; ' +
     'if nothing is found, retry with titlesOnly=false. Results include the type, id, title, url ' +
-    'and a short snippet; use get_issue with an issue id for details.',
+    'and a short snippet; use get_issue with an issue id for details, or get_wiki_page (project id from ' +
+    'list_projects) to read a wiki page found here.',
   inputSchema,
   handler: searchRedmine,
 };

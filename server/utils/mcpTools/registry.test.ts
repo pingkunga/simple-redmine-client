@@ -9,10 +9,11 @@ const EXPECTED = [
   'list_projects', 'list_versions', 'get_issues_by_version',
   'get_issue_graph', 'list_gitlab_branches', 'get_thisweek_releases',
   'get_issue', 'get_gitlab_merge_request', 'get_gitlab_commit', 'search_redmine',
+  'list_wiki_pages', 'get_wiki_page',
 ]
 
 describe('MCP tool registry', () => {
-  it('registers exactly the ten read-only tools with unique names', () => {
+  it('registers exactly the twelve read-only tools with unique names', () => {
     const names = mcpTools.map(t => t.name)
     expect(new Set(names).size).toBe(names.length)
     expect([...names].sort()).toEqual([...EXPECTED].sort())
@@ -38,6 +39,8 @@ describe('MCP tool registry', () => {
       get_gitlab_merge_request: { projectPath: 'invest/invest-net-resource', iid: 619, includeDiff: true },
       get_gitlab_commit: { projectPath: 'invest/invest-net-resource', sha: 'ab12cd3' },
       search_redmine: { q: '7.5.44.1', types: ['issues', 'wiki_pages'], titlesOnly: true },
+      list_wiki_pages: { projectId: 7, titleContains: 'DOTNET' },
+      get_wiki_page: { projectId: 'my-project', title: 'DOTNET6_MIGRATE_CHECKLIST', maxChars: 6000 },
     }
     for (const tool of mcpTools) {
       expect(z.object(tool.inputSchema).safeParse(samples[tool.name]).success, tool.name).toBe(true)
