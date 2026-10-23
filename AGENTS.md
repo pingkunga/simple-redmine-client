@@ -1,10 +1,12 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for AI coding agents working in this repository.
 
 ## Critical rule
 
 **Never run `git commit` (or `git push`).** The human always reviews and commits/pushes changes themselves. You may stage files, show diffs, and draft commit messages, but do not execute the commit or push command — stop and hand it back for the human to run.
+
+**Never edit `redmine_api.http`.** The human maintains it (a secret leaked through it once). Also never copy tokens, API keys or session values (e.g. a `set-cookie` header in a pasted response) from it, `.env` or pasted responses into code, tests, docs or memory.
 
 ## Commands
 
