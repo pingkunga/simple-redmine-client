@@ -1,7 +1,30 @@
 @baseUrl = https://www.sample.com/redmine/
-@apiKey = 87b00fdd9b35f20d8f82ff4379b084c163e4fb88
+@apiKey = [[SAMPLE_TOKEN]]
 @projectId = 858
 @versionId = 5164
+
+### Search: all projects + Issues + Wiki Pages
+GET {{baseUrl}}/search.json?q=7.5.44.1&scope=all&issues=1&wiki_pages=1&titles_only=1&offset=0&limit=100
+Content-Type: application/json
+X-Redmine-API-Key: {{apiKey}}
+
+### Search with paging
+GET {{baseUrl}}/search.json?q=keyword&scope=all&issues=1&wiki_pages=1&offset=0&limit=100
+X-Redmine-API-Key: {{apiKey}}
+Accept: application/json
+
+### Get Wiki Pages -list of a wiki
+GET {{baseUrl}}/projects/{{projectId}}/wiki/index.json HTTP/1.1
+X-Redmine-API-Key: {{apiKey}}
+Accept: application/json
+
+
+### Get Wiki Page by Title
+@title = DOTNET6_MIGRATE_CHECKLIST
+GET {{baseUrl}}/projects/{{projectId}}/wiki/{{title}}.json HTTP/1.1
+X-Redmine-API-Key: {{apiKey}}
+Accept: application/json
+
 
 #### GET LIST VERSION
 GET {{baseUrl}}/projects/{{projectId}}/versions.json HTTP/1.1
