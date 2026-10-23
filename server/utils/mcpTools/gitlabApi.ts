@@ -19,7 +19,7 @@ export const gitlabGet = async <T>(path: string, params?: Record<string, unknown
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
-      throw new Error('GitLab merge request / commit / project not found (or the token cannot read it)');
+      throw new Error('GitLab project / merge request / commit / wiki page not found (or the token cannot read it)');
     }
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       throw new Error('GitLab rejected the server token');

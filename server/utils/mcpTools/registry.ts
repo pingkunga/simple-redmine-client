@@ -1,10 +1,12 @@
 import { getIssueGraphTool } from './getIssueGraph';
 import { getGitlabCommitTool } from './getGitlabCommit';
 import { getGitlabMergeRequestTool } from './getGitlabMergeRequest';
+import { getGitlabWikiPageTool } from './getGitlabWikiPage';
 import { getIssueTool } from './getIssue';
 import { getIssuesByVersionTool } from './getIssuesByVersion';
 import { getThisWeekReleasesTool } from './getThisWeekReleases';
 import { listGitlabBranchesTool } from './listGitlabBranches';
+import { listGitlabWikiPagesTool } from './listGitlabWikiPages';
 import { getWikiPageTool } from './getWikiPage';
 import { listProjectsTool } from './listProjects';
 import { listVersionsTool } from './listVersions';
@@ -30,4 +32,6 @@ export const mcpTools: McpToolDef[] = [
   searchRedmineTool,
   listWikiPagesTool,
   getWikiPageTool,
+  listGitlabWikiPagesTool,
+  getGitlabWikiPageTool,
 ];

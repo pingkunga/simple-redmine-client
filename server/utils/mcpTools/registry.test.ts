@@ -10,10 +10,11 @@ const EXPECTED = [
   'get_issue_graph', 'list_gitlab_branches', 'get_thisweek_releases',
   'get_issue', 'get_gitlab_merge_request', 'get_gitlab_commit', 'search_redmine',
   'list_wiki_pages', 'get_wiki_page',
+  'list_gitlab_wiki_pages', 'get_gitlab_wiki_page',
 ]
 
 describe('MCP tool registry', () => {
-  it('registers exactly the twelve read-only tools with unique names', () => {
+  it('registers exactly the fourteen read-only tools with unique names', () => {
     const names = mcpTools.map(t => t.name)
     expect(new Set(names).size).toBe(names.length)
     expect([...names].sort()).toEqual([...EXPECTED].sort())
@@ -41,6 +42,8 @@ describe('MCP tool registry', () => {
       search_redmine: { q: '7.5.44.1', types: ['issues', 'wiki_pages'], titlesOnly: true },
       list_wiki_pages: { projectId: 7, titleContains: 'DOTNET' },
       get_wiki_page: { projectId: 'my-project', title: 'DOTNET6_MIGRATE_CHECKLIST', maxChars: 6000 },
+      list_gitlab_wiki_pages: { projectPath: 'invest/invest-service', titleContains: 'test' },
+      get_gitlab_wiki_page: { projectPath: 'invest/invest-service', slug: 'How-to-create-non-db-unit-test-(Service)' },
     }
     for (const tool of mcpTools) {
       expect(z.object(tool.inputSchema).safeParse(samples[tool.name]).success, tool.name).toBe(true)
