@@ -58,6 +58,15 @@ Users can override the server's default Redmine token with their own personal ac
 - The `admin_session` cookie is HMAC-signed with `adminSessionSecret` (set via `NUXT_ADMIN_SESSION_SECRET`; required in deployment, the placeholder is rejected unless `NODE_ENV` is `development`/`test`). `/api/chat` is open to anonymous visitors but POST must be same-origin (`Origin`/`Sec-Fetch-Site`); abuse is limited by rate/size limits in the route, not by login. `/api/mcp` is key-only (`Authorization: Bearer` or `x-api-key` vs `mcpApiKey`, set via `NUXT_MCP_API_KEY`; empty = closed). Neither route uses `x-internal-key` or client IP. Decision logic lives in `server/utils/authGate.ts`.
 - All other routes are open (protected only by network placement / Redmine token possession).
 
+### AI chat / MCP tool layer
+
+`/chat` (`server/api/chat.post.ts` → `server/utils/chatService.ts`) and the external MCP endpoint `/api/mcp` share **one tool registry**, `server/utils/mcpTools/registry.ts` (14 read-only tools: Redmine projects/versions/issues/search/wiki, GitLab branches/MR/commits/wiki). The chat route is an MCP client of the app's own MCP server over an in-memory transport (`server/utils/chatTools.ts`, `mcpServer.ts`). Full design: `doc/spec_ai_integration.md`.
+
+- **Read-only is enforced by tests.** `registry.test.ts` fails on any non-GET HTTP call in a tool source and on mutating words in tool names. Never add a create/update/delete/send tool.
+- **To add a tool:** create `server/utils/mcpTools/<name>.ts` (zod raw-shape `inputSchema`, handler `(rawArgs, ctx)`, exported `<name>Tool`), a sibling `.test.ts`, register it in `registry.ts`, add its name and a sample input in `registry.test.ts`, and mention it in the system prompt in `chatService.ts`.
+- **Auth to upstream:** Redmine tools use `ctx.headers` (server token, or the caller's own key from `x-my-redmine-api-key` in chat only); GitLab tools use `gitlabGet` (server GitLab token). Tool output is untrusted data: bound it (`MAX_RESULTS`, character caps, `truncated` flags) and keep raw text for code-bearing content (wiki pages) instead of tag-stripping.
+- **Timeouts:** `TOOL_TIMEOUT_MS` (10 s) by default; `search_redmine` uses 25 s because Redmine's search can be slow.
+
 ### GitLab branch cache
 
 `server/utils/gitlabCache.ts` fetches all branches + `pushed`/`created` events for a GitLab project, merges branch creator info from cached events, and persists per-project JSON caches at `<gitlabCacheDir>/project-<id>.json` (mode controlled by `gitlabCacheMode`: `"file"` implemented, `"mongodb"` is a documented placeholder, not implemented). Syncing is incremental — `syncProjectEvents` merges newly fetched events into the existing cache by event ID rather than replacing it.

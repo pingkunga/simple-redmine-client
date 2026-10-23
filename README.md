@@ -6,9 +6,11 @@
 
 # Overview Architecture
 
-![Architecture Diagram](./redmineClientArch.svg "Architecture Diagram")
+![Architecture Diagram](./redmineClientArchV2User.svg "Architecture Diagram (User)")
 
-See [CLAUDE.md](./CLAUDE.md) for a written breakdown of the layers, Redmine integration pattern, auth model, and other conventions (kept up to date for AI-assisted development).
+![Architecture Diagram](./redmineClientArchV2Admin.svg "Architecture Diagram (Admin)")
+
+See [AGENTS.md](./AGENTS.md) for a written breakdown of the layers, Redmine integration pattern, auth model, and other conventions (kept up to date for AI-assisted development).
 
 # Feature
 
@@ -134,6 +136,10 @@ docker run -d -p 3000:3000 --env-file .\.env --name bun-redmine bun-redmine:0.3.
 docker tag bun-redmine:0.3.3rc9 pingkunga/bun-redmine:0.3.3rc9
 docker push pingkunga/bun-redmine:0.3.3rc9
 ```
+
+### AI chat tools
+
+The chat page and the `/api/mcp` endpoint expose the same 14 read-only tools: `list_projects`, `list_versions`, `get_issues_by_version`, `get_issue`, `get_issue_graph`, `get_thisweek_releases`, `search_redmine`, `list_wiki_pages`, `get_wiki_page` (Redmine) and `list_gitlab_branches`, `get_gitlab_merge_request`, `get_gitlab_commit`, `list_gitlab_wiki_pages`, `get_gitlab_wiki_page` (GitLab). Details in [doc/spec_ai_integration.md](./doc/spec_ai_integration.md).
 
 ### AI chat limits
 

@@ -24,7 +24,7 @@ Status: **Phase 1 direction approved; not yet implemented.** The contracts in **
 **Guardrails / non-functional**
 - **Read-only tools are scoped by the Redmine/GitLab token's own permissions, not by the `Support*.json` allowlists** (decision: the token already defines what is visible). The safety property is *read operations only*: every tool issues GET requests only, and there is no create/update/delete/mail tool; this is enforced by tests. `SupportProject.json` is used only as a **default search scope** when a caller gives no project (a convenience, not a security boundary). The fail-closed `assert*Supported` helpers remain for Phase 2 write tools, which must validate against the allowlists.
 - `/api/chat` and `/api/mcp/*` each need their own auth gate — the app has almost no auth today outside `/admin` and `/api/release/*`, and each caller type (in-app page vs. external MCP client) needs a scheme it can actually satisfy.
-- Per-user Redmine identity (forwarding a user's personal API key instead of the shared server token) is explicitly **deferred to Phase 3**, with the Phase-1 shared-token exposure trade-off called out for human sign-off before shipping — not silently accepted.
+- *(Update: the in-app chat route now accepts the caller's own Redmine access key via `x-my-redmine-api-key`, validated up front, and uses it for the Redmine tools; `/api/mcp` and the GitLab tools still use the shared server tokens.)* Per-user Redmine identity (forwarding a user's personal API key instead of the shared server token) was originally **deferred to Phase 3**, with the Phase-1 shared-token exposure trade-off called out for human sign-off before shipping — not silently accepted.
 - Vitest coverage per existing repo convention (tests alongside the code, `environment: 'nuxt'`) for every new tool handler, the provider factory, and the chat route.
 
 Full detail for each of these is in the sections below.
@@ -116,6 +116,11 @@ Decisions locked in before this spec:
 | "branch นี้ใครสร้าง เมื่อไหร่" | `list_gitlab_branches` |
 | "สรุป issue ทั้งหมดใน version 8.9.15.4 ให้หน่อย" | `get_issues_by_version` with `versionName` (the tool resolves name → id itself; if the name is ambiguous it returns candidates for the model to confirm with the user) |
 | "project ไหนบ้างที่ทีมดูแลอยู่" | `list_projects` |
+| "ค้นหา 7.5.44.1 อยู่ใน ticket ไหน" | `search_redmine` (then `get_issue` for details) |
+| "สรุป issue #380442 พร้อมประวัติการแก้" | `get_issue` |
+| "MR 619 ของ invest-net-resource แก้อะไรบ้าง" | `get_gitlab_merge_request` |
+| "wiki DOTNET6_MIGRATE_CHECKLIST เขียนว่าอะไร" | `list_wiki_pages` → `get_wiki_page` |
+| "อ่าน http://…/invest/invest-service/-/wikis/… แล้วสรุป" | `get_gitlab_wiki_page` (`list_gitlab_wiki_pages` if the slug is unknown) |
 
 Everything above is read/summarize only — no create/update/delete capability exists in Phase 1. "ช่วยร่าง build request ให้ version นี้" and similar write requests are explicitly Phase 2, gated behind a confirmation step, not part of this spec's deliverable.
 
@@ -187,6 +192,16 @@ Note for Ollama/LM Studio: these typically run on `localhost` or a LAN machine, 
 | `list_projects` | `GET /api/projects`, `.../support` logic | lists projects visible to the token (capped, optional name filter); an empty or failed fetch is an error, not `[]` |
 | `list_gitlab_branches` | `server/utils/gitlabCache.ts` (`getGitLabBranches`) | users rarely know a GitLab project id, so `projectId`/`projectName` are optional: an id wins, a name is matched against `SupportGitLabProject.json`, and with neither the tool searches every project in that file (default scope, not a boundary; other projects need `projectId`). Results carry their project and are merged newest-first; a failing project is reported as `partial`. Commit titles/messages and author emails are not returned. Caveat: `getGitLabBranches` is read-only toward GitLab but refreshes the local cache file as a side effect, and has no timeout of its own, so the tool wraps it in a 30 s timeout. |
 | `get_thisweek_releases` | `server/utils/releaseService.ts` (after refactor above) | "this week" = next 7 days (existing logic; server `TZ` set at deploy) |
+| `get_issue` | `GET /issues/{id}.json` | one issue with description (capped at 4000 chars), recent journals (default 20, max 50, newest kept), changesets and the GitLab MR / commit links found in it (`relateCode`); a 404 becomes "Issue N not found". |
+| `get_gitlab_merge_request` | GitLab `GET /projects/:id/merge_requests/:iid` (+ `/commits`, `/diffs`) | takes `projectPath` + `iid` from a link; file list with line counts by default, diff text only with `includeDiff` and within a character budget; collapsed / too-large / generated files never carry diff text. |
+| `get_gitlab_commit` | GitLab `GET /projects/:id/repository/commits/:sha` (+ `/diff`, `/merge_requests`) | same shape and diff limits as the MR tool; author emails are never returned. |
+| `search_redmine` | `GET /search.json` (or `/projects/:id/search.json`) | keyword / version-number search over issues and wiki pages (also news, changesets, documents, messages, projects) across all projects. Titles only by default (`titlesOnly=false` searches full text), results carry a 300-char plain-text snippet. Redmine's search can take close to 10 s, so this tool has its own 25 s timeout instead of `TOOL_TIMEOUT_MS`. |
+| `list_wiki_pages` | `GET /projects/:id/wiki/index.json` | pages of one Redmine project (title, parent, version, dates); optional `titleContains`. `projectId` accepts an id or an identifier. |
+| `get_wiki_page` | `GET /projects/:id/wiki/:title.json` (or `/:title/:version.json`) | one page as **raw textile** (not tag-stripped, so `<pre><code>` blocks survive), returned in parts (`maxChars` default 6000 / max 20000, continue with `textOffset` = `nextTextOffset`); optional attachment metadata only (no download URL). Title is URL-encoded (Thai, parentheses, trailing `_`). 404 / 403 get readable errors. |
+| `list_gitlab_wiki_pages` | GitLab `GET /projects/:id/wikis` | pages of one GitLab project wiki (slug, title, format); optional `titleContains` over title and slug. |
+| `get_gitlab_wiki_page` | GitLab `GET /projects/:id/wikis/:slug` | one page as raw markdown, same `maxChars` / `textOffset` paging as the Redmine wiki tool (`nextContentOffset`); optional `version` (wiki page SHA). The slug is the part after `/-/wikis/` in a link; a percent-encoded slug copied from a browser is decoded and encoded exactly once (`dir/page` → `dir%2Fpage`). |
+
+**Status:** the registry now holds **14** read-only tools (9 Redmine, 5 GitLab); the original six are the first six rows. Task descriptions and checkpoints above that say "six" describe the first delivery. Adding a tool means: a file in `server/utils/mcpTools/`, an entry in `registry.ts`, the name and a sample input in `registry.test.ts`, and a mention in the system prompt in `chatService.ts`. `registry.test.ts` also fails on any non-GET HTTP call or mutating verb in a tool name or source. GitLab tools use the server's GitLab token; the Redmine tools use the server token unless the chat caller supplies their own access key (see the update note under Requirements).
 
 Explicitly **out of scope for any phase**, not just deferred (irreversible/high-blast-radius, existing manual UX already covers them): `POST /api/release/auto-create-build-inv`, `POST /api/release/send-release-mail`, `DELETE /api/versions/[id]`. Other write endpoints (`create_devtracker_issue`, `create_buildinvset_issue`, `create_buildnetcommon_issue`, version create/update) are real Phase 2 candidates but not built now.
 
@@ -228,8 +243,8 @@ Pin the **ai-6 line** (every package below depends on `@ai-sdk/provider-utils@4.
 - `bun test` (full suite) and targeted `bun x vitest server/utils/mcpTools` / `bun x vitest server/api/chat.post.test.ts` runs green.
 - `bun run dev`, log in as needed, open `/chat`, ask a question that requires each Phase 1 tool at least once (e.g. "what versions are due this week for project X", "show me branches for GitLab project Y", "graph the relations around issue Z") and confirm correct tool selection, correct data, and that a malformed id is refused rather than silently ignored.
 - Confirm `/api/chat` works without login from the app's own page but a cross-origin POST is refused (403) and the rate limit returns 429 when exceeded, and `/api/mcp` works only with a valid `mcpApiKey` (otherwise 401).
-- Ask at least one question that exercises **each of the six tools** and confirm correct selection and data.
-- Manually connect an external MCP client (e.g. Claude Desktop's MCP config with the bearer token, or `mcp-inspector`) to `/api/mcp` and confirm the same six tools list and execute correctly outside the chat page, since "real external-client-usable MCP" was the explicit goal.
+- Ask at least one question that exercises **each of the 14 tools** and confirm correct selection and data.
+- Manually connect an external MCP client (e.g. Claude Desktop's MCP config with the bearer token, or `mcp-inspector`) to `/api/mcp` and confirm the same 14 tools list and execute correctly outside the chat page, since "real external-client-usable MCP" was the explicit goal.
 - Run the Ollama/LM Studio tool-calling spike (see "LLM provider abstraction") and record the result before calling Phase 1 done.
 
 ## Open item carried forward (not blocking Phase 1 architecture)
