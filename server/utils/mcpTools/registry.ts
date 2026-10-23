@@ -7,6 +7,7 @@ import { getThisWeekReleasesTool } from './getThisWeekReleases';
 import { listGitlabBranchesTool } from './listGitlabBranches';
 import { listProjectsTool } from './listProjects';
 import { listVersionsTool } from './listVersions';
+import { searchRedmineTool } from './searchRedmine';
 import type { McpToolDef } from './types';
 
 /**
@@ -24,4 +25,5 @@ export const mcpTools: McpToolDef[] = [
   getGitlabMergeRequestTool,
   getGitlabCommitTool,
   getThisWeekReleasesTool,
+  searchRedmineTool,
 ];
