@@ -30,7 +30,7 @@ const inputSchema = {
   q: z.string().min(2).max(100)
     .describe('Text to search for, e.g. a version number like "7.5.44.1" or a keyword'),
   types: z.array(z.enum(SEARCH_TYPES)).min(1).optional()
-    .describe('What to search (default issues and wiki_pages)'),
+    .describe('What to search (default issues, wiki_pages and messages)'),
   titlesOnly: z.boolean().optional()
     .describe('Match titles/subjects only (default true). Set false to search the full text as well'),
   openIssuesOnly: z.boolean().optional()
@@ -45,7 +45,7 @@ const inputSchema = {
 const schema = z.object(inputSchema);
 
 export const searchRedmine = async (rawArgs: unknown, ctx: ToolContext) => {
-  const { q, types = ['issues', 'wiki_pages'], titlesOnly = true, openIssuesOnly, projectId, limit = DEFAULT_LIMIT, offset = 0 } =
+  const { q, types = ['issues', 'wiki_pages', 'messages'], titlesOnly = true, openIssuesOnly, projectId, limit = DEFAULT_LIMIT, offset = 0 } =
     schema.parse(rawArgs);
 
   const params: Record<string, string | number> = { q, offset, limit };

@@ -13,13 +13,13 @@ const reply = (results: unknown[], total = results.length) =>
 describe('searchRedmine', () => {
   beforeEach(() => get.mockReset())
 
-  it('searches all projects, issues and wiki pages, titles only, by default', async () => {
+  it('searches all projects, issues, wiki pages and forum messages, titles only, by default', async () => {
     reply([])
     await searchRedmine({ q: '7.5.44.1' }, ctx)
     expect(get).toHaveBeenCalledWith('http://r/search.json', expect.objectContaining({
       headers: ctx.headers,
       timeout: 25_000,
-      params: { q: '7.5.44.1', scope: 'all', issues: 1, wiki_pages: 1, titles_only: 1, offset: 0, limit: 25 },
+      params: { q: '7.5.44.1', scope: 'all', issues: 1, wiki_pages: 1, messages: 1, titles_only: 1, offset: 0, limit: 25 },
     }))
   })
 
