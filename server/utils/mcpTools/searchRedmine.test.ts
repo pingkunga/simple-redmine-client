@@ -38,6 +38,22 @@ describe('searchRedmine', () => {
     expect(out.results[0].snippet.length).toBeLessThanOrEqual(301)
   })
 
+  it('always returns a url: keeps a forum message url, completes relative ones, rebuilds issues, never guesses others', async () => {
+    reply([
+      { id: 1, type: 'message', title: 'M', url: 'http://r/boards/2/topics/9' },
+      { id: 2, type: 'reply', title: 'R', url: '/boards/2/topics/9#message-12' },
+      { id: 3, type: 'issue', title: 'I' },
+      { id: 4, type: 'message', title: 'No url', url: '  ' },
+    ])
+    const out = await searchRedmine({ q: 'forum', types: ['messages'] }, ctx)
+    expect(out.results.map(r => r.url)).toEqual([
+      'http://r/boards/2/topics/9',
+      'http://r/boards/2/topics/9#message-12',
+      'http://r/issues/3',
+      null,
+    ])
+  })
+
   it('returns an empty list when nothing matches', async () => {
     reply([])
     expect(await searchRedmine({ q: 'zz' }, ctx)).toEqual({ total: 0, offset: 0, count: 0, truncated: false, results: [] })

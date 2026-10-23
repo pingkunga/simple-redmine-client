@@ -14,7 +14,7 @@ interface RawSearchResult {
   id: number;
   title: string;
   type: string;
-  url: string;
+  url?: string;
   description?: string;
   datetime?: string;
 }
@@ -25,6 +25,17 @@ interface SearchResponse {
   offset: number;
   limit: number;
 }
+
+/**
+ * Every hit must carry a link (forum messages cannot be read through the REST API, so the link is
+ * the only way to read them). Uses Redmine's own url; only issues can be rebuilt from the id, anything
+ * else without a url becomes null rather than a guessed address.
+ */
+const resultUrl = (r: RawSearchResult, redmineUrl: string): string | null => {
+  const given = r.url?.trim();
+  if (given) return given.startsWith('/') ? `${redmineUrl}${given}` : given;
+  return r.type.startsWith('issue') ? `${redmineUrl}/issues/${r.id}` : null;
+};
 
 const inputSchema = {
   q: z.string().min(2).max(100)
@@ -65,7 +76,7 @@ export const searchRedmine = async (rawArgs: unknown, ctx: ToolContext) => {
       type: r.type,
       id: r.id,
       title: r.title,
-      url: r.url,
+      url: resultUrl(r, ctx.redmineUrl),
       datetime: r.datetime,
       snippet: snippet.text,
       snippetTruncated: snippet.truncated,
@@ -86,7 +97,7 @@ export const searchRedmineTool: McpToolDef = {
   description: 'Search Redmine issues and wiki pages by keyword or version number across all projects ' +
     '(e.g. find the Build-Request issue for version 7.5.44.1). Matches titles only by default; ' +
     'if nothing is found, retry with titlesOnly=false. Results include the type, id, title, url ' +
-    'and a short snippet; use get_issue with an issue id for details, or get_wiki_page (project id from ' +
+    'and a short snippet. Forum messages, news and documents cannot be read in full through any tool, so always give the user the url of such a hit; use get_issue with an issue id for details, or get_wiki_page (project id from ' +
     'list_projects) to read a wiki page found here.',
   inputSchema,
   handler: searchRedmine,
