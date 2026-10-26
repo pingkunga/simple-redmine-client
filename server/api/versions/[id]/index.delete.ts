@@ -1,4 +1,5 @@
 import axios from "axios";
+import { deleteScriptBranch } from "../../../utils/versionScriptBranchStore";
 
 export default defineEventHandler(async (event) => {
     /*
@@ -19,6 +20,10 @@ export default defineEventHandler(async (event) => {
 
     try {
         const response = await axios.delete(url, { headers })
+        if (versionid) {
+            await deleteScriptBranch(versionid)
+                .catch(err => console.error('Error deleting Script Branch:', err))
+        }
         return response.data
     } catch (error) {
         console.error('Error deleting version:', error)

@@ -37,6 +37,9 @@
 
           <div v-if="editedIndex === -1" class="rounded-md border border-default p-3 space-y-3">
             <UCheckbox v-model="createJenkinsFolder" label="Create Version Folder (Repo: invest-net-resource) via Jenkins" />
+            <UFormField v-if="createJenkinsFolder" label="Script Branch" name="scriptBranch" help="Branch that receives the version script folder. Leave blank to use the default branch.">
+              <UInput v-model="editedItem.scriptBranch" class="w-full" placeholder="default branch" />
+            </UFormField>
             <!-- <UCheckbox
               v-if="createJenkinsFolder"
               v-model="jenkinsCleanup"
@@ -70,6 +73,11 @@
             </div>
           </div>
           
+          <!-- Edit: Script Branch is read-only, Jenkins only runs on create so a new value would not move the folder -->
+          <UFormField v-if="editedIndex !== -1 && editedItem.scriptBranch" label="Script Branch" name="scriptBranch">
+            <UInput :model-value="editedItem.scriptBranch" disabled class="w-full" />
+          </UFormField>
+
           <!-- Row 4: Description (full width) -->
           <UFormField label="Description" name="description" class="w-full" required>
             <UTextarea v-model="editedItem.description" class="w-full" />
@@ -254,6 +262,12 @@ const columns: TableColumn<Version>[] = [
     maxSize: 200
   },
   {
+    accessorKey: 'scriptBranch',
+    header: ({ column }) => h('div', { class: 'text-left' }, 'Script Branch'),
+    cell: ({ row }) => h('div', { class: 'text-left' }, row.getValue('scriptBranch') || '-'),
+    size: 150
+  },
+  {
     accessorKey: 'status',
     header: ({ column }) => h('div', { class: 'text-left' }, 'Status'),
     cell: ({ row }) => {
@@ -339,6 +353,7 @@ const defaultVersion: Version = {
   updated_on: "",
   projectid: 0,
   projectname: "",
+  scriptBranch: "",
 };
 
 const editedItem = ref<Version>({ ...defaultVersion });
@@ -466,14 +481,21 @@ const save = async () => {
   try {
     if (editedIndex.value === -1) {
       // Create new item
-      await useRedmineAPI().addVersion(editedItem.value, editedItem.value.projectid);
+      // '' = default branch; undefined = no Jenkins folder, so no branch is stored
+      const scriptBranch = createJenkinsFolder.value ? (editedItem.value.scriptBranch ?? '').trim() : undefined;
+      // useFetch does not throw, so read the error: a rejected Script Branch must stop here, before "Version saved".
+      const { error: addError } = await useRedmineAPI().addVersion(editedItem.value, editedItem.value.projectid, scriptBranch);
+      if (addError.value) {
+        throw new Error(addError.value.statusMessage || addError.value.message);
+      }
       redmineSaved = true;
 
       if (createJenkinsFolder.value) {
         const job = await triggerJenkins(
           editedItem.value.name,
           editedItem.value.projectid,
-          jenkinsCleanup.value
+          jenkinsCleanup.value,
+          scriptBranch
         );
         jenkinsJobId.value = job.jobId;
         jenkinsStatus.value = job.status;

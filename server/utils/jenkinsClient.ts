@@ -38,10 +38,11 @@ const getJenkinsHeaders = () => ({
   Accept: 'application/json'
 })
 
-export const triggerJenkinsVersionFolder = async (versionName: string, cleanup: boolean) => {
+export const triggerJenkinsVersionFolder = async (versionName: string, cleanup: boolean, scriptBranch: string) => {
   const config = getJenkinsConfig()
   const params = new URLSearchParams({
     VERSION_NAME: versionName,
+    BRANCH_NAME: scriptBranch,
     CLEANUP: String(cleanup)
   })
 

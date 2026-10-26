@@ -1,11 +1,13 @@
 import { triggerJenkinsVersionFolder } from '../../utils/jenkinsClient'
 import { saveJenkinsVersionFolderJob } from '../../utils/jenkinsVersionFolderCache'
+import { assertBranchExists, resolveScriptBranch } from '../../utils/scriptBranch'
 import { randomUUID } from 'node:crypto'
 
 interface TriggerRequest {
   versionName?: string
   projectId?: number
   cleanup?: boolean
+  scriptBranch?: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -21,12 +23,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const scriptBranch = resolveScriptBranch(body?.scriptBranch)
+  await assertBranchExists(scriptBranch)
+
   const now = new Date().toISOString()
   const job: JenkinsVersionFolderJob = {
     jobId: randomUUID(),
     versionName,
     projectId,
     cleanup,
+    scriptBranch,
     status: 'pending',
     attempt: 1,
     createdAt: now,
@@ -36,7 +42,7 @@ export default defineEventHandler(async (event) => {
   await saveJenkinsVersionFolderJob(job)
 
   try {
-    const result = await triggerJenkinsVersionFolder(versionName, cleanup)
+    const result = await triggerJenkinsVersionFolder(versionName, cleanup, scriptBranch)
     job.status = 'queued'
     job.queueId = result.queueId
     job.updatedAt = new Date().toISOString()

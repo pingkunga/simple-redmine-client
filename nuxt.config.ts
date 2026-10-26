@@ -15,6 +15,11 @@ export default defineNuxtConfig({
     jenkinsUser: process.env.JENKINS_USER || "",
     jenkinsToken: process.env.JENKINS_TOKEN || "",
     jenkinsCacheDir: process.env.JENKINS_CACHE_DIR || "./data/jenkins-cache",
+    // Script Branch: BRANCH_NAME sent to the Version Folder job. jenkinsScriptRepo = GitLab project id or path
+    // (e.g. invest/invest-net-resource) used to confirm the branch exists; empty = skip that check.
+    jenkinsScriptRepo: process.env.JENKINS_SCRIPT_REPO || "",
+    jenkinsDefaultScriptBranch: process.env.JENKINS_DEFAULT_SCRIPT_BRANCH || "master",
+    versionMetaDir: process.env.VERSION_META_DIR || "./data/version-meta",
     smtpHost: "smtp.example.com",
     smtpPort: 587,
     smtpSecure: false,

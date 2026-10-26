@@ -1,4 +1,6 @@
 import axios from "axios";
+import { assertBranchExists, resolveScriptBranch } from "../../utils/scriptBranch";
+import { setScriptBranch } from "../../utils/versionScriptBranchStore";
 
 export default defineEventHandler(async (event) => {
 
@@ -30,8 +32,20 @@ export default defineEventHandler(async (event) => {
         'X-Redmine-API-Key': config.redmineToken
     }
 
+    // Script Branch is sent only when the Jenkins Version Folder is requested. Validate it before Redmine is
+    // touched so a bad branch name does not leave a half-created Version behind.
+    const scriptBranch = body.scriptBranch === undefined ? undefined : resolveScriptBranch(body.scriptBranch)
+    if (scriptBranch) {
+        await assertBranchExists(scriptBranch)
+    }
+
     try {
         const response = await axios.post(url, { version }, { headers })
+        if (scriptBranch && response.data?.version?.id) {
+            // The Version already exists in Redmine, so a failed write must not turn this into a failed save.
+            await setScriptBranch(response.data.version.id, scriptBranch)
+                .catch(err => console.error('Error saving Script Branch:', err))
+        }
         return response.data
     } catch (error) {
         console.error('Error adding version:', error)

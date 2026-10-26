@@ -11,6 +11,7 @@ export interface JenkinsVersionFolderJob {
   versionName: string
   projectId: number
   cleanup: boolean
+  scriptBranch?: string
   status: JenkinsVersionFolderStatus
   queueId?: number
   buildNumber?: number

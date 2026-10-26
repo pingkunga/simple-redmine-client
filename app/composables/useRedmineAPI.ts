@@ -44,7 +44,8 @@ export default () => {
 
     const versionShares : string[] = [versionShareType.NONE, versionShareType.DESCENDANTS, versionShareType.HIERARCHY, versionShareType.TREE, versionShareType.SYSTEM]; //
 
-    const addVersion = async<T>(version: Version, projectId?: number) => {
+    // scriptBranch: pass it only when the Jenkins Version Folder will be created ('' = use the default branch).
+    const addVersion = async<T>(version: Version, projectId?: number, scriptBranch?: string) => {
         const body = {
             version: {
                 name: version.name,
@@ -53,7 +54,8 @@ export default () => {
                 due_date: version.due_date,
                 description: version.description
             },
-            projectId: projectId
+            projectId: projectId,
+            scriptBranch: scriptBranch
         };
 
         return await useFetch<Version>("/api/versions", {

@@ -25,7 +25,8 @@ export interface Version{
     wiki_page_title: string;
     created_on: string;
     updated_on: string;
-} 
+    scriptBranch?: string;
+}
 
 export interface VersionWithReleaseNotes extends Version {
     versionText: string;

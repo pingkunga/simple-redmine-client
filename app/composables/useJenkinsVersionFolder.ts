@@ -4,7 +4,7 @@ import type {
 } from '~~/shared/types/Jenkins'
 
 export const useJenkinsVersionFolder = () => {
-  const trigger = async (versionName: string, projectId: number, cleanup: boolean) => {
+  const trigger = async (versionName: string, projectId: number, cleanup: boolean, scriptBranch?: string) => {
     const { data, error } = await useFetch<{
       jobId: string
       status: JenkinsVersionFolderStatus
@@ -14,7 +14,8 @@ export const useJenkinsVersionFolder = () => {
       body: {
         versionName,
         projectId,
-        cleanup
+        cleanup,
+        scriptBranch
       }
     })
 

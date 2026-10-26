@@ -1,5 +1,6 @@
 import axios from "axios";
 import useRedmineAPI from "~/composables/useRedmineAPI";
+import { getScriptBranchMap } from "../../utils/versionScriptBranchStore";
 
 interface VersionQuery {
     projectId?: string;
@@ -53,5 +54,14 @@ export default defineEventHandler(async (event) => {
     const uniqueMap = new Map<number, Version>();
     versionsData.forEach(v => uniqueMap.set(v.id, v));
     
-    return Array.from(uniqueMap.values());
+    // Script Branch is not in Redmine; it comes from our own store. A broken store must not hide the Versions.
+    const scriptBranches = await getScriptBranchMap().catch((error) => {
+        console.error('Error reading Script Branch data:', error);
+        return {};
+    });
+
+    return Array.from(uniqueMap.values()).map(v => ({
+        ...v,
+        scriptBranch: scriptBranches[String(v.id)]?.scriptBranch
+    }));
 });
