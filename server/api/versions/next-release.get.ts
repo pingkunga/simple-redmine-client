@@ -4,7 +4,7 @@ import { generateVersionName } from '../../utils/versionName'
 const querySchema = z.object({
   major: z.coerce.number().int().min(1).max(99),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  monthOffset: z.coerce.number().int().min(0).max(24).optional(),
+  monthOffset: z.coerce.number().int().min(-24).max(24).optional(),
   weekStartsOn: z.coerce.number().int().min(0).max(6).optional(),
   projectId: z.coerce.number().int().positive().default(858),
   // Echoed as-is; POST /api/versions validates it (resolveScriptBranch / assertBranchExists)

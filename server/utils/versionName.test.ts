@@ -32,6 +32,22 @@ describe('generateVersionName', () => {
     expect(r.month).toBe(1)
   })
 
+  it('negative monthOffset moves to an earlier month', () => {
+    const r = gen('2026-10-27', { monthOffset: -1 })
+    expect(r.month).toBe(9)
+    expect(r.targetDate).toBe('2026-09-27')
+  })
+
+  it('negative monthOffset crosses the year backwards', () => {
+    const r = gen('2026-01-15', { monthOffset: -1 })
+    expect(r.year).toBe(25)
+    expect(r.month).toBe(12)
+  })
+
+  it('clamps day-of-month going backwards', () => {
+    expect(gen('2026-03-31', { monthOffset: -1 }).targetDate).toBe('2026-02-28')
+  })
+
   it('clamps day-of-month when the target month is shorter', () => {
     expect(gen('2026-01-31', { monthOffset: 1 }).targetDate).toBe('2026-02-28')
   })
@@ -42,7 +58,8 @@ describe('generateVersionName', () => {
 
   it('rejects bad input', () => {
     expect(() => generateVersionName({ major: 0 })).toThrow(RangeError)
-    expect(() => generateVersionName({ major: 10, monthOffset: -1 })).toThrow(RangeError)
+    expect(() => generateVersionName({ major: 10, monthOffset: -25 })).toThrow(RangeError)
+    expect(() => generateVersionName({ major: 10, monthOffset: 25 })).toThrow(RangeError)
     expect(() => generateVersionName({ major: 10, monthOffset: 1.5 })).toThrow(RangeError)
     expect(() => gen('2026-13-40')).toThrow(RangeError)
   })

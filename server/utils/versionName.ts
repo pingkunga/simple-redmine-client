@@ -8,6 +8,7 @@ export interface VersionNameOptions {
   now?: Date
   /** YYYY-MM-DD; overrides `now` as the base date */
   date?: string
+  /** Months from the base date, -24..24; negative = earlier month */
   monthOffset?: number
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6
 }
@@ -33,7 +34,7 @@ const fmt = (d: Date) =>
 export function generateVersionName(opts: VersionNameOptions): VersionNameResult {
   const { major, monthOffset = 0, weekStartsOn = 1 } = opts
   if (!Number.isInteger(major) || major < 1 || major > 99) throw new RangeError('major must be an integer 1-99')
-  if (!Number.isInteger(monthOffset) || monthOffset < 0 || monthOffset > 24) throw new RangeError('monthOffset must be an integer 0-24')
+  if (!Number.isInteger(monthOffset) || monthOffset < -24 || monthOffset > 24) throw new RangeError('monthOffset must be an integer -24 to 24')
 
   let base = opts.now ?? new Date()
   if (opts.date) {
