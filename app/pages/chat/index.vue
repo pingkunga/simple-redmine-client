@@ -1,10 +1,21 @@
 <template>
   <div class="p-6 max-w-4xl mx-auto flex flex-col h-[calc(100vh-6rem)]">
-    <header class="mb-4">
-      <h1 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">AI Chat</h1>
-      <p class="text-sm text-gray-600 dark:text-gray-400">
-        ถามข้อมูล Redmine / GitLab แบบอ่านอย่างเดียว (version, issue, branch, release สัปดาห์นี้)
-      </p>
+    <header class="mb-4 flex items-start justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">AI Chat</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          ถามข้อมูล Redmine / GitLab แบบอ่านอย่างเดียว (version, issue, branch, release สัปดาห์นี้)
+        </p>
+      </div>
+      <UButton
+        size="sm"
+        color="neutral"
+        variant="outline"
+        icon="i-heroicons-arrow-down-tray"
+        label="Download"
+        :disabled="!canDownload"
+        @click="downloadChat"
+      />
     </header>
 
     <div v-if="!chat.messages.length" class="mb-4 flex flex-wrap gap-2">
@@ -87,11 +98,13 @@
 import { Chat } from '@ai-sdk/vue';
 import { DefaultChatTransport } from 'ai';
 import { renderMarkdown } from '~/utils/renderMarkdown';
+import { chatFileName, chatToMarkdown } from '~/utils/chatExport';
 
 const examples = [
   'version ไหน Buildวันศุกร์นี้ ใครดูแล',
   'สรุป issue ทั้งหมดใน version 8.9.15.4 ให้หน่อย',
-  'branch ล่าสุดของ GitLab ใครสร้าง',
+  'branch feature/yieldcurve ล่าสุดของ GitLab ใครสร้าง',
+  'สรุป issue ทั้งหมดในของ version 8.9.9.1 - 8.9.20.5 ให้หน่อย แบ่งตาม version ที่ละ 10 version',
 ];
 
 const input = ref('');
@@ -123,6 +136,21 @@ const submit = () => {
   if (!text || chat.status === 'submitted' || chat.status === 'streaming') return;
   chat.sendMessage({ text });
   input.value = '';
+};
+
+// Disabled while streaming so the file never holds a half-written answer.
+const canDownload = computed(() =>
+  chat.messages.length > 0 && chat.status !== 'submitted' && chat.status !== 'streaming');
+
+const downloadChat = () => {
+  const now = new Date();
+  const blob = new Blob([chatToMarkdown(chat.messages, now)], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = chatFileName(now);
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
 const ask = (text: string) => {
