@@ -156,6 +156,7 @@ export const getIssuesByVersionRange = async (rawArgs: unknown, ctx: ToolContext
           tracker: i.tracker,
           status: i.status,
           ...(i.impactNote && { impactNote: i.impactNote }),
+          ...(i.impactNoteTruncated && { impactNoteTruncated: true }),
         })),
       };
     } catch {

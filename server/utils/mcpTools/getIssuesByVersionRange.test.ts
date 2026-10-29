@@ -70,7 +70,7 @@ describe('get_issues_by_version_range', () => {
       issues: [{ id: 1, subject: 'S', tracker: 'Defect', status: 'New', assignedTo: 'Alice', impactNote: 'run migration', impactNoteTruncated: true }],
     })
     const result = await getIssuesByVersionRange({ from: '8.9.20.0', to: '8.9.20.0' }, ctx) as any
-    expect(result.versions[0].issues).toEqual([{ id: 1, subject: 'S', tracker: 'Defect', status: 'New', impactNote: 'run migration' }])
+    expect(result.versions[0].issues).toEqual([{ id: 1, subject: 'S', tracker: 'Defect', status: 'New', impactNote: 'run migration', impactNoteTruncated: true }])
   })
 
   it('fetches at most 50 versions per call and offers the rest as the next batch', async () => {
