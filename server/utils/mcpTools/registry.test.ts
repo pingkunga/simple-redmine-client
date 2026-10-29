@@ -6,7 +6,7 @@ import { mcpTools } from './registry'
 const sources = import.meta.glob(['./*.ts', '!./*.test.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 const EXPECTED = [
-  'list_projects', 'list_versions', 'get_issues_by_version',
+  'list_projects', 'list_versions', 'get_issues_by_version', 'get_issues_by_version_range',
   'get_issue_graph', 'list_gitlab_branches', 'get_thisweek_releases',
   'get_issue', 'get_gitlab_merge_request', 'get_gitlab_commit', 'search_redmine',
   'list_wiki_pages', 'get_wiki_page',
@@ -14,7 +14,7 @@ const EXPECTED = [
 ]
 
 describe('MCP tool registry', () => {
-  it('registers exactly the fourteen read-only tools with unique names', () => {
+  it('registers exactly the fifteen read-only tools with unique names', () => {
     const names = mcpTools.map(t => t.name)
     expect(new Set(names).size).toBe(names.length)
     expect([...names].sort()).toEqual([...EXPECTED].sort())
@@ -33,6 +33,7 @@ describe('MCP tool registry', () => {
       list_projects: { nameContains: 'gate' },
       list_versions: { projectId: 1, name: '8.9' },
       get_issues_by_version: { versionName: '8.9.15.3' },
+      get_issues_by_version_range: { from: '8.9.14.1', to: '8.9.20.x', limit: 10, offset: 10 },
       get_issue_graph: { issueId: 123, depth: 2 },
       list_gitlab_branches: { nameContains: 'feature' },
       get_thisweek_releases: { projectId: 858 },

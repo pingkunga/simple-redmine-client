@@ -1,4 +1,4 @@
-import { convertToModelMessages, stepCountIs, streamText, type LanguageModel, type ToolSet } from 'ai';
+import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, stepCountIs, streamText, type LanguageModel, type ToolSet } from 'ai';
 import { ChatInputError, parseChatBody } from './chatRequest';
 import type { ChatLimiter } from './chatLimits';
 import { connectChatTools, type ChatToolSession } from './chatTools';
@@ -89,11 +89,23 @@ Today is ${new Date(now).toDateString()}.
 - When you answer from search_redmine results, include the full url of every item you mention, especially forum messages (their full text cannot be read through a tool, so the user must open the link). Use only urls that a tool returned; never build one yourself.
 - If a tool result says it is partial or truncated, tell the user so.
 - When asked about the issues of one or more versions (e.g. a range like 8.9.25.0 to 8.9.25.4), call get_issues_by_version once per version, all in the same step. Group the answer by version.
+- A 3-part number such as "8.9.25" (or "8.9.25.x", "series 8.9.25") is a series: every existing version 8.9.25.0, 8.9.25.1, 8.9.25.2 ... A range "A to B" (e.g. "8.9.14.1 - 8.9.20.5") is every existing version from A through B. For any series or range call get_issues_by_version_range ONCE with from and to (use "8.9.25" as both from and to for a series; "x" or a 3-part to means the whole end series). Do not call list_versions or get_issues_by_version yourself for it. A single 4-part version such as "8.9.25.3" is one version: use get_issues_by_version.
+- get_issues_by_version_range fetches at most 50 versions per call. If the user names a batch size ("ทีละ 10"), pass it as limit. If hasMore is true, say "N of totalVersions versions shown", ask how many versions per batch they want next, and on their reply call it again with the same from/to, offset=nextOffset and limit=their number. Call it at most once per user message: never call it again with a new offset in the same turn, even when hasMore is true; summarise the batch and ask the user instead. For a batch of many versions write one short line per issue, list issues that have an impactNote first, and collapse the ones without into a count per version (e.g. "no impact note: 5"). Its skippedHotfixVersions are hotfix-style versions (last part with 3-4 digits or x) that were not fetched: mention them in one line (count and a few names) and say the user can ask about one by its exact name.
 - Pay attention to each issue's impactNote (the developer's Impact Note): list issues that have one first and state the impact in a short line (what changes, and any config, database or deployment action needed). List issues without one briefly as "no impact note". Never invent an impact when impactNote is absent.`;
 
 /** Appended to the system prompt once the soft deadline has passed (tools are switched off then). */
 const PARTIAL_NOTE = `
 - Time is almost up. Do not call any tool. Answer now from the data already retrieved, say clearly that this is a partial summary, and list what could not be checked.`;
+
+/** Added to the system prompt of the one retry made when the model ends a turn without any text. */
+const EMPTY_RETRY_NOTE = `
+- You already have all the tool results you need. Do not call tools and do not only think: write the final answer text now, in the user's language.`;
+
+/** Sent when the retry is also empty, so the page never shows a blank reply. */
+const EMPTY_FALLBACK_TEXT = 'The model returned no text. Please try again, or ask a narrower question.';
+
+/** Appended when the model hit the output-token cap mid-answer. */
+const CUT_OFF_TEXT = `\n\n_(The answer was cut off by the length limit. Ask for a smaller batch, e.g. 'ทีละ 10'.)_`;
 
 const json = (status: number, error: string, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify({ error }), { status, headers: { 'content-type': 'application/json', ...headers } });
@@ -178,49 +190,115 @@ export const handleChat = async (input: ChatInput, deps: ChatDeps): Promise<Resp
     });
 
   try {
-    const result = streamText({
-      model,
-      system: systemPrompt(started),
-      messages: await convertToModelMessages(parsed.messages),
-      tools: session.tools as ToolSet,
-      stopWhen: stepCountIs(limits.maxSteps),
-      maxOutputTokens: limits.maxOutputTokens,
-      abortSignal: AbortSignal.any(signals),
-      // Past the soft deadline, no more tools: the next step has to write a (partial) answer.
-      prepareStep: () =>
-        deps.now() - started >= limits.softDeadlineMs
-          ? { toolChoice: 'none' as const, system: systemPrompt(started) + PARTIAL_NOTE }
-          : undefined,
-      onStepFinish: step => {
-        for (const call of step.toolCalls) toolNames.push(call.toolName);
-        steps.push({
-          toolCalls: step.toolCalls.map(c => ({ name: c.toolName, input: c.input })),
-          toolResults: step.toolResults.map(r => ({ name: r.toolName, output: r.output })),
+    const baseMessages = await convertToModelMessages(parsed.messages);
+    const streamError = () => timeoutSignal.aborted
+      ? 'The request timed out; any answer above is only partial. Try a narrower question.'
+      : 'The assistant hit an error. Please try again.';
+    const abortSignal = AbortSignal.any(signals);
+
+    const finalize = async (extra: { answer: string; finish: string; usage: unknown; retried?: boolean; cutOff?: boolean }) => {
+      const emptyAnswer = !extra.answer.trim();
+      const flags = { ...(extra.retried && { retried: true }), ...(extra.cutOff && { cutOff: true }), ...(emptyAnswer && { emptyAnswer }) };
+      audit({ outcome: 'ok', ...counts, steps: steps.length, finish: extra.finish, tools: toolNames, ...flags });
+      record('ok', { answer: extra.answer, finish: extra.finish, usage: extra.usage, ...flags });
+      await close();
+    };
+
+    type FirstFinish = { text: string; finishReason: string; totalUsage: unknown };
+    let firstFinish: FirstFinish | undefined;
+
+    const stream = createUIMessageStream({
+      onError: streamError,
+      execute: async ({ writer }) => {
+        const first = streamText({
+          model,
+          system: systemPrompt(started),
+          messages: baseMessages,
+          tools: session.tools as ToolSet,
+          stopWhen: stepCountIs(limits.maxSteps),
+          maxOutputTokens: limits.maxOutputTokens,
+          abortSignal,
+          // Past the soft deadline, no more tools: the next step has to write a (partial) answer.
+          prepareStep: () =>
+            deps.now() - started >= limits.softDeadlineMs
+              ? { toolChoice: 'none' as const, system: systemPrompt(started) + PARTIAL_NOTE }
+              : undefined,
+          onStepFinish: step => {
+            for (const call of step.toolCalls) toolNames.push(call.toolName);
+            steps.push({
+              toolCalls: step.toolCalls.map(c => ({ name: c.toolName, input: c.input })),
+              toolResults: step.toolResults.map(r => ({ name: r.toolName, output: r.output })),
+            });
+          },
+          onFinish: async event => {
+            firstFinish = { text: event.text, finishReason: event.finishReason, totalUsage: event.totalUsage };
+            // An empty answer (retried) or a cut-off one (notice added) is decided below; anything else is final now.
+            if (event.text.trim() && event.finishReason !== 'length') await finalize({ answer: event.text, finish: event.finishReason, usage: event.totalUsage });
+          },
+          onError: async ({ error }) => {
+            audit({ outcome: 'error', ...counts, tools: toolNames, detail: reason(error) });
+            record('error', { detail: reason(error) });
+            await close();
+          },
+          onAbort: async () => {
+            audit({ outcome: timeoutSignal.aborted ? 'timeout' : 'aborted', ...counts, tools: toolNames });
+            record('aborted');
+            await close();
+          },
         });
-      },
-      onFinish: async event => {
-        const emptyAnswer = !event.text.trim();
-        audit({ outcome: 'ok', ...counts, steps: event.steps.length, finish: event.finishReason, tools: toolNames, ...(emptyAnswer && { emptyAnswer }) });
-        record('ok', { answer: event.text, finish: event.finishReason, usage: event.totalUsage, ...(emptyAnswer && { emptyAnswer }) });
-        await close();
-      },
-      onError: async ({ error }) => {
-        audit({ outcome: 'error', ...counts, tools: toolNames, detail: reason(error) });
-        record('error', { detail: reason(error) });
-        await close();
-      },
-      onAbort: async () => {
-        audit({ outcome: timeoutSignal.aborted ? 'timeout' : 'aborted', ...counts, tools: toolNames });
-        record('aborted');
-        await close();
+
+        writer.merge(first.toUIMessageStream({ sendFinish: false, onError: streamError }));
+        try {
+          await first.consumeStream();
+        } catch {
+          return; // error/abort already audited by the callbacks above
+        }
+
+        // Timeout/abort: onAbort already audited and closed; writing a second record would duplicate it.
+        if (!firstFinish || abortSignal.aborted) return;
+
+        if (firstFinish.text.trim()) {
+          if (firstFinish.finishReason !== 'length') return; // normal answer, already finalized in onFinish
+          // The output-token cap cut the answer off.
+          writer.write({ type: 'text-start', id: 'cut-off' });
+          writer.write({ type: 'text-delta', id: 'cut-off', delta: CUT_OFF_TEXT });
+          writer.write({ type: 'text-end', id: 'cut-off' });
+          await finalize({ answer: firstFinish.text, finish: firstFinish.finishReason, usage: firstFinish.totalUsage, cutOff: true });
+          return;
+        }
+
+        // The model ended the turn with no text (a thinking model that only reasoned). Retry once without
+        // tools on top of the tool results it already has, then fall back to a fixed line.
+        let retryText = '';
+        let retryFinish = firstFinish.finishReason;
+        let retryUsage = firstFinish.totalUsage;
+        try {
+          const retry = streamText({
+            model,
+            system: systemPrompt(started) + EMPTY_RETRY_NOTE,
+            messages: [...baseMessages, ...(await first.response).messages],
+            tools: session.tools as ToolSet,
+            toolChoice: 'none',
+            maxOutputTokens: limits.maxOutputTokens,
+            abortSignal,
+            onFinish: event => { retryText = event.text; retryFinish = event.finishReason; retryUsage = event.totalUsage; },
+          });
+          writer.merge(retry.toUIMessageStream({ sendStart: false, sendFinish: false, onError: streamError }));
+          await retry.consumeStream();
+        } catch {
+          retryText = '';
+        }
+
+        if (!retryText.trim()) {
+          writer.write({ type: 'text-start', id: 'empty-fallback' });
+          writer.write({ type: 'text-delta', id: 'empty-fallback', delta: EMPTY_FALLBACK_TEXT });
+          writer.write({ type: 'text-end', id: 'empty-fallback' });
+        }
+        await finalize({ answer: retryText, finish: retryFinish, usage: retryUsage, retried: true });
       },
     });
 
-    return result.toUIMessageStreamResponse({
-      onError: () => timeoutSignal.aborted
-        ? 'The request timed out; any answer above is only partial. Try a narrower question.'
-        : 'The assistant hit an error. Please try again.',
-    });
+    return createUIMessageStreamResponse({ stream });
   } catch (e) {
     await close();
     audit({ outcome: 'error', ...counts, detail: reason(e) });

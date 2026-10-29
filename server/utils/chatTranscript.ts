@@ -20,6 +20,10 @@ export interface ChatTranscript {
   finish?: string;
   /** True when the model finished without any answer text (the page would show an empty bubble). */
   emptyAnswer?: boolean;
+  /** True when the first run ended without text and the server asked the model once more. */
+  retried?: boolean;
+  /** True when the answer hit the output-token cap (finish: length) and a notice was appended. */
+  cutOff?: boolean;
   usage?: unknown;
   steps: ChatTranscriptStep[];
   detail?: string;

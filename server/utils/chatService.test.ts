@@ -103,17 +103,107 @@ describe('handleChat', () => {
     const model = scripted([toolCallStep('list_projects', {})])
     const { deps, tool } = setup(model)
     await (await run(deps)).text()
-    expect(model.doStreamCalls).toHaveLength(DEFAULT_MAX_STEPS)
-    expect(tool.handler).toHaveBeenCalledTimes(DEFAULT_MAX_STEPS)
+    // the loop stops at the cap; the capped run has no text, so one extra (retry) call follows
+    // (this scripted model ignores toolChoice 'none' and calls the tool in the retry too)
+    expect(model.doStreamCalls).toHaveLength(DEFAULT_MAX_STEPS + 1)
+    expect(tool.handler).toHaveBeenCalledTimes(DEFAULT_MAX_STEPS + 1)
   })
 
   it('honours configured limits: step cap and output-token cap', async () => {
     const model = scripted([toolCallStep('list_projects', {})])
     const { deps, tool } = setup(model)
     await (await run(deps, body(), { limits: resolveChatLimits({ maxSteps: 2, maxOutputTokens: 321 }) })).text()
-    expect(model.doStreamCalls).toHaveLength(2)
-    expect(tool.handler).toHaveBeenCalledTimes(2)
+    expect(model.doStreamCalls).toHaveLength(3) // 2 capped steps + the empty-answer retry
+    expect(tool.handler).toHaveBeenCalledTimes(3)
     expect(model.doStreamCalls[0]!.maxOutputTokens).toBe(321)
+  })
+
+  describe('empty answer', () => {
+    const emptyStep = [{ type: 'stream-start' as const, warnings: [] }, finish('stop')]
+
+    it('appends a notice and flags cutOff when the answer hits the output-token cap, without retrying', async () => {
+      const lengthStep = [
+        { type: 'stream-start' as const, warnings: [] },
+        { type: 'text-start' as const, id: 't' },
+        { type: 'text-delta' as const, id: 't', delta: 'Half an ans' },
+        { type: 'text-end' as const, id: 't' },
+        { type: 'finish' as const, finishReason: { unified: 'length' as const, raw: 'length' }, usage },
+      ]
+      const model = scripted([lengthStep])
+      const records: ChatTranscript[] = []
+      const { deps, logs } = setup(model, { transcript: r => { records.push(r) } })
+      const text = await (await run(deps)).text()
+
+      expect(text).toContain('Half an ans')
+      expect(text).toContain('cut off by the length limit')
+      expect(model.doStreamCalls).toHaveLength(1)
+      await vi.waitFor(() => expect(records).toHaveLength(1))
+      expect(records[0]).toMatchObject({ outcome: 'ok', finish: 'length', cutOff: true, answer: 'Half an ans' })
+      expect(records[0]!.emptyAnswer).toBeUndefined()
+      expect(logs.join('\n')).toMatch(/"cutOff":true/)
+    })
+
+    it('writes exactly one record and no retry when the request is aborted', async () => {
+      const model = new MockLanguageModelV3({
+        doStream: async ({ abortSignal }) => ({
+          stream: new ReadableStream({
+            start(c) { abortSignal?.addEventListener('abort', () => c.error(new DOMException('aborted', 'AbortError'))) },
+          }),
+        }),
+      })
+      const limits = { ...resolveChatLimits(), requestTimeoutMs: 50, softDeadlineMs: 25 }
+      const records: ChatTranscript[] = []
+      const { deps, logs, closes } = setup(model, { transcript: r => { records.push(r) } })
+      void (await run(deps, body(), { limits })).text().catch(() => {})
+
+      await vi.waitFor(() => expect(closes.length).toBeGreaterThan(0))
+      await new Promise(r => setTimeout(r, 100))
+      expect(model.doStreamCalls).toHaveLength(1)
+      expect(records.filter(r => r.outcome === 'ok')).toHaveLength(0)
+      expect(logs.filter(l => l.includes('"outcome":"ok"'))).toHaveLength(0)
+      expect(records).toHaveLength(1)
+    })
+
+    it('retries once without tools on the tool results it already has and streams that answer', async () => {
+      const model = scripted([toolCallStep('list_projects', {}), emptyStep, textStep('Here is the answer.')])
+      const { deps, tool, logs } = setup(model)
+      const text = await (await run(deps)).text()
+
+      expect(text).toContain('Here is the answer.')
+      expect(text).not.toContain('The model returned no text')
+      expect(model.doStreamCalls).toHaveLength(3)
+      expect(tool.handler).toHaveBeenCalledTimes(1)
+      const retry = model.doStreamCalls[2]!
+      expect(retry.toolChoice).toEqual({ type: 'none' })
+      expect(JSON.stringify(retry.prompt)).toContain('got') // the earlier tool result is still in the prompt
+      const system = (retry.prompt as { role: string; content: unknown }[]).find(m => m.role === 'system')!
+      expect(String(system.content)).toMatch(/write the final answer text now/)
+      await vi.waitFor(() => expect(logs.join('\n')).toMatch(/"retried":true/))
+      expect(logs.join('\n')).not.toMatch(/emptyAnswer/)
+    })
+
+    it('does not retry when the first run produced text', async () => {
+      const model = scripted([toolCallStep('list_projects', {}), textStep('Done.')])
+      const { deps, logs } = setup(model)
+      await (await run(deps)).text()
+      expect(model.doStreamCalls).toHaveLength(2)
+      await vi.waitFor(() => expect(logs.join('\n')).toMatch(/"outcome":"ok"/))
+      expect(logs.join('\n')).not.toMatch(/retried/)
+    })
+
+    it('shows a fixed line when the retry is empty too, and still audits the empty answer once', async () => {
+      const model = scripted([toolCallStep('list_projects', {}), emptyStep])
+      const records: ChatTranscript[] = []
+      const { deps, logs, closes } = setup(model, { transcript: r => { records.push(r) } })
+      const text = await (await run(deps)).text()
+
+      expect(text).toContain('The model returned no text')
+      expect(model.doStreamCalls).toHaveLength(3)
+      await vi.waitFor(() => expect(records).toHaveLength(1))
+      expect(records[0]).toMatchObject({ outcome: 'ok', retried: true, emptyAnswer: true })
+      expect(logs.filter(l => l.includes('"outcome":"ok"'))).toHaveLength(1)
+      await vi.waitFor(() => expect(closes).toHaveLength(1))
+    })
   })
 
   it('after the soft deadline the next step has no tool choice and is told to give a partial answer', async () => {

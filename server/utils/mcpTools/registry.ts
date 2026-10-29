@@ -4,6 +4,7 @@ import { getGitlabMergeRequestTool } from './getGitlabMergeRequest';
 import { getGitlabWikiPageTool } from './getGitlabWikiPage';
 import { getIssueTool } from './getIssue';
 import { getIssuesByVersionTool } from './getIssuesByVersion';
+import { getIssuesByVersionRangeTool } from './getIssuesByVersionRange';
 import { getThisWeekReleasesTool } from './getThisWeekReleases';
 import { listGitlabBranchesTool } from './listGitlabBranches';
 import { listGitlabWikiPagesTool } from './listGitlabWikiPages';
@@ -23,6 +24,7 @@ export const mcpTools: McpToolDef[] = [
   listProjectsTool,
   listVersionsTool,
   getIssuesByVersionTool,
+  getIssuesByVersionRangeTool,
   getIssueTool,
   getIssueGraphTool,
   listGitlabBranchesTool,
