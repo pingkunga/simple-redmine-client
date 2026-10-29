@@ -14,7 +14,9 @@ export default defineVitestConfig({
           fileName: '.env.test',
         },
         overrides: {
-          // Your overrides here
+          // Nuxt's app manifest fetch runs on a timer; on a fast CI runner it fires after the test
+          // environment is torn down ("$fetch is not defined") and fails the run. Tests don't need it.
+          experimental: { appManifest: false },
         },
       },
     },
