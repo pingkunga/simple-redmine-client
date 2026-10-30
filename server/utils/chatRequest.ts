@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const MAX_BODY_BYTES = 64 * 1024;
 export const MAX_MESSAGES = 30;
-export const MAX_TOTAL_CHARS = 8000;
+export const MAX_TOTAL_CHARS = 16000;
 
 export class ChatInputError extends Error {
   constructor(public status: number, message: string) {
