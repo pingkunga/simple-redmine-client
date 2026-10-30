@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const MAX_BODY_BYTES = 64 * 1024;
+// At least MAX_TOTAL_CHARS * 3 bytes (Thai is 3 bytes/char in UTF-8) plus ~4 KB of JSON overhead.
+export const MAX_BODY_BYTES = 128 * 1024;
 export const MAX_MESSAGES = 30;
 export const MAX_TOTAL_CHARS = 16000;
 
