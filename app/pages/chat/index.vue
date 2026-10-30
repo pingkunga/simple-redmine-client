@@ -99,6 +99,7 @@ import { Chat } from '@ai-sdk/vue';
 import { DefaultChatTransport } from 'ai';
 import { renderMarkdown } from '~/utils/renderMarkdown';
 import { chatFileName, chatToMarkdown } from '~/utils/chatExport';
+import { toTextOnlyMessages } from '~/utils/chatRequestBody';
 
 const examples = [
   'version ไหน Buildวันศุกร์นี้ ใครดูแล',
@@ -126,6 +127,10 @@ const chat = new Chat({
     // Evaluated per request, so flipping the switch needs no chat reset.
     headers: (): Record<string, string> =>
       !isUseServerToken.value && accessKey.value ? { [YourOwnRedmineAPI]: accessKey.value } : {},
+    // The server only reads text parts; resending tool results made the body hit the size cap (413).
+    prepareSendMessagesRequest: ({ body, messages }) => ({
+      body: { ...body, messages: toTextOnlyMessages(messages) },
+    }),
   }),
   // Keep the real cause for debugging; the page only shows a friendly message.
   onError: (err) => console.error('[chat] request failed', err),
