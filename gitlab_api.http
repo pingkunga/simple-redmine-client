@@ -1,0 +1,9 @@
+@CI_API_V4_URL=http://dev.sample.local/api/v4
+@CI_PROJECT_ID=53
+@CI_MERGE_REQUEST_IID=16851
+@SECRET_GITLABINFO=gitlab_token
+
+
+### Get Merge Request Details
+GET {{CI_API_V4_URL}}/projects/{{CI_PROJECT_ID}}/merge_requests/{{CI_MERGE_REQUEST_IID}}
+PRIVATE-TOKEN: {{SECRET_GITLABINFO}}
