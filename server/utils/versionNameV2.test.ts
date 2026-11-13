@@ -6,12 +6,12 @@ const gen = (date: string, extra = {}) => generateVersionNameV2({ major: 10, min
 
 describe('generateVersionNameV2', () => {
   it.each([
-    ['2026-11-27', '10.1.2611.3', true, '2026-11-29'], // Fri, last Friday of Nov
-    ['2026-11-30', '10.1.2612.0', false, '2026-12-06'], // Mon of a week whose Friday is 4 Dec
-    ['2026-12-04', '10.1.2612.0', false, '2026-12-06'],
-    ['2027-04-21', '10.1.2704.3', false, '2027-04-25'], // Wed; Fridays 2,9,16,23,30 so 23 is not last
-    ['2027-04-30', '10.1.2704.4', true, '2027-05-02'],
-    ['2027-05-03', '10.1.2705.0', false, '2027-05-09'],
+    ['2026-11-27', '10.1.2611.4', true, '2026-11-29'], // Fri, last Friday of Nov
+    ['2026-11-30', '10.1.2612.1', false, '2026-12-06'], // Mon of a week whose Friday is 4 Dec
+    ['2026-12-04', '10.1.2612.1', false, '2026-12-06'],
+    ['2027-04-21', '10.1.2704.4', false, '2027-04-25'], // Wed; Fridays 2,9,16,23,30 so 23 is not last
+    ['2027-04-30', '10.1.2704.5', true, '2027-05-02'],
+    ['2027-05-03', '10.1.2705.1', false, '2027-05-09'],
   ])('%s -> %s', (date, name, isLast, due) => {
     const r = gen(date)
     expect(r.name).toBe(name)
@@ -27,22 +27,22 @@ describe('generateVersionNameV2', () => {
 
   it('Monday to Friday of the same week give the same version', () => {
     const names = ['2026-11-30', '2026-12-01', '2026-12-02', '2026-12-03', '2026-12-04'].map((d) => gen(d).name)
-    expect(new Set(names)).toEqual(new Set(['10.1.2612.0']))
+    expect(new Set(names)).toEqual(new Set(['10.1.2612.1']))
     expect(gen('2026-12-02').weekStart).toBe('2026-11-30')
     expect(gen('2026-12-02').friday).toBe('2026-12-04')
   })
 
   it('YYMM follows the Friday across the year boundary', () => {
-    expect(gen('2026-12-28').name).toBe('10.1.2701.0') // Mon 28 Dec .. Fri 1 Jan
-    expect(gen('2026-12-31').name).toBe('10.1.2701.0') // Thu
-    expect(gen('2026-12-25').name).toBe('10.1.2612.3')
+    expect(gen('2026-12-28').name).toBe('10.1.2701.1') // Mon 28 Dec .. Fri 1 Jan
+    expect(gen('2026-12-31').name).toBe('10.1.2701.1') // Thu
+    expect(gen('2026-12-25').name).toBe('10.1.2612.4')
     expect(gen('2026-12-25').isLastOfMonth).toBe(true)
     expect(gen('2027-12-15').yymm).toBe('2712')
   })
 
-  it('five-Friday month: the fifth Friday is index 4 and Customer', () => {
+  it('five-Friday month: the fifth Friday is week 5 and Customer', () => {
     const r = gen('2027-01-29')
-    expect(r.name).toBe('10.1.2701.4')
+    expect(r.name).toBe('10.1.2701.5')
     expect(r.isLastOfMonth).toBe(true)
   })
 
@@ -56,7 +56,7 @@ describe('generateVersionNameV2', () => {
   })
 
   it('accepts minor 0', () => {
-    expect(generateVersionNameV2({ major: 10, minor: 0, date: '2026-11-27' }).name).toBe('10.0.2611.3')
+    expect(generateVersionNameV2({ major: 10, minor: 0, date: '2026-11-27' }).name).toBe('10.0.2611.4')
   })
 
   describe('without date (today in the configured zone)', () => {
@@ -64,7 +64,7 @@ describe('generateVersionNameV2', () => {
       // 29 Nov 2026 20:00 UTC is already Monday 30 Nov 03:00 in Bangkok
       const r = generateVersionNameV2({ major: 10, minor: 1, now: new Date('2026-11-29T20:00:00Z') })
       expect(r.baseDate).toBe('2026-11-30')
-      expect(r.name).toBe('10.1.2612.0')
+      expect(r.name).toBe('10.1.2612.1')
     })
 
     it('errors when today is Saturday or Sunday in that zone', () => {
@@ -87,13 +87,13 @@ describe('generateVersionNameV2', () => {
     it('moves to the same day of the target month', () => {
       const r = gen('2026-10-27', { monthOffset: 1 }) // Tue 27 Nov, Friday 27 Nov
       expect(r.targetDate).toBe('2026-11-27')
-      expect(r.name).toBe('10.1.2611.3')
+      expect(r.name).toBe('10.1.2611.4')
     })
 
     it('moves a Saturday result to the next Monday', () => {
       const r = gen('2027-03-01', { monthOffset: 2 }) // Mon 1 Mar + 2 -> Sat 1 May 2027
       expect(r.targetDate).toBe('2027-05-03')
-      expect(r.name).toBe('10.1.2705.0')
+      expect(r.name).toBe('10.1.2705.1')
     })
 
     it('moves a Sunday result to the next Monday', () => {

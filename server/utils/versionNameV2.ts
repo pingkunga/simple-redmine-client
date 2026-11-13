@@ -21,7 +21,7 @@ export interface VersionNameV2Result {
   minor: number
   /** YYMM of the week's Friday, e.g. "2612" */
   yymm: string
-  /** D: 0-based index of the week's Friday in its month */
+  /** D: 1-based index of the week's Friday in its month */
   week: number
   isLastOfMonth: boolean
   description: string
@@ -58,7 +58,7 @@ const isWeekend = (d: Date) => getDay(d) === 0 || getDay(d) === 6
 
 /**
  * A.B.C.D = major . minor . YYMM . D
- * A week is Mon-Fri and belongs to the month of its Friday; D is that Friday's 0-based index in
+ * A week is Mon-Fri and belongs to the month of its Friday; D is that Friday's 1-based index in
  * the month and the month's last Friday is the Customer version.
  */
 export function generateVersionNameV2(opts: VersionNameV2Options): VersionNameV2Result {
@@ -75,7 +75,7 @@ export function generateVersionNameV2(opts: VersionNameV2Options): VersionNameV2
   else if (getDay(target) === 0) target = addDays(target, 1)
 
   const friday = addDays(target, 5 - getDay(target))
-  const week = Math.floor((friday.getDate() - 1) / 7)
+  const week = Math.floor((friday.getDate() - 1) / 7) + 1
   const isLastOfMonth = friday.getDate() + 7 > getDaysInMonth(friday)
   const yymm = `${String(friday.getFullYear() % 100).padStart(2, '0')}${String(friday.getMonth() + 1).padStart(2, '0')}`
 

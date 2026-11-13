@@ -31,14 +31,14 @@ describe('buildNextReleaseVersion', () => {
   it('maps the generated name into the Version layout', () => {
     const v = buildNextReleaseVersion({ major: 10, minor: 1, date: '2026-11-27', projectId: 858 }, config)
     expect(v).toMatchObject({
-      id: -1, name: '10.1.2611.3', status: 'open', sharing: 'tree', due_date: '2026-11-29',
-      projectid: 858, scriptBranch: '', meta: { yymm: '2611', week: 3, isLastOfMonth: true },
+      id: -1, name: '10.1.2611.4', status: 'open', sharing: 'tree', due_date: '2026-11-29',
+      projectid: 858, scriptBranch: '', meta: { yymm: '2611', week: 4, isLastOfMonth: true },
     })
   })
 
   it('uses versionMinorDefault when minor is omitted', () => {
     const v = buildNextReleaseVersion({ major: 10, date: '2026-11-27', projectId: 858 }, { ...config, versionMinorDefault: 2 })
-    expect(v.name).toBe('10.2.2611.3')
+    expect(v.name).toBe('10.2.2611.4')
   })
 
   it('a bad versionMinorDefault is a 500', () => {
