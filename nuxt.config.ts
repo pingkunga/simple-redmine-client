@@ -20,7 +20,7 @@ export default defineNuxtConfig({
     jenkinsScriptRepo: process.env.JENKINS_SCRIPT_REPO || "",
     jenkinsDefaultScriptBranch: process.env.JENKINS_DEFAULT_SCRIPT_BRANCH || "master",
     versionMetaDir: process.env.VERSION_META_DIR || "./data/version-meta",
-    // GET /api/v2/versions/next-release: default minor (NUXT_VERSION_MINOR_DEFAULT, 0-99) and the IANA time zone
+    // GET /api/v2/versions/next-release and POST /api/release/next-release: default minor (NUXT_VERSION_MINOR_DEFAULT, 0-99) and the IANA time zone
     // used to read "today" when no date is given (NUXT_VERSION_TIMEZONE).
     versionMinorDefault: 0,
     versionTimezone: "Asia/Bangkok",

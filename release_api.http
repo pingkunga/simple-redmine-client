@@ -1,0 +1,39 @@
+@baseUrl=http://localhost:3000
+@apiKey=YOUR_AUTOMATION_API_KEY
+
+
+### 1) Preview (nothing is created, no auth) - this week
+GET {{baseUrl}}/api/v2/versions/next-release?major=9
+
+### 2) Preview - given date + minor, one month ahead
+GET {{baseUrl}}/api/v2/versions/next-release?major=9&minor=1&date=2026-11-13&monthOffset=1&projectId=858
+
+### 3) Create - no key (expect 401/403)
+POST {{baseUrl}}/api/release/next-release
+Content-Type: application/json
+
+{ "major": 9 }
+
+### 4) Create - Redmine Version only, no Jenkins Version Folder
+POST {{baseUrl}}/api/release/next-release
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "major": 9, "minor": 0, "date": "2026-11-13", "projectId": 858, "createJenkinsFolder": false }
+
+### 5) Create - Redmine Version + Jenkins Version Folder ("" = default Script Branch)
+POST {{baseUrl}}/api/release/next-release
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "major": 9, "projectId": 858, "scriptBranch": "", "createJenkinsFolder": true, "cleanup": true }
+
+### 6) Poll the Jenkins job (jobId from the response of #5)
+GET {{baseUrl}}/api/jenkins/version-folder/REPLACE_WITH_JOB_ID
+
+### 7) Validation error (major missing, monthOffset out of range) - expect 400
+POST {{baseUrl}}/api/release/next-release
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "monthOffset": 99 }

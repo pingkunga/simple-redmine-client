@@ -192,3 +192,14 @@ Invoke-RestMethod -Method Post -Uri "http://192.168.1.222:3002/api/release/send-
 
 
 Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/release/thisweek-release" -Headers $headers 
+
+
+# Create the next release Version (Redmine + Jenkins Version Folder); preview first with GET /api/v2/versions/next-release?major=9. More samples: release_api.http
+$body = @{
+    major               = 9
+    projectId           = 858
+    scriptBranch        = ""
+    createJenkinsFolder = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/release/next-release" -Headers $headers -Body $body
